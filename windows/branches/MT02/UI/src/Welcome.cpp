@@ -30,12 +30,11 @@ void CWelcome::DoDataExchange(CDataExchange* pDX)
 
 BOOL CWelcome::OnInitDialog(){
     CString s1;
+
+    s1.LoadString(IDS_WELCOME); SetWindowText(s1);
+
     OutlookConfig * config = OutlookConfig::getInstance();
-    if (getBuildNumberFromVersion(config->getDeviceConfig().getSwv()) == 10101) {
-        s1.LoadString(IDS_WELCOME_MESSAGE);
-    } else {
-        s1.LoadString(IDS_WELCOME_MESSAGE2);
-    }
+    s1.LoadString(IDS_WELCOME_MESSAGE);
     SetDlgItemText(IDC_WELCOME_MESSAGE, s1);
     CDialog::OnInitDialog();
 
