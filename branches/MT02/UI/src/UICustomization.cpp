@@ -67,3 +67,7 @@ const bool   UICustomization::confirmOnRefreshFromServer   = true;
 // Log options
 const bool   UICustomization::logRotateOptions             = true;
 const bool   UICustomization::sendLogs                     = true;
+
+
+const bool   UICustomization::showWelcomeMessage           = false;
+const bool   UICustomization::showUpgradingMessage         = false;

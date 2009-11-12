@@ -73,6 +73,9 @@ public:
     const static bool   sendLogs;
     const static bool   logRotateOptions;
 
+    const static bool   showWelcomeMessage;
+    const static bool   showUpgradingMessage;
+
 };
 
 #endif //_CUSTOMIZATION_H_
