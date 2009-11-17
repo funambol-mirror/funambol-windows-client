@@ -37,17 +37,17 @@
 #include "UICustomization.h"
 
 const bool UICustomization::forceUseSubfolders             = false;
-const bool UICustomization::clearAnchorsOnFolderChange     = false;
-const bool UICustomization::hideDataFormats                = true;
+const bool UICustomization::clearAnchorsOnFolderChange     = true;
+const bool UICustomization::hideDataFormats                = false;
 
-const bool UICustomization::shared                         = true;
+const bool UICustomization::shared                         = false;
 
-const bool UICustomization::lockCalendarFilter             = true;
+const bool UICustomization::lockCalendarFilter             = false;
 const int  UICustomization::lockCalendarFilterValue        = 3;
 
-const bool UICustomization::showWarningOnChangeFromOneWay  = true;
+const bool UICustomization::showWarningOnChangeFromOneWay  = false;
 
-const bool UICustomization::defaultFullSyncFromClient      = false;
+const bool UICustomization::defaultFullSyncFromClient      = true;
 
 const int  UICustomization::syncAllTextRed                 = 0;
 const int  UICustomization::syncAllTextGreen               = 0;
@@ -65,8 +65,8 @@ const bool   UICustomization::confirmOnRefreshFromClient   = true;
 const bool   UICustomization::confirmOnRefreshFromServer   = true;
 
 // Log options
-const bool   UICustomization::logRotateOptions             = true;
-const bool   UICustomization::sendLogs                     = true;
+const bool   UICustomization::logRotateOptions             = false;
+const bool   UICustomization::sendLogs                     = false;
 
 
 const bool   UICustomization::showWelcomeMessage           = false;
