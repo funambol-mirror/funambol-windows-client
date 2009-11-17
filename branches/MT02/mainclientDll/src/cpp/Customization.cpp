@@ -6,18 +6,18 @@ const char * DLLCustomization::updateUrl = "http://sync.emailsrvr.com/update-ser
 // Source defaults
 const char * DLLCustomization::sourceDefaultEncoding = "";
 
-const bool   DLLCustomization::sourceNotesDefaultSif    = false;
+const bool   DLLCustomization::sourceNotesDefaultSif    = true;
 const char * DLLCustomization::sourceNotesSifUri        = "snote";
-const char * DLLCustomization::sourceNotesVnoteUri      = "notes-shared";
+const char * DLLCustomization::sourceNotesVnoteUri      = "note";
 
-const bool   DLLCustomization::sourceTasksDefaultSif    = false;
+const bool   DLLCustomization::sourceTasksDefaultSif    = true;
 const char * DLLCustomization::sourceTasksSifUri        = "stask";
-const char * DLLCustomization::sourceTasksVcalUri       = "tasks-shared";
+const char * DLLCustomization::sourceTasksVcalUri       = "task";
 
 const bool   DLLCustomization::sourceCalendarDefaultSif = false;
-const char * DLLCustomization::sourceCalendarSifUri     = "snote";
-const char * DLLCustomization::sourceCalendarVcalUri    = "calendar-shared";
+const char * DLLCustomization::sourceCalendarSifUri     = "sevent";
+const char * DLLCustomization::sourceCalendarVcalUri    = "event";
 
 const bool   DLLCustomization::sourceContactsDefaultSif = false;
-const char * DLLCustomization::sourceContactsSifUri     = "snote";
-const char * DLLCustomization::sourceContactsVcardUri   = "contacts-shared";
+const char * DLLCustomization::sourceContactsSifUri     = "scard";
+const char * DLLCustomization::sourceContactsVcardUri   = "card";
