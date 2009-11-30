@@ -49,9 +49,9 @@ const bool UICustomization::showWarningOnChangeFromOneWay  = false;
 
 const bool UICustomization::defaultFullSyncFromClient      = true;
 
-const int  UICustomization::syncAllTextRed                 = 0;
-const int  UICustomization::syncAllTextGreen               = 0;
-const int  UICustomization::syncAllTextBlue                = 0;
+const int  UICustomization::syncAllTextRed                 = 255;
+const int  UICustomization::syncAllTextGreen               = 255;
+const int  UICustomization::syncAllTextBlue                = 255;
 
 const char * UICustomization::scheduleMinutes []           = {"15", "30", "45", NULL};
 const char * UICustomization::scheduleHours   []           = {"1", "2", "4", "6", "8", "12", "24", NULL};
