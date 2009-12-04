@@ -41,7 +41,6 @@
 /** @{ */
 
 #include "outlook/defs.h"
-#include "outlook/ClientRecipient.h"
 
 #include <string>
 #include <list>
@@ -73,6 +72,8 @@ private:
 
     bool read();
     bool parseNamedEmail(const std::wstring & namedEmail);
+
+    void fixExchangeAddress();
 };
 
 /** @} */
