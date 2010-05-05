@@ -63,10 +63,6 @@ public:
     const static int    syncAllTextGreen;
     const static int    syncAllTextBlue;
 
-    const static char * scheduleMinutes[];
-    const static char * scheduleHours[];
-    const static int    defaultScheduleIndex;
-
     const static bool   menuHelpUpdate;
 
     const static bool   attachOption;
