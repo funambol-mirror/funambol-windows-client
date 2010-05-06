@@ -35,8 +35,6 @@
 
 #include "customization.h"
 
-const char * DLLCustomization::updateUrl = "http://sync.emailsrvr.com/update-server/update.php";
-
 // Source defaults
 const char * DLLCustomization::sourceDefaultEncoding    = "bin";
 

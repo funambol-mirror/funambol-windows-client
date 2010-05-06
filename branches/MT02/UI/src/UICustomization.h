@@ -63,8 +63,6 @@ public:
     const static int    syncAllTextGreen;
     const static int    syncAllTextBlue;
 
-    const static bool   menuHelpUpdate;
-
     const static bool   attachOption;
 
     const static bool   confirmOnRefreshFromClient;

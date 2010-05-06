@@ -51,8 +51,6 @@ const int  UICustomization::syncAllTextRed                 = 255;
 const int  UICustomization::syncAllTextGreen               = 255;
 const int  UICustomization::syncAllTextBlue                = 255;
 
-const bool   UICustomization::menuHelpUpdate               = false;
-
 const bool   UICustomization::attachOption                 = false;
 
 const bool   UICustomization::defaultFullSyncFromClient    = true;
