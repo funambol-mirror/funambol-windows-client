@@ -46,33 +46,25 @@ private:
     UICustomization() {}
 
 public:
-    const static bool   forceUseSubfolders;
-    const static bool   clearAnchorsOnFolderChange;
-    const static bool   hideDataFormats;
 
-    const static bool   shared;
-
-    const static bool   lockCalendarFilter;
-    const static int    lockCalendarFilterValue;
-
-    const static bool   showWarningOnChangeFromOneWay;
-
-    const static bool   defaultFullSyncFromClient;
-
-    const static int    syncAllTextRed;
-    const static int    syncAllTextGreen;
-    const static int    syncAllTextBlue;
-
-    const static bool   attachOption;
-
-    const static bool   confirmOnRefreshFromClient;
-    const static bool   confirmOnRefreshFromServer;
-
-    const static bool   sendLogs;
-    const static bool   logRotateOptions;
-
-    const static bool   showWelcomeMessage;
-    const static bool   showUpgradingMessage;
+    const static bool   forceUseSubfolders;             /**< hide the "include subfolders" UI checkbox, and force as it was enabled */
+    const static bool   clearAnchorsOnFolderChange;     /**< forces a slow if sync folder changed from client's settings (PIM only) */
+    const static bool   hideDataFormats;                /**< hides the "Data Format" section in the sources details screen */
+    const static bool   shared;                         /**< Enables the Shared folder sync (checkbox in the sources details screen) */
+    const static bool   lockCalendarFilter;             /**< Locks the calendar filtering on a value (cannot be changed from UI) */
+    const static int    lockCalendarFilterValue;        /**< The index where the calendar is locked (used only if lockCalendarFilter = true) */
+    const static bool   showWarningOnChangeFromOneWay;  /**< Shows a warning popup if sync mode changed from one-way to two-way (in sources details screen) */
+    const static bool   defaultFullSyncFromClient;      /**< Recover screen: if true, the default direction is client-to-server */
+    const static int    syncAllTextRed;                 /**< The "syncAll" text color, expressed in RGB values (RED value) */
+    const static int    syncAllTextGreen;               /**< The "syncAll" text color, expressed in RGB values (GREEN value) */
+    const static int    syncAllTextBlue;                /**< The "syncAll" text color, expressed in RGB values (BLUE value) */
+    const static bool   attachOption;                   /**< Adds a "Only sync when Outlook is open" checkbox in the scheduler settings */
+    const static bool   confirmOnRefreshFromClient;     /**< Recover screen: shows a warning message before starting a "refresh-from-client" sync */
+    const static bool   confirmOnRefreshFromServer;     /**< Recover screen: shows a warning message before starting a "refresh-from-server" sync */
+    const static bool   sendLogs;                       /**< Shows log rotation options in logging screen: log size (1<->20MB) and log files number (1<->20) */
+    const static bool   logRotateOptions;               /**< Shows "Send Log" button in the logging screen */
+    const static bool   showWelcomeMessage;             /**< Shows a welcome screen at first run or in case of upgrade */
+    const static bool   showUpgradingMessage;           /**< Shows a small popup screen during the upgrade: "Upgrading Sync for Outlook" */
 
 };
 
