@@ -88,6 +88,7 @@ CFilesSettings::~CFilesSettings() {}
 void CFilesSettings::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
+    DDX_Control(pDX, IDC_FILES_COMBO_SYNCTYPE,  lstSyncType);
     DDX_Control(pDX, IDC_FILES_EDIT_SYNCTYPE,   editSyncType);
     DDX_Control(pDX, IDC_FILES_EDIT_FOLDER,     editFolder);
     DDX_Control(pDX, IDC_FILES_BUT_SELECT,      butSelectFolder);
@@ -132,7 +133,7 @@ BOOL CFilesSettings::OnInitDialog() {
     editSyncType.SetLimitText(EDIT_TEXT_MAXLENGTH);
     editFolder.SetLimitText  (EDIT_TEXT_MAXLENGTH);
     editRemote.SetLimitText  (EDIT_TEXT_MAXLENGTH);
-    
+        
     // Load the syncmodes in the editbox/dropdown
     loadSyncModesBox(FILES_);
 
@@ -147,6 +148,8 @@ BOOL CFilesSettings::OnInitDialog() {
     s1.LoadString(IDS_OK);                  SetDlgItemText(IDC_FILES_OK,                 s1);
     s1.LoadString(IDS_CANCEL);              SetDlgItemText(IDC_FILES_CANCEL,             s1);
 
+     // Sync type
+    lstSyncType.SetCurSel(getSyncTypeIndex(ssconf->getSync()));
 
     // Sync type
     int id = getFilesSyncTypeID(ssconf->getSync());
@@ -277,6 +280,9 @@ bool CFilesSettings::saveSettings(bool saveToDisk) {
     // Never save to winreg, will save when 'OK' is clicked on SyncSettings.
     //if(saveToDisk)
     //    ((OutlookConfig*)getConfig())->save();
+    if (lstSyncType.IsWindowVisible()) {
+        ssconf->setSync(getSyncTypeName(lstSyncType.GetCurSel()));
+    }
     return true;
 }
 
