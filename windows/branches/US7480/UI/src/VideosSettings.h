@@ -81,7 +81,7 @@ protected:
     virtual BOOL OnInitDialog();
 
     DECLARE_MESSAGE_MAP()
-
+    CComboBox lstSyncType;
     CEdit     editSyncType;
     CEdit     editFolder;
     CButton   checkInclude;
