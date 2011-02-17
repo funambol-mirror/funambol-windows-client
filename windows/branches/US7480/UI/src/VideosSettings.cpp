@@ -187,6 +187,7 @@ BOOL CVideosSettings::OnInitDialog() {
     }
     SetDlgItemText(IDC_VIDEOS_MIME_TYPE, s1);
 
+    butSelectFolder.EnableWindow(FALSE);
 
     //
     // Hide Advanced settings (remote URI) if defined in customization.h

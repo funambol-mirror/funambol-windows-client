@@ -186,6 +186,7 @@ BOOL CFilesSettings::OnInitDialog() {
     }
     SetDlgItemText(IDC_FILES_MIME_TYPE, s1);
 
+    butSelectFolder.EnableWindow(FALSE);
     
     //
     // Hide Advanced settings (remote URI) if defined in customization.h
