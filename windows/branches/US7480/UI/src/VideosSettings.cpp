@@ -392,21 +392,34 @@ void CVideosSettings::loadSyncModesBox(const char* sourceName)
 
 void CVideosSettings::OnCbnSelchangeVideosComboSynctype()
 {
-    int comboBoxResourceID = IDC_VIDEOS_COMBO_SYNCTYPE;
-    CComboBox* combobox = (CComboBox*)GetDlgItem(comboBoxResourceID);
+    // Supported data format
+    StringBuffer supportedData("\nSupported formats are: ");
+    supportedData += ssconf->getCommonConfig()->getProperty(PROPERTY_EXTENSION);
+    CString suppData = supportedData;
+
+    int index = 0;
+    if (lstSyncType.GetCount() > 1) {
+        index = lstSyncType.GetCurSel();
+    } else {
+        // Fixed, 1 synctype only, get from config.
+        index = getSyncTypeIndex(ssconf->getSync());
+    }
+
     CString s1;
-    int index = combobox->GetCurSel();
     switch (index) {
         case 0:
             s1.LoadString(IDS_TWO_WAY_LABEL_PICT_SUMMARY);
+            s1.Append(suppData);
             SetDlgItemText(IDC_VIDEOS_SYNC_DIRECTION_LABEL, s1);
             break;
         case 1:
-            s1.LoadString(IDS_DOWNLOAD_ONLY_LABEL_PICT_SUMMARY);            
+            s1.LoadString(IDS_DOWNLOAD_ONLY_LABEL_PICT_SUMMARY);        
+            s1.Append(suppData);
             SetDlgItemText(IDC_VIDEOS_SYNC_DIRECTION_LABEL, s1);
             break;
         case 2:
             s1.LoadString(IDS_UPLOAD_ONLY_LABEL_PICT_SUMMARY);
+            s1.Append(suppData);
             SetDlgItemText(IDC_VIDEOS_SYNC_DIRECTION_LABEL, s1);
             break;
     }
