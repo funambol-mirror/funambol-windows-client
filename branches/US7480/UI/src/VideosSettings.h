@@ -86,7 +86,6 @@ protected:
     CEdit     editFolder;
     CButton   checkInclude;
     CButton   butSelectFolder;
-    CEdit     editRemote;
     CStatic   groupDirection;
     CStatic   groupFolder;
     CStatic   groupAdvanced;
@@ -109,6 +108,8 @@ public:
     afx_msg void OnBnClickedVideosOk();
     afx_msg void OnBnClickedVideosCancel();
     afx_msg void OnBnClickedVideosButSelect();
+
+    afx_msg void OnCbnSelchangeVideosComboSynctype();
 };
 
 /** @} */

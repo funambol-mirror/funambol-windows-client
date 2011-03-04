@@ -91,8 +91,7 @@ void CVideosSettings::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_VIDEOS_COMBO_SYNCTYPE,  lstSyncType);
     DDX_Control(pDX, IDC_VIDEOS_EDIT_SYNCTYPE,   editSyncType);
     DDX_Control(pDX, IDC_VIDEOS_EDIT_FOLDER,     editFolder);
-    DDX_Control(pDX, IDC_VIDEOS_BUT_SELECT,      butSelectFolder);
-    DDX_Control(pDX, IDC_VIDEOS_EDIT_REMOTE,     editRemote);
+    DDX_Control(pDX, IDC_VIDEOS_BUT_SELECT,      butSelectFolder);    
     DDX_Control(pDX, IDC_VIDEOS_GROUP_DIRECTION, groupDirection);
     DDX_Control(pDX, IDC_VIDEOS_GROUP_FOLDER,    groupFolder);
     DDX_Control(pDX, IDC_VIDEOS_GROUP_ADVANCED,  groupAdvanced);
@@ -102,6 +101,7 @@ BEGIN_MESSAGE_MAP(CVideosSettings, CDialog)
     ON_BN_CLICKED(IDC_VIDEOS_OK,         &CVideosSettings::OnBnClickedVideosOk)
     ON_BN_CLICKED(IDC_VIDEOS_CANCEL,     &CVideosSettings::OnBnClickedVideosCancel)
     ON_BN_CLICKED(IDC_VIDEOS_BUT_SELECT, &CVideosSettings::OnBnClickedVideosButSelect)
+    ON_CBN_SELCHANGE(IDC_VIDEOS_COMBO_SYNCTYPE, &CVideosSettings::OnCbnSelchangeVideosComboSynctype)
 END_MESSAGE_MAP()
 
 
@@ -125,14 +125,14 @@ BOOL CVideosSettings::OnInitDialog() {
 
     if (!ssconf) return FALSE;
 
+    bool showAdvanced = true;
     CString s1;
     s1.LoadString(IDS_VIDEOS_DETAILS);
     SetWindowText(s1);
     CDialog::OnInitDialog();
 
     editSyncType.SetLimitText(EDIT_TEXT_MAXLENGTH);
-    editFolder.SetLimitText  (EDIT_TEXT_MAXLENGTH);
-    editRemote.SetLimitText  (EDIT_TEXT_MAXLENGTH);
+    editFolder.SetLimitText  (EDIT_TEXT_MAXLENGTH);    
 
     // Load the syncmodes in the editbox/dropdown
     loadSyncModesBox(VIDEO_);
@@ -142,15 +142,16 @@ BOOL CVideosSettings::OnInitDialog() {
     s1.LoadString(IDS_VIDEOS_FOLDER);       SetDlgItemText(IDC_VIDEOS_GROUP_FOLDER,       s1);
     s1.LoadString(IDS_CURRENT);             SetDlgItemText(IDC_VIDEOS_STATIC_FOLDER,      s1);
     s1.LoadString(IDS_SELECT_FOLDER);       SetDlgItemText(IDC_VIDEOS_BUT_SELECT,         s1);
-    s1.LoadString(IDS_REMOTE_NAME);         SetDlgItemText(IDC_VIDEOS_STATIC_REMOTE,      s1);
     s1.LoadString(IDS_DATA_FORMAT);         SetDlgItemText(IDC_VIDEOS_STATIC_DATAFORMAT,  s1);
     s1.LoadString(IDS_ADVANCED);            SetDlgItemText(IDC_VIDEOS_GROUP_ADVANCED,     s1);
     s1.LoadString(IDS_OK);                  SetDlgItemText(IDC_VIDEOS_OK,                 s1);
     s1.LoadString(IDS_CANCEL);              SetDlgItemText(IDC_VIDEOS_CANCEL,             s1);
 
+    s1.LoadString(IDS_SUPPORTED_FORMAT);    SetDlgItemText(IDC_VIDEOS_STATIC_DATAFORMAT,  s1);        
     
     // Sync type
     lstSyncType.SetCurSel(getSyncTypeIndex(ssconf->getSync()));
+    OnCbnSelchangeVideosComboSynctype();
 
     // Sync type
     int id = getVideosSyncTypeID(ssconf->getSync());
@@ -168,34 +169,26 @@ BOOL CVideosSettings::OnInitDialog() {
     s1 = wpath;
     delete [] wpath;
     SetDlgItemText(IDC_VIDEOS_EDIT_FOLDER, s1);
-
-
-    // Remote URI
-    WCHAR* remName = toWideChar(ssconf->getURI());
-    s1 = remName;
-    delete [] remName;
-    SetDlgItemText(IDC_VIDEOS_EDIT_REMOTE, s1);
-
-    // Data format (mime type)
-    StringBuffer mimeType(ssconf->getType());
-    if (mimeType == "application/vnd.omads-file+xml") {
-        s1.LoadString(IDS_VIDEOS_OMA_FILEDATA);
-    } else if (mimeType == "application/*") {
-        s1.LoadString(IDS_VIDEOS_RAW_FILEDATA);
+    
+    // Supported data format
+    StringBuffer supportedData;
+    supportedData = ssconf->getCommonConfig()->getProperty(PROPERTY_EXTENSION);
+    if (supportedData.empty() == false) {
+        s1 = supportedData;
+        SetDlgItemText(IDC_VIDEOS_MIME_TYPE, s1);
     } else {
-        s1 = mimeType;  // unknown
-    }
-    SetDlgItemText(IDC_VIDEOS_MIME_TYPE, s1);
+        showAdvanced = false;
+    }    
 
     butSelectFolder.EnableWindow(FALSE);
 
     //
     // Hide Advanced settings (remote URI) if defined in customization.h
     //
-    if(!SHOW_ADVANCED_SETTINGS) {
+    if(!SHOW_ADVANCED_SETTINGS || showAdvanced == false) {
+           
         groupAdvanced.ShowWindow(SW_HIDE);
-        editRemote.ShowWindow(SW_HIDE);
-        GetDlgItem(IDC_VIDEOS_STATIC_REMOTE)->ShowWindow(SW_HIDE);
+        GetDlgItem(IDC_VIDEOS_MIME_TYPE)->ShowWindow(SW_HIDE);            
         GetDlgItem(IDC_VIDEOS_STATIC_DATAFORMAT)->ShowWindow(SW_HIDE);
 
         // Redraw buttons 'OK' and 'Cancel' where the groupAdvanced was located
@@ -216,6 +209,7 @@ BOOL CVideosSettings::OnInitDialog() {
         // Resize window, now it's smaller
         int newHeight = top + rectOk.Height() + 50;     // 50 = some space
         this->SetWindowPos(&CWnd::wndTop, NULL, NULL, rectDialog.Width(), newHeight, SWP_SHOWWINDOW | SWP_NOMOVE);
+        
     }
 
     // disable windows xp theme, otherwise any color setting for groupbox
@@ -228,7 +222,7 @@ BOOL CVideosSettings::OnInitDialog() {
         pfnSetWindowTheme (groupAdvanced.m_hWnd,  L" ", L" ");
     }
 
-    editRemote.SetFocus();
+    
     return FALSE;
 }
 
@@ -251,19 +245,11 @@ bool CVideosSettings::saveSettings(bool saveToDisk) {
 
     if (!ssconf) return FALSE;
 
-    CString remoteName, videosPath;
+    CString videosPath;
     CString s1;
     _bstr_t bst;
 
-    GetDlgItemText(IDC_VIDEOS_EDIT_REMOTE, remoteName);
     GetDlgItemText(IDC_VIDEOS_EDIT_FOLDER, videosPath);
-
-    // change values
-    if (remoteName == ""){
-        s1.LoadString(IDS_ERROR_SET_REMOTE_NAME);
-        wsafeMessageBox(s1);
-        return false;
-    }
 
     // Note: use 'toMultibyte' which uses charset UTF-8.
     //       (when writing to winreg, toWideChar is then called)
@@ -271,13 +257,7 @@ bool CVideosSettings::saveSettings(bool saveToDisk) {
     if (path) {
         ssconf->setFolderPath(path);
         delete [] path;
-    }
-
-    char* remName = toMultibyte(remoteName.GetBuffer());
-    if (remName) {
-        ssconf->setURI(remName);
-        delete [] remName;
-    }
+    }    
 
     // Never save to winreg, will save when 'OK' is clicked on SyncSettings.
     //if(saveToDisk)
@@ -407,5 +387,27 @@ void CVideosSettings::loadSyncModesBox(const char* sourceName)
         editbox->ShowWindow(SW_SHOW);
         combobox->ShowWindow(SW_HIDE);
         SetDlgItemText(editBoxResourceID, s1);
+    }
+}
+
+void CVideosSettings::OnCbnSelchangeVideosComboSynctype()
+{
+    int comboBoxResourceID = IDC_VIDEOS_COMBO_SYNCTYPE;
+    CComboBox* combobox = (CComboBox*)GetDlgItem(comboBoxResourceID);
+    CString s1;
+    int index = combobox->GetCurSel();
+    switch (index) {
+        case 0:
+            s1.LoadString(IDS_TWO_WAY_LABEL_PICT_SUMMARY);
+            SetDlgItemText(IDC_VIDEOS_SYNC_DIRECTION_LABEL, s1);
+            break;
+        case 1:
+            s1.LoadString(IDS_DOWNLOAD_ONLY_LABEL_PICT_SUMMARY);            
+            SetDlgItemText(IDC_VIDEOS_SYNC_DIRECTION_LABEL, s1);
+            break;
+        case 2:
+            s1.LoadString(IDS_UPLOAD_ONLY_LABEL_PICT_SUMMARY);
+            SetDlgItemText(IDC_VIDEOS_SYNC_DIRECTION_LABEL, s1);
+            break;
     }
 }
