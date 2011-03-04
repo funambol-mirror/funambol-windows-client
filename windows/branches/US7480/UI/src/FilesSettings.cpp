@@ -91,8 +91,7 @@ void CFilesSettings::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_FILES_COMBO_SYNCTYPE,  lstSyncType);
     DDX_Control(pDX, IDC_FILES_EDIT_SYNCTYPE,   editSyncType);
     DDX_Control(pDX, IDC_FILES_EDIT_FOLDER,     editFolder);
-    DDX_Control(pDX, IDC_FILES_BUT_SELECT,      butSelectFolder);
-    DDX_Control(pDX, IDC_FILES_EDIT_REMOTE,     editRemote);
+    DDX_Control(pDX, IDC_FILES_BUT_SELECT,      butSelectFolder);    
     DDX_Control(pDX, IDC_FILES_GROUP_DIRECTION, groupDirection);
     DDX_Control(pDX, IDC_FILES_GROUP_FOLDER,    groupFolder);
     DDX_Control(pDX, IDC_FILES_GROUP_ADVANCED,  groupAdvanced);
@@ -102,6 +101,7 @@ BEGIN_MESSAGE_MAP(CFilesSettings, CDialog)
     ON_BN_CLICKED(IDC_FILES_OK,         &CFilesSettings::OnBnClickedFilesOk)
     ON_BN_CLICKED(IDC_FILES_CANCEL,     &CFilesSettings::OnBnClickedFilesCancel)
     ON_BN_CLICKED(IDC_FILES_BUT_SELECT, &CFilesSettings::OnBnClickedFilesButSelect)
+    ON_CBN_SELCHANGE(IDC_FILES_COMBO_SYNCTYPE, &CFilesSettings::OnCbnSelchangeFilesComboSynctype)
 END_MESSAGE_MAP()
 
 
@@ -125,14 +125,14 @@ BOOL CFilesSettings::OnInitDialog() {
 
     if (!ssconf) return FALSE;
 
+    bool showAdvanced = true;
     CString s1;
     s1.LoadString(IDS_FILES_DETAILS);
     SetWindowText(s1);
     CDialog::OnInitDialog();
 
     editSyncType.SetLimitText(EDIT_TEXT_MAXLENGTH);
-    editFolder.SetLimitText  (EDIT_TEXT_MAXLENGTH);
-    editRemote.SetLimitText  (EDIT_TEXT_MAXLENGTH);
+    editFolder.SetLimitText  (EDIT_TEXT_MAXLENGTH);    
         
     // Load the syncmodes in the editbox/dropdown
     loadSyncModesBox(FILES_);
@@ -141,8 +141,7 @@ BOOL CFilesSettings::OnInitDialog() {
     s1.LoadString(IDS_SYNC_DIRECTION);      SetDlgItemText(IDC_FILES_GROUP_DIRECTION,    s1);
     s1.LoadString(IDS_FILES_FOLDER);     SetDlgItemText(IDC_FILES_GROUP_FOLDER,       s1);
     s1.LoadString(IDS_CURRENT);             SetDlgItemText(IDC_FILES_STATIC_FOLDER,      s1);
-    s1.LoadString(IDS_SELECT_FOLDER);       SetDlgItemText(IDC_FILES_BUT_SELECT,         s1);
-    s1.LoadString(IDS_REMOTE_NAME);         SetDlgItemText(IDC_FILES_STATIC_REMOTE,      s1);
+    s1.LoadString(IDS_SELECT_FOLDER);       SetDlgItemText(IDC_FILES_BUT_SELECT,         s1);    
     s1.LoadString(IDS_DATA_FORMAT);         SetDlgItemText(IDC_FILES_STATIC_DATAFORMAT,  s1);
     s1.LoadString(IDS_ADVANCED);            SetDlgItemText(IDC_FILES_GROUP_ADVANCED,     s1);
     s1.LoadString(IDS_OK);                  SetDlgItemText(IDC_FILES_OK,                 s1);
@@ -150,6 +149,7 @@ BOOL CFilesSettings::OnInitDialog() {
 
      // Sync type
     lstSyncType.SetCurSel(getSyncTypeIndex(ssconf->getSync()));
+    OnCbnSelchangeFilesComboSynctype();
 
     // Sync type
     int id = getFilesSyncTypeID(ssconf->getSync());
@@ -167,34 +167,26 @@ BOOL CFilesSettings::OnInitDialog() {
     s1 = wpath;
     delete [] wpath;
     SetDlgItemText(IDC_FILES_EDIT_FOLDER, s1);
+       
 
-
-    // Remote URI
-    WCHAR* remName = toWideChar(ssconf->getURI());
-    s1 = remName;
-    delete [] remName;
-    SetDlgItemText(IDC_FILES_EDIT_REMOTE, s1);
-
-    // Data format (mime type)
-    StringBuffer mimeType(ssconf->getType());
-    if (mimeType == "application/vnd.omads-file+xml") {
-        s1.LoadString(IDS_FILES_OMA_FILEDATA);
-    } else if (mimeType == "application/*") {
-        s1.LoadString(IDS_FILES_RAW_FILEDATA);
+    // Supported data format
+    StringBuffer supportedData;
+    supportedData = ssconf->getCommonConfig()->getProperty(PROPERTY_EXTENSION);
+    if (supportedData.empty() == false) {
+        s1 = supportedData;
+        SetDlgItemText(IDC_FILES_MIME_TYPE, s1);
     } else {
-        s1 = mimeType;  // unknown
-    }
-    SetDlgItemText(IDC_FILES_MIME_TYPE, s1);
+        showAdvanced = false;
+    }    
 
     butSelectFolder.EnableWindow(FALSE);
     
     //
     // Hide Advanced settings (remote URI) if defined in customization.h
     //
-    if(!SHOW_ADVANCED_SETTINGS) {
-        groupAdvanced.ShowWindow(SW_HIDE);
-        editRemote.ShowWindow(SW_HIDE);
-        GetDlgItem(IDC_FILES_STATIC_REMOTE)->ShowWindow(SW_HIDE);
+    if(!SHOW_ADVANCED_SETTINGS || showAdvanced == false) {
+        groupAdvanced.ShowWindow(SW_HIDE);                
+        GetDlgItem(IDC_FILES_MIME_TYPE)->ShowWindow(SW_HIDE);            
         GetDlgItem(IDC_FILES_STATIC_DATAFORMAT)->ShowWindow(SW_HIDE);
 
         // Redraw buttons 'OK' and 'Cancel' where the groupAdvanced was located
@@ -227,7 +219,7 @@ BOOL CFilesSettings::OnInitDialog() {
         pfnSetWindowTheme (groupAdvanced.m_hWnd,  L" ", L" ");
     }
 
-    editRemote.SetFocus();
+    
     return FALSE;
 }
 
@@ -250,33 +242,19 @@ bool CFilesSettings::saveSettings(bool saveToDisk) {
 
     if (!ssconf) return FALSE;
 
-    CString remoteName, filesPath;
+    CString filesPath;
     CString s1;
     _bstr_t bst;
 
-    GetDlgItemText(IDC_FILES_EDIT_REMOTE, remoteName);
     GetDlgItemText(IDC_FILES_EDIT_FOLDER, filesPath);
-
-    // change values
-    if (remoteName == ""){
-        s1.LoadString(IDS_ERROR_SET_REMOTE_NAME);
-        wsafeMessageBox(s1);
-        return false;
-    }
+   
 
     // Note: use 'toMultibyte' which uses charset UTF-8.
     //       (when writing to winreg, toWideChar is then called)
     char* path = toMultibyte(filesPath.GetBuffer());
     if (path) {
         ssconf->setFolderPath(path);
-        delete [] path;
-    }
-
-    char* remName = toMultibyte(remoteName.GetBuffer());
-    if (remName) {
-        ssconf->setURI(remName);
-        delete [] remName;
-    }
+        delete [] path;    }    
 
     // Never save to winreg, will save when 'OK' is clicked on SyncSettings.
     //if(saveToDisk)
@@ -405,5 +383,27 @@ void CFilesSettings::loadSyncModesBox(const char* sourceName)
         editbox->ShowWindow(SW_SHOW);
         combobox->ShowWindow(SW_HIDE);
         SetDlgItemText(editBoxResourceID, s1);
+    }
+}
+
+void CFilesSettings::OnCbnSelchangeFilesComboSynctype()
+{
+    int comboBoxResourceID = IDC_FILES_COMBO_SYNCTYPE;
+    CComboBox* combobox = (CComboBox*)GetDlgItem(comboBoxResourceID);
+    CString s1;
+    int index = combobox->GetCurSel();
+    switch (index) {
+        case 0:
+            s1.LoadString(IDS_TWO_WAY_LABEL_PICT_SUMMARY);
+            SetDlgItemText(IDC_FILES_SYNC_DIRECTION_LABEL, s1);
+            break;
+        case 1:
+            s1.LoadString(IDS_DOWNLOAD_ONLY_LABEL_PICT_SUMMARY);            
+            SetDlgItemText(IDC_FILES_SYNC_DIRECTION_LABEL, s1);
+            break;
+        case 2:
+            s1.LoadString(IDS_UPLOAD_ONLY_LABEL_PICT_SUMMARY);
+            SetDlgItemText(IDC_FILES_SYNC_DIRECTION_LABEL, s1);
+            break;
     }
 }
