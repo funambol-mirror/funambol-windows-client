@@ -87,8 +87,7 @@ protected:
     CButton   checkInclude;
     CButton   butSelectFolder;
     CStatic   groupDirection;
-    CStatic   groupFolder;
-    CStatic   groupAdvanced;
+    CStatic   groupFolder;    
 
 public:
 
