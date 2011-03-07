@@ -88,7 +88,7 @@ protected:
     CButton   butSelectFolder;
     CStatic   groupDirection;
     CStatic   groupFolder;
-    CStatic   groupAdvanced;
+    
 
 public:
 

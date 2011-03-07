@@ -94,7 +94,7 @@ void CVideosSettings::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_VIDEOS_BUT_SELECT,      butSelectFolder);    
     DDX_Control(pDX, IDC_VIDEOS_GROUP_DIRECTION, groupDirection);
     DDX_Control(pDX, IDC_VIDEOS_GROUP_FOLDER,    groupFolder);
-    DDX_Control(pDX, IDC_VIDEOS_GROUP_ADVANCED,  groupAdvanced);
+   
 }
 
 BEGIN_MESSAGE_MAP(CVideosSettings, CDialog)
@@ -142,19 +142,16 @@ BOOL CVideosSettings::OnInitDialog() {
     s1.LoadString(IDS_VIDEOS_FOLDER);       SetDlgItemText(IDC_VIDEOS_GROUP_FOLDER,       s1);
     s1.LoadString(IDS_CURRENT);             SetDlgItemText(IDC_VIDEOS_STATIC_FOLDER,      s1);
     s1.LoadString(IDS_SELECT_FOLDER);       SetDlgItemText(IDC_VIDEOS_BUT_SELECT,         s1);
-    s1.LoadString(IDS_DATA_FORMAT);         SetDlgItemText(IDC_VIDEOS_STATIC_DATAFORMAT,  s1);
-    s1.LoadString(IDS_ADVANCED);            SetDlgItemText(IDC_VIDEOS_GROUP_ADVANCED,     s1);
     s1.LoadString(IDS_OK);                  SetDlgItemText(IDC_VIDEOS_OK,                 s1);
     s1.LoadString(IDS_CANCEL);              SetDlgItemText(IDC_VIDEOS_CANCEL,             s1);
 
-    s1.LoadString(IDS_SUPPORTED_FORMAT);    SetDlgItemText(IDC_VIDEOS_STATIC_DATAFORMAT,  s1);        
-    
     // Sync type
     lstSyncType.SetCurSel(getSyncTypeIndex(ssconf->getSync()));
     OnCbnSelchangeVideosComboSynctype();
 
     // Sync type
     int id = getVideosSyncTypeID(ssconf->getSync());
+    
     s1.LoadString(id);
     SetDlgItemText(IDC_VIDEOS_EDIT_SYNCTYPE, s1);
 
@@ -170,47 +167,10 @@ BOOL CVideosSettings::OnInitDialog() {
     delete [] wpath;
     SetDlgItemText(IDC_VIDEOS_EDIT_FOLDER, s1);
     
-    // Supported data format
-    StringBuffer supportedData;
-    supportedData = ssconf->getCommonConfig()->getProperty(PROPERTY_EXTENSION);
-    if (supportedData.empty() == false) {
-        s1 = supportedData;
-        SetDlgItemText(IDC_VIDEOS_MIME_TYPE, s1);
-    } else {
-        showAdvanced = false;
-    }    
+    
 
     butSelectFolder.EnableWindow(FALSE);
 
-    //
-    // Hide Advanced settings (remote URI) if defined in customization.h
-    //
-    if(!SHOW_ADVANCED_SETTINGS || showAdvanced == false) {
-           
-        groupAdvanced.ShowWindow(SW_HIDE);
-        GetDlgItem(IDC_VIDEOS_MIME_TYPE)->ShowWindow(SW_HIDE);            
-        GetDlgItem(IDC_VIDEOS_STATIC_DATAFORMAT)->ShowWindow(SW_HIDE);
-
-        // Redraw buttons 'OK' and 'Cancel' where the groupAdvanced was located
-        CPoint posAdvanced = getRelativePosition(&groupAdvanced, this);
-        int top = posAdvanced.y + 10;   // 10 = some space
-
-        CWnd* butOk     = GetDlgItem(IDC_VIDEOS_OK);
-        CWnd* butCancel = GetDlgItem(IDC_VIDEOS_CANCEL);
-        CRect rectDialog, rectOk;
-        GetClientRect(&rectDialog);
-        butOk->GetClientRect(&rectOk);
-
-        CPoint posOk     = getRelativePosition(butOk,     this);
-        CPoint posCancel = getRelativePosition(butCancel, this);
-        butOk->SetWindowPos    (&CWnd::wndTop, posOk.x,     top, NULL, NULL, SWP_SHOWWINDOW | SWP_NOSIZE);
-        butCancel->SetWindowPos(&CWnd::wndTop, posCancel.x, top, NULL, NULL, SWP_SHOWWINDOW | SWP_NOSIZE);
-
-        // Resize window, now it's smaller
-        int newHeight = top + rectOk.Height() + 50;     // 50 = some space
-        this->SetWindowPos(&CWnd::wndTop, NULL, NULL, rectDialog.Width(), newHeight, SWP_SHOWWINDOW | SWP_NOMOVE);
-        
-    }
 
     // disable windows xp theme, otherwise any color setting for groupbox
     // will be overriden by the theme settings
@@ -219,7 +179,7 @@ BOOL CVideosSettings::OnInitDialog() {
             (PFNSETWINDOWTHEME)GetProcAddress(((COutlookPluginApp*)AfxGetApp())->hLib, "SetWindowTheme");
         pfnSetWindowTheme (groupDirection.m_hWnd, L" ", L" ");
         pfnSetWindowTheme (groupFolder.m_hWnd,    L" ", L" ");
-        pfnSetWindowTheme (groupAdvanced.m_hWnd,  L" ", L" ");
+        
     }
 
     
@@ -393,8 +353,37 @@ void CVideosSettings::loadSyncModesBox(const char* sourceName)
 void CVideosSettings::OnCbnSelchangeVideosComboSynctype()
 {
     // Supported data format
-    StringBuffer supportedData("\nSupported formats are: ");
-    supportedData += ssconf->getCommonConfig()->getProperty(PROPERTY_EXTENSION);
+    StringBuffer supportedData;
+    
+    CString ss(" "), ss1;        
+    ss1.LoadString(IDS_SUPPORTED_FORMAT);
+    ss.Append(ss1);
+    
+    CString And;
+    And.LoadString(IDS_STRING_AND);
+    StringBuffer and(" ");
+    and.append(ConvertToChar(And));
+    and.append(" ");
+       
+    
+    StringBuffer data = ssconf->getCommonConfig()->getProperty(PROPERTY_EXTENSION);    
+    if (data.empty() == false) {
+       
+        supportedData = ConvertToChar(ss);
+        
+        StringBuffer data = ssconf->getCommonConfig()->getProperty(PROPERTY_EXTENSION);    
+        data.upperCase();
+        supportedData.append(data);
+        
+        int val = supportedData.rfind(",.");
+        if (val != StringBuffer::npos) {
+            supportedData.replace(",.", and.c_str(), val);
+        }
+        supportedData.replaceAll(",.",", ");
+        supportedData.replaceAll(".","");    
+        
+    }
+   
     CString suppData = supportedData;
 
     int index = 0;
@@ -408,17 +397,17 @@ void CVideosSettings::OnCbnSelchangeVideosComboSynctype()
     CString s1;
     switch (index) {
         case 0:
-            s1.LoadString(IDS_TWO_WAY_LABEL_PICT_SUMMARY);
+            s1.LoadString(IDS_TWO_WAY_LABEL_VIDEO_SUMMARY);
             s1.Append(suppData);
             SetDlgItemText(IDC_VIDEOS_SYNC_DIRECTION_LABEL, s1);
             break;
         case 1:
-            s1.LoadString(IDS_DOWNLOAD_ONLY_LABEL_PICT_SUMMARY);        
+            s1.LoadString(IDS_DOWNLOAD_ONLY_LABEL_VIDEO_SUMMARY);        
             s1.Append(suppData);
             SetDlgItemText(IDC_VIDEOS_SYNC_DIRECTION_LABEL, s1);
             break;
         case 2:
-            s1.LoadString(IDS_UPLOAD_ONLY_LABEL_PICT_SUMMARY);
+            s1.LoadString(IDS_UPLOAD_ONLY_LABEL_VIDEO_SUMMARY);
             s1.Append(suppData);
             SetDlgItemText(IDC_VIDEOS_SYNC_DIRECTION_LABEL, s1);
             break;
