@@ -353,7 +353,7 @@ void CFilesSettings::OnCbnSelchangeFilesComboSynctype()
 {
     // Supported data format
     StringBuffer supportedData;
-    
+    /*
     CString ss(" "), ss1;        
     ss1.LoadString(IDS_SUPPORTED_FORMAT);
     ss.Append(ss1);
@@ -382,7 +382,7 @@ void CFilesSettings::OnCbnSelchangeFilesComboSynctype()
         supportedData.replaceAll(".","");    
         
     }
-   
+    */
     CString suppData = supportedData;
 
     int index = 0;
