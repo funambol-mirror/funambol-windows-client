@@ -5,6 +5,8 @@
            - Redemption.dll is registered at client startup if necessary 
              (can be skipped during installation if MS Outlook is not installed)
 
+  - magi:  Added backward compatibility support. Removed one-way from client / to server       
+  
 2011-03-25
   - toccy: updated all client UI icons with better graphics
 
