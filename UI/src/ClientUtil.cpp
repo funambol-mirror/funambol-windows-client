@@ -305,9 +305,6 @@ CPoint getMainWindowSize() {
     //
     int sizeX = FRAME_MAIN_X;
     int sizeY = FRAME_MAIN_Y;
-    if (isSourceVisible(PICTURE)) {
-        sizeY += SOURCE_PANE_SIZE_Y;
-    }
 
     double dx = sizeX * ((double)dpiX/96);      // default DPI = 96
     double dy = sizeY * ((double)dpiY/96);      // default DPI = 96

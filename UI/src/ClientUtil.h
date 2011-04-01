@@ -47,7 +47,7 @@ using namespace std;
 #define FRAME_CONFIG_X      435
 #define FRAME_CONFIG_Y      510
 #define FRAME_MAIN_X        350
-#define FRAME_MAIN_Y        435
+#define FRAME_MAIN_Y        485
 #define SOURCE_PANE_SIZE_Y  45      // height of each source pane on main screen
 
 #define MAIN_PROGRESSBAR_COLOR RGB(255,255,255)
