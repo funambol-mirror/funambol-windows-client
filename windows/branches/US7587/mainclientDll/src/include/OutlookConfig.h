@@ -74,6 +74,9 @@
 /// Path in DMTree
 #define APPLICATION_URI                         PROGRAM_NAME "/OutlookClient"
 
+/// The registry path under HKLM and HKCU where configuration settings are stored
+#define SOFTWARE_ROOT_CONTEXT                   "Software/" PLUGIN_ROOT_CONTEXT
+
 #define TIMEZONE_CONTEXT                       L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones"
 
 /// Timezone informations.
@@ -149,9 +152,6 @@ private:
     void readWinSourceConfig(unsigned int i);
     void saveWinSourceConfig(unsigned int i);
 
-
-    // Returns the value of the given property, from rootKey tree (read only).
-    char* readPropertyValue(const char* context, const char* propertyName, HKEY rootKey);
 
     // Username/Password are stored encrypted (new since 6.0.9).
     int  decryptPrivateData();
@@ -352,6 +352,9 @@ public:
     
     /// Gets the "oneWayRemoval" flag
     bool getOneWayRemoval() { return oneWayRemoval; }
+
+    // Returns the value of the given property, from rootKey tree (read only).
+    char* readPropertyValue(const char* context, const char* propertyName, HKEY rootKey);
 
 };
 

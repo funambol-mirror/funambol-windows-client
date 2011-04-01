@@ -39,7 +39,7 @@
 !include UAC.nsh
 
 ; ------ defines ------
-!define PRODUCT_NAME_EXE                        "OutlookPlugin.exe"
+!define PRODUCT_NAME_EXE                        "FunambolClient.exe"
 !define MICROSOFT_OUTLOOK                       "Microsoft Outlook"
 !define MICROSOFT_OUTLOOK_CLASS_NAME            "rctrl_renwnd32"
 !define PLUGIN_UI_CLASS_NAME                    "FunambolApp"
@@ -49,6 +49,7 @@
 !define PLUGIN_REGKEY_CONTEXT                   "Software\${PLUGIN_ROOT_CONTEXT}"
 !define ADDIN_REGKEY_CONTEXT                    "Software\Microsoft\Office\Outlook\Addins\FunambolAddin.Addin"
 !define PRODUCT_DIR_REGKEY                      "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME_EXE}"
+!define OUTLOOK_DIR_REGKEY                      "Software\Microsoft\Windows\CurrentVersion\App Paths\OUTLOOK.exe"
 !define PRODUCT_UNINST_KEY                      "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define MSMAPIAPPS_REGKEY_CONTEXT               "Software\Microsoft\Windows Messaging Subsystem\MSMapiApps"
 !define SHELLFOLDERS_CONTEXT                    "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
@@ -78,13 +79,15 @@
 !define PROPERTY_PICTURE_MEDIAHUB_KEY           "spds\sources\picture"
 
 
-; Before v.7.1.4 the product name was "Funambol Outlook Plug-in"
-; We want to be able to upgrade the Client from versions < 7.1.4.
-!define OLD_PRODUCT_NAME                        "Funambol Outlook Plug-in"
-!define OLD_PRODUCT_UNINST_KEY                  "Software\Microsoft\Windows\CurrentVersion\Uninstall\${OLD_PRODUCT_NAME}"
-!define OLD_STARTMENU_CONTEXT                   "Funambol\Outlook Plug-in"
-!define OLD_INSTALLDIR_CONTEXT                  "Funambol\Outlook Plug-in"
-!define OLD_PLUGIN_UI_TITLE                     "Funambol Outlook Plug-in"
+; Before v.10 the product name was "Funambol Outlook Client"
+; We want to be able to upgrade the Client from versions < 10.0.0.
+!define OLD_PRODUCT_NAME                        "Funambol Outlook Sync Client"
+!define OLD_PRODUCT_NAME_EXE                    "OutlookPlugin.exe"
+!define OLD_PRODUCT_DIR_REGKEY                  "Software\Microsoft\Windows\CurrentVersion\App Paths\${OLD_PRODUCT_NAME_EXE}"
+!define OLD_PRODUCT_UNINST_KEY                 "Software\Microsoft\Windows\CurrentVersion\Uninstall\${OLD_PRODUCT_NAME}"
+!define OLD_STARTMENU_CONTEXT                   "Funambol\Outlook Sync Client"
+!define OLD_INSTALLDIR_CONTEXT                  "Funambol\Outlook Client"
+!define OLD_PLUGIN_UI_TITLE                     "Funambol Outlook Sync Client"
 
 
 ; MUI 1.67 compatible ------
@@ -101,6 +104,7 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 
 ; Welcome page
 !define MUI_WELCOMEFINISHPAGE_BITMAP            "${PRODUCT_WELCOME_BMP}"
+!define MUI_WELCOMEPAGE_TITLE_3LINES            ; extra space since the application name is quite long
 !insertmacro MUI_PAGE_WELCOME
 
 ; License page
@@ -364,16 +368,16 @@ FunctionEnd
 
 
 
-; Check if "OutlookPlugin.exe" is running
+; Check if "FunambolClient.exe" is running
 Function CheckFunClientApp
-        ; First try to close Outlook plugin automatically.
+        ; First try to close Windows client automatically.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${PLUGIN_UI_TITLE}"
         IntCmp $0 0 done
         MessageBox MB_OKCANCEL "I need to close ${PRODUCT_NAME} to proceed with the installation of $(^Name). Ok?" IDCANCEL Cancel
         SendMessage $0 16  0 0  $R1 /TIMEOUT=1000            ; WM_CLOSE = 16, timeout = 1000 ms
         Sleep 500                                            ; wait 500 ms for plugin closing
   loop1:
-        ; If plugin still running, ask to close it manually.
+        ; If client still running, ask to close it manually.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${PLUGIN_UI_TITLE}"
         IntCmp $0 0 done
         MessageBox MB_OKCANCEL "Could not close ${PRODUCT_NAME}. Please close it manually to proceed with the installation of $(^Name)." IDCANCEL Cancel
@@ -386,7 +390,7 @@ Function CheckFunClientApp
 FunctionEnd
 
 
-; Check if "OutlookPlugin.exe" is running - for OLD Client versions (< 7.1.4)
+; Check if "OutlookPlugin.exe" is running - for OLD Client versions (< 10.0.0)
 Function CheckOldFunClientApp
         ; First try to close Outlook plugin automatically.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${OLD_PLUGIN_UI_TITLE}"
@@ -408,16 +412,16 @@ Function CheckOldFunClientApp
 FunctionEnd
 
 
-; Check if "OutlookPlugin.exe" is running (for uninstaller)
+; Check if "FunambolClient.exe" is running (for uninstaller)
 Function un.CheckFunClientApp
-        ; First try to close Outlook plugin automatically.
+        ; First try to close Windows client automatically.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${PLUGIN_UI_TITLE}"
         IntCmp $0 0 done
         MessageBox MB_OKCANCEL "I need to close ${PRODUCT_NAME} to proceed with the uninstallation of $(^Name). Ok?" IDCANCEL Cancel
         SendMessage $0 16  0 0  $R1 /TIMEOUT=1000            ; WM_CLOSE = 16, timeout = 1000 ms
         Sleep 500                                            ; wait 500 ms for plugin closing
   loop1:
-        ; If plugin still running, ask to close it manually.
+        ; If client still running, ask to close it manually.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${PLUGIN_UI_TITLE}"
         IntCmp $0 0 done
         MessageBox MB_OKCANCEL "Could not close ${PRODUCT_NAME}. Please close it manually to proceed with the uninstallation of $(^Name)." IDCANCEL Cancel
@@ -438,7 +442,8 @@ Function CheckUserRights
       ${UAC.I.Elevate.AdminOnly}
 
       ; If user can write this, it's an Admin ;)
-      WriteRegStr  HKLM   "${PLUGIN_REGKEY_CONTEXT}"   "${PROPERTY_PATH}"   "$INSTDIR"
+      ; NOTE that this registry is not being used for any logic, so we can dirty it.
+      WriteRegStr  HKLM   "${PLUGIN_REGKEY_CONTEXT}"   "${PROPERTY_DESCRIPTION}" "${PRODUCT_NAME}"
       IfErrors 0 +3
       MessageBox MB_OK "You need Administrator rights to install ${PRODUCT_NAME}."
       Abort
@@ -453,7 +458,8 @@ Function un.CheckUserRights
       ${UAC.I.Elevate.AdminOnly}
       
       ; If user can write this, it's an Admin ;)
-      WriteRegStr  HKLM   "${PLUGIN_REGKEY_CONTEXT}"   "${PROPERTY_PATH}"   "$INSTDIR"
+      ; NOTE that this registry is not being used for any logic, so we can dirty it.
+      WriteRegStr  HKLM   "${PLUGIN_REGKEY_CONTEXT}"   "${PROPERTY_DESCRIPTION}" "${PRODUCT_NAME} v.${PRODUCT_VERSION}"
       IfErrors 0 +3
       MessageBox MB_OK "You need Administrator rights to uninstall ${PRODUCT_NAME}."
       Abort
@@ -486,8 +492,8 @@ Function CheckAppInstalled
        ReadRegStr $R1 HKLM "${PRODUCT_UNINST_KEY}" "DisplayVersion"         ; $R1 = installed version "x.y.z"
        Goto upgrade
        
-       ; since v.7.1.4.
-       ; Also check the old product name "Outlook Plug-in"
+       ; since v.10
+       ; Also check the old product name "Outlook Client"
        ReadRegStr $R0 HKLM "${OLD_PRODUCT_UNINST_KEY}" "UninstallString"
        StrCmp $R0 "" done
        ReadRegStr $R1 HKLM "${OLD_PRODUCT_UNINST_KEY}" "DisplayVersion"     ; $R1 = installed version "x.y.z"
@@ -526,20 +532,26 @@ Function CheckAppInstalled
   newerVersion:
  
        ; installed version too old?
-       ; NOTE: upgrades from a Funambol version < 7.0.0 is forbidden.
+       ; NOTE: upgrades from a Funambol version < 8.0.0 is forbidden.
        StrCmp $R8 "" +1 +2                                              ; if customer avoid to check the "too old" version (for sure it isn't) and go with upgrade
-       IntCmp $R1 7   0  tooOldVersion  0
+       IntCmp $R1 8   0  tooOldVersion  0
 
        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-                  "A previous version of ${PRODUCT_NAME} is already installed (version $R1). $\nPress OK to proceed with the upgrade." \
+                  "A previous version is already installed (version $R1). $\nPress OK to proceed with the upgrade." \
                   IDCANCEL cancel
 
        StrCpy $R9 "uninstForUpgrade"     ; Cannot call now: user can cancel installation!
 
-       ; New name since v.7.1.4.
-       ; If the old installDir folder is the old default one, let's change it with the new naming.
-       StrCmp $INSTDIR "$PROGRAMFILES\${OLD_INSTALLDIR_CONTEXT}" +1 +2
-       StrCpy $INSTDIR "$PROGRAMFILES\${INSTALLDIR_CONTEXT}"
+
+       ; Old installDir MUST be copied to $9 to correctly clean the old files! (see uninstForUpgrade function)
+       ReadRegStr $9 HKLM "${PLUGIN_REGKEY_CONTEXT}" "${PROPERTY_PATH}"
+       ;MessageBox MB_OK|MB_ICONEXCLAMATION "Installation dir in dollaro9 = $9"
+       
+       ; For versions < v10:
+       ; If the old installDir folder ($9) is the old default one, let's keep installDir with the new naming default, otherwise use the old path ($9)
+       StrCmp $9 "$PROGRAMFILES\${OLD_INSTALLDIR_CONTEXT}" +2 +1
+       StrCpy $INSTDIR "$9"
+       ;MessageBox MB_OK|MB_ICONEXCLAMATION "Instdir = $INSTDIR"
        
        
        ReadRegStr $tmp  HKCU "${PLUGIN_REGKEY_CONTEXT}\${PROPERTY_PICTURE_MEDIAHUB_KEY}" "${PROPERTY_MEDIAHUB_REG_KEY}"    ; Check if the mediaHub for pictures has value
@@ -568,7 +580,7 @@ Function CheckAppInstalled
        Abort
 
 
-  ; 4. Upgrade from a version < v6 (3.0.x) -> avoid.
+  ; 4. Upgrade from a version < v8 -> avoid.
   tooOldVersion:
        MessageBox MB_OK|MB_ICONEXCLAMATION \
                   "A previous version of ${PRODUCT_NAME} is already installed (version $R1). $\nPlease uninstall it first."
@@ -595,6 +607,8 @@ Function uninstForUpgrade
      ;
      StrCmp $9 "" +1 +2
      StrCpy $9 $INSTDIR
+     
+     ;MessageBox MB_OK|MB_ICONEXCLAMATION "Removing files from $9"
 
      ; Unregister DLLs.
      UnRegDLL "$9\Redemption.dll"
@@ -610,13 +624,14 @@ Function uninstForUpgrade
      
      ; Addin need to be reinstalled for ALL users (replace menu/bars).
      Call resetUsersAddinState
-     
+
      ;
-     ; Versions < 7.1.4.
-     ; TODO: better to do the following actions ONLY if $R1 is < 7.1.4.
+     ; Versions < 10.
+     ; TODO: better to do the following actions ONLY if $R1 is < 10.
      ; (now we're always doing it)
      ;
      DeleteRegKey HKLM "${OLD_PRODUCT_UNINST_KEY}"
+     DeleteRegKey HKLM "${OLD_PRODUCT_DIR_REGKEY}"
 
      ; Delete old startMenu shortcuts
      SetShellVarContext all
@@ -677,6 +692,11 @@ Function installDll
       SetOutPath "$INSTDIR"
       RegDLL "$INSTDIR\FunambolAddin.dll"
       IfErrors errorDLL1
+      
+      ; Don't register Redemption.dll if OUTLOOK.exe is not installed.
+      ; If Outlook is installed later, the DLL will be registered at runtime when client starts.
+      ReadRegStr $R0 HKLM "${OUTLOOK_DIR_REGKEY}" ""
+      StrCmp $R0 "" +3
       RegDLL "$INSTDIR\Redemption.dll"
       IfErrors errorDLL2
 
@@ -859,8 +879,9 @@ Section Uninstall
 
 
      ; Delete recursively empty folders created on install.
-     RMDir /r "$INSTDIR"
      StrCpy $R4 "$INSTDIR"
+     ;MessageBox MB_OK|MB_ICONEXCLAMATION "Removing dir: $R4"
+     RMDir /r "$R4"
      
   loop1:
      Push "$R4"
@@ -947,7 +968,7 @@ Function un.RemoveUserData
      Call un.deleteUsersRegistry
      
      ; Delete scheduled task for all users.
-     ; Tasks have the name: "Funambol Outlook Plug-in - <Username>.job"
+     ; Tasks have the name: "Funambol Windows Client - <Username>.job"
      ; where 'Username' is the Windows current user that created it.
      Delete "$WINDIR\Tasks\${PRODUCT_NAME}*.job"
      

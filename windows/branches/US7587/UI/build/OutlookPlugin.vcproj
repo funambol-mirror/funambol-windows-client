@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="OutlookUI"
+	Name="clientUI"
 	ProjectGUID="{5DC153AB-2BD2-4D12-A3C4-4C7578919237}"
 	RootNamespace="OutlookPlugin"
 	Keyword="MFCProj"
@@ -80,13 +80,13 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/nodefaultlib:&quot;LIBCMTD.lib&quot;"
-				OutputFile=".\Debug\OutlookPlugin.exe"
+				OutputFile=".\Debug\FunambolClient.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories=""
 				DelayLoadDLLs=""
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/OutlookPlugin.pdb"
+				ProgramDatabaseFile=".\Debug/FunambolClient.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -179,7 +179,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile=".\Release/OutlookPlugin.exe"
+				OutputFile=".\Release/FunambolClient.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"
@@ -734,7 +734,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\OutlookPlugin.exe.manifest"
+				RelativePath="..\src\res\FunambolClient.exe.manifest"
 				>
 			</File>
 			<File

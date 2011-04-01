@@ -69,6 +69,12 @@
 
 #define MAX_PATH_LENGTH                     512
 
+/// If MS Outlook app is installed, this registry key exists and it's not empty (under HKLM)
+#define OUTLOOK_EXE_REGKEY                 "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\OUTLOOK.exe"
+
+/// If Redemption.dll is registered in the system, this registry key exists and it's not empty (under HKCR)
+#define REDEMPTION_CLSID_REGKEY            "CLSID\\{03C4C5F4-1893-444C-B8D8-002F0034DA92}\\InprocServer32"
+
 //
 // Item Types:
 //
@@ -335,6 +341,15 @@
 int  initializeClient   (bool isScheduled, bool justRead = false);
 int  initLog            (bool isScheduled);
 int  startSync          ();
+
+/**
+ * Checks is MS Outlook and Redemption.dll are installed.
+ * PIM sources will be shown/hidden accordingly.
+ * If the Redemption lib needs to be installed and it's the free version,
+ * a disclaimer popup will be shown to the user.
+ / If necessary, config will be saved.
+ */
+void initPIMSources();
 
 /// Starts the sync of a single source.
 /// Fires the syncsource_start and syncsource_end events to refresh the

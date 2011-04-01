@@ -96,35 +96,61 @@ bool isPIMSource(const char* sourceName);
 bool isMediaSource(const char* sourceName);
 
 void  toWindows        (char* str);
+
+/**
+ * Returns the path of current user's application data folder "%APPDATA%/APPDATA_CONTEXT".
+ * For example:
+ * "C:\Users\Settimio\AppData\Roaming\Funambol\WindowsClient"
+ * The string returned is allocated new, so MUST be freed by caller.
+ * Returns NULL in case of errors (set lastErrorMessage).
+ *
+ * @return   path of current user's tmp folder under 'application data'
+ */
 WCHAR* readAppDataPath ();
+
+/**
+ * Returns the path of file where data files for current user are stored.
+ * It is located under 'application data' folder. For example:
+ * "C:\Users\Settimio\AppData\Roaming\Funambol\WindowsClient"
+ * The string returned is allocated new, so MUST be freed by caller.
+ * Returns NULL in case of errors (set lastErrorMessage).
+ *
+ * @return   path of current user's tmp folder under 'application data'
+ */
 WCHAR* readDataPath    (const WCHAR* itemType);
+
 int    makeDataDirs    ();
 int    getWindowsUser  (std::wstring& userName);
 int    getWindowsUserEx(std::wstring& userName);
 
 /**
+ * ------ DEPRECATED ------
  * Returns the default path to store pictures 
  * (shell folder 'pictures' for this user)
  */
 StringBuffer getDefaultPicturesPath();
 
 /**
+ * ------ DEPRECATED ------
  * Returns the default path to store files 
  * (shell folder 'my documents' for this user)
  */
 StringBuffer getDefaultFilesPath();
 
 /**
+ * ------ DEPRECATED ------
  * Returns the default path to store videos 
  * (shell folder 'my videos' for this user)
  */
 StringBuffer getDefaultVideosPath();
 
 /**
+ * ------ DEPRECATED ------
  * Returns the default path to store Media (My Documents)
  * (shell folder 'My Documents' for this user)
  */
 StringBuffer getDefaultMyDocumentsPath();
+
 /**
  * Returns true if the media hub folder is set. false otherwise
 */
@@ -172,6 +198,19 @@ int countSourceVisible();
 bool isSourceEnabled(const char* sourceName);
 
 bool isWindowsXP();
+
+/**
+ * Registers a DLL to the system (a COM or ActiveX library).
+ * It's the same as calling "regsvr32.exe <dllPath>" from a command line.
+ * @param dllPath    the full path of DLL library to register
+ * @param bRegister  if true (default) will register the DLL
+ *                   if false, will unregister the DLL (like "regsvr32 /u")
+ * @return           S_OK = 0 if no error, 
+ *                   E_INVALIDARG if invalid arg passed, 
+ *                   E_ABORT if registration aborted
+ *                   a value < 0 for other errors registration error
+ */
+HRESULT registerDLL(const char* dllPath, bool bRegister = true);
 
 /**
  * Is the given status code an error status code? Error codes are the ones

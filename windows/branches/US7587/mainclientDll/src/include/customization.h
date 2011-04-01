@@ -44,7 +44,7 @@
 #define APP_NAME                            "Funambol"
 
 // The application full name, used also in About screen title
-#define PROGRAM_NAME                        "Funambol Outlook Sync Client"
+#define PROGRAM_NAME                        "Funambol Windows Sync Client"
 #define WPROGRAM_NAME                       TEXT(PROGRAM_NAME)
 
 // UI windows titles
@@ -80,7 +80,7 @@
 // Others
 #define VIEW_USER_GUIDE_LINK                0                           /**< 1 to display the 'view userguide' in the UI menu (hidden by default) */
 #define USER_GUIDE_LINK                     "http://funambol.com/docs/v80/funambol-outlook-sync-client-user-guide.pdf"
-#define PROGRAM_NAME_EXE                    "OutlookPlugin.exe"             // The application to run
+#define PROGRAM_NAME_EXE                    "FunambolClient.exe"        // The application to run
 #define SCHED_COMMENT                       TEXT(PROGRAM_NAME) TEXT(" scheduler")
 #define OL_PLUGIN_LOG_NAME                  "synclog.txt"
 #define ENABLE_ENCRYPTION_SETTINGS          1                           /**< 0 to hide the encryption UI check in the Settings screen */
@@ -159,9 +159,17 @@
 // Note: in case of change, please make sure at least one "/" exist.
 #define PLUGIN_ROOT_CONTEXT                 "Funambol/OutlookClient"
 
+// Application data folder, the context under %APPDATA%.
+// It is used to save the log file, the cache and all the user's data.
+#define APPDATA_CONTEXT                     "Funambol\\WindowsClient"
+
+// The deviceId will be like: "fol-b64(%1:%2)" - see OutlookConfig::setUniqueDevID()
+// where %1 is the local machine name, %2 is the Windows current user name (encoded in base64)
+#define DEVICE_ID_PREFIX                    "fol"
+
 // Auto-update feature
 #define UP_URL_RESOURCE                     "/sapi/profile/client?action=get-update-info"
-#define CLIENT_PLATFORM                     "outlook"
+#define CLIENT_PLATFORM                     "windows"
 
 #include "base/util/StringBuffer.h"
 
