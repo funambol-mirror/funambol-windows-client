@@ -298,18 +298,21 @@ void CMediaHubSetting::setPathOfAllSources(StringBuffer path) {
     ssconf = ((OutlookConfig*)getConfig())->getSyncSourceConfig(PICTURE_);
     if (!ssconf) {
         printLog("Config not found for source picture!", LOG_ERROR);
+        return;
     }
     ssconf->getCommonConfig()->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
     
     ssconf = ((OutlookConfig*)getConfig())->getSyncSourceConfig(VIDEO_);
     if (!ssconf) {
         printLog("Config not found for source videos!", LOG_ERROR);
+        return;
     }
     ssconf->getCommonConfig()->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
     
     ssconf = ((OutlookConfig*)getConfig())->getSyncSourceConfig(FILES_);
     if (!ssconf) {
         printLog("Config not found for source files!", LOG_ERROR);
+        return;
     }
     ssconf->getCommonConfig()->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
 

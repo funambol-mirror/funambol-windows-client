@@ -256,6 +256,13 @@ public:
      */
     bool removeSourceVisible(const char* sourceName);
 
+    /**
+     * Since we don't have a dynamic UI yet, the sources should always be in
+     * this order to reflect UI panes:
+     * contacts, calendar, tasks, notes, pictures, videos, files
+     */
+    void sortSourceVisible();
+
 
     // Replace setSyncSourceConfig() of SyncManagerConfig (set specific winSourceConfig)
     bool setSyncSourceConfig(WindowsSyncSourceConfig& wsc);

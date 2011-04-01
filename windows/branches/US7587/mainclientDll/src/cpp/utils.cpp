@@ -341,6 +341,32 @@ WCHAR* readDataPath(const WCHAR* itemType) {
     return oldItemsPath;
 }
 
+StringBuffer getSapiCacheDir() {
+
+    WCHAR* wcachePath = readAppDataPath();
+
+    StringBuffer cachePath;
+    cachePath.convert(wcachePath);
+    if (!cachePath.endsWith("/") && !cachePath.endsWith("\\")) {
+        cachePath += "/";
+    }
+    cachePath += SAPI_STORAGE_FOLDER;
+    delete [] wcachePath;
+
+    return cachePath;
+}
+
+StringBuffer getPIMCacheDir() {
+
+    WCHAR* wcachePath = readAppDataPath();
+
+    StringBuffer cachePath;
+    cachePath.convert(wcachePath);
+    delete [] wcachePath;
+
+    return cachePath;
+}
+
 
 StringBuffer getDefaultPicturesPath() {
 
