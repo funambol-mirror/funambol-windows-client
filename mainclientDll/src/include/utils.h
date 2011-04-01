@@ -45,6 +45,7 @@
 #include "spds/SyncReport.h"
 #include "WindowsSyncSource.h"
 #include "outlook/ClientRecurrence.h"
+#include "spds/MappingStoreBuilder.h"
 #include "winmaincpp.h"
 
 #include <string>
@@ -118,6 +119,18 @@ WCHAR* readAppDataPath ();
  * @return   path of current user's tmp folder under 'application data'
  */
 WCHAR* readDataPath    (const WCHAR* itemType);
+
+/**
+ * Returns the path where sapi cache files for current user are stored.
+ * It is located under 'application data / sapi_media_storage' folder.
+ */
+StringBuffer getSapiCacheDir();
+
+/**
+ * Returns the path where PIM cache files for current user are stored.
+ * It is located under 'application data' folder.
+ */
+StringBuffer getPIMCacheDir();
 
 int    makeDataDirs    ();
 int    getWindowsUser  (std::wstring& userName);
@@ -221,6 +234,34 @@ HRESULT registerDLL(const char* dllPath, bool bRegister = true);
 inline static bool isErrorStatus(int status) {
     return (status) && ((status < 200) || (status > 299));
 }
+
+
+/**
+ * Extends MappingStoreBuilder to define the mappings files for PIM sources.
+ * They are placed under the 'application data' folder for this user.
+ */
+class PIMMappingStoreBuilder : public MappingStoreBuilder {
+
+public:
+    PIMMappingStoreBuilder() {}
+    virtual ~PIMMappingStoreBuilder() {}
+
+    /**
+    * It creates a new instance of the default KeyValueStore.
+    * It is a property file.
+    */
+    virtual KeyValueStore* createNewInstance(const char* name) const {
+        StringBuffer fullName = getPIMCacheDir();
+        if (createFolder(fullName.c_str())){
+            LOG.error("WindowsMappingStoreBuilder::createNewInstance(): error creating config folder");
+        }
+        fullName += "/"; 
+        fullName += name;
+        fullName += ".map";
+        return new PropertyFile(fullName);
+    }
+};
+
 
 /** @} */
 /** @endcond */

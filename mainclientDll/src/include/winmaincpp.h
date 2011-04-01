@@ -110,6 +110,9 @@
 /// Default folder of items in Outlook (replaced by correct path)
 #define DEFAULT_FOLDER                     L"DEFAULT_FOLDER"
 
+/// Sapi cache dir name, under appdata dir
+#define SAPI_STORAGE_FOLDER                 "sapi_media_storage"
+
 //
 // Possible source states (UI labels for each source).
 //

@@ -471,6 +471,21 @@ bool OutlookConfig::removeSourceVisible(const char* sourceName) {
     return false;
 }
 
+void OutlookConfig::sortSourceVisible() {
+
+    ArrayList buf;
+
+    char* sources[7] = {CONTACT_, APPOINTMENT_, TASK_, NOTE_, PICTURE_, VIDEO_, FILES_};
+    for (int i=0; i<7; i++) {
+        StringBuffer source(sources[i]);
+        if (isSourceVisibleA(source.c_str())) {
+            buf.add(source);
+        }
+    }
+
+    sourcesVisible = buf;
+}
+
 
 
 // ---------------------------- Save properties to win registry ----------------------------

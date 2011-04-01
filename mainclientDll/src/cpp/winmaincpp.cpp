@@ -67,7 +67,7 @@
 
 #include "sapi/FileSapiSyncSource.h" //SAPI
 #include "sapi/SapiSyncManager.h"
-
+#include "spds/MappingsManager.h"
 
 #include <string>
 
@@ -234,7 +234,15 @@ void initPIMSources() {
     }
     if (configChanged) {
         LOG.debug("UI sources visible changed: saving config");
+        config->sortSourceVisible();
         config->save();
+    }
+
+
+    // Sets the mappings folder for PIM sources.
+    if (isOutlookInstalled) {
+        PIMMappingStoreBuilder* pmsb = new PIMMappingStoreBuilder();
+        MappingsManager::setBuilder(pmsb);
     }
 }
 
@@ -307,6 +315,9 @@ int startSync() {
     int priority      = 0;
     WCHAR* wname      = NULL;
     string mutexName  = "";
+
+    // Set the cache dir for SAPI sources
+    StringBuffer sapiCacheDir = getSapiCacheDir();
 
     // The main sync report, to collect reports of all sources synced.
     SyncReport report;
@@ -405,6 +416,7 @@ int startSync() {
     ArrayList sources;  // source names
     int j=0;
     bool syncingPIM = false;
+    config->sortSourceVisible();
     const ArrayList& sourcesOrder = config->getSourcesVisible();
     for (int j=0; j<sourcesOrder.size(); j++) {
         for (int i=0; i<sourcesCount; i++) {
@@ -525,7 +537,7 @@ int startSync() {
         if (isMediaSource(name->c_str()))
         {
             // --- Media source ---
-            FileSapiSyncSource source(*ssconfig, ssReport, 0, 0);    // filterDates are both disabled
+            FileSapiSyncSource source(*ssconfig, ssReport, 0, 0, sapiCacheDir.c_str());    // filterDates are both disabled
             res = synchronizeSapi(source, report);
 
             report.addSyncSourceReport(source.getReport());
