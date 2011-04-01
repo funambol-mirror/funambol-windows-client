@@ -96,7 +96,7 @@
 #define RESPONSE_TIMEOUT                    900                         /**< [seconds], the HTTP timeout on Server response. default = 15 minutes */
 
 // SAPI media props
-#define DYNAMICALLY_SHOW_PICTURES           0                           /**< if 1, will automatically show/hide the pictures panel, at the end of sync */
+#define DYNAMICALLY_SHOW_PICTURES           0                           /**<deprecated, to be removed! */
 #define SAPI_LOCAL_QUOTA_STORAGE            "98%"                       /**< the max local storage for all media sources */
 #define SAPI_HTTP_REQUEST_TIMEOUT           30                          /**< 30 sec    */
 #define SAPI_HTTP_RESPONSE_TIMEOUT          30                          /**< 30 sec    */
@@ -116,7 +116,7 @@
 #define MEDIA_HUB_DEFAULT_FOLDER            "MediaHub"     // name of the default folder to store picture/video/files
 #define MEDIA_HUB_DEFAULT_ICO               "MediaHubFolder.ico"     // name of the default ico to put in the Desktop.ini
 
-
+// This is the list of sources visible on UI, by default.
 #define SOURCE_ORDER_IN_REGISTRY            "contact,appointment,task,note,picture,video,files"
 
 // set if the sources are enabled/disabled (meaning they can be enabled by settings)
