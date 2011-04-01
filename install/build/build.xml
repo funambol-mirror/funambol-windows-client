@@ -39,12 +39,12 @@
 
 <!-- $Id: build.xml,v 1.28 2008-07-02 16:16:05 magi Exp $
 ===================================================================================================
-Forge file for Funambol Outlook Sync Client
+Forge file for Funambol Windows Sync Client
 
 ====================================================================================================
 -->
 
-<project basedir=".." default="all" name="FunambolOutlookSyncClient">
+<project basedir=".." default="all" name="FunambolWindowsSyncClient">
 
 <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
     <!--
@@ -115,15 +115,15 @@ Forge file for Funambol Outlook Sync Client
         <property name="dir.redemptionLibRedist"  value="${dir.distribution}/installer/Redemption_Lib/enterprise"/>
 
         <!-- Dirs to read src from (no-checkout build) -->
-        <property name="dir.src"            value="funambol-outlook-sync-client-src-"/>
-        <property name="dir.outlook"        value="${dir.distribution}/.."/>
-        <property name="dir.ui"             value="${dir.outlook}/UI"/>
-        <property name="dir.mainclientdll"  value="${dir.outlook}/mainclientDll"/>
-        <property name="dir.outlookaddin"   value="${dir.outlook}/Addin"/>
-        <property name="dir.design"         value="${dir.outlook}/docs"/>
-        <property name="dir.native_api"     value="${dir.outlook}/cpp-sdk"/>
+        <property name="dir.src"            value="funambol-windows-sync-client-src-"/>
+        <property name="dir.windows"        value="${dir.distribution}/.."/>
+        <property name="dir.ui"             value="${dir.windows}/UI"/>
+        <property name="dir.mainclientdll"  value="${dir.windows}/mainclientDll"/>
+        <property name="dir.outlookaddin"   value="${dir.windows}/Addin"/>
+        <property name="dir.design"         value="${dir.windows}/docs"/>
+        <property name="dir.native_api"     value="${dir.windows}/cpp-sdk"/>
         <property name="dir.zlib"           value="${dir.native_api}/tools/zlib"/>
-        <property name="dir.presetup"       value="${dir.outlook}/install/installer/presetup"/>
+        <property name="dir.presetup"       value="${dir.windows}/install/installer/presetup"/>
 
         <!-- Log files -->
         <property name="log.SVN"            value="${dir.output}/SVN_export.log"/>
@@ -133,7 +133,7 @@ Forge file for Funambol Outlook Sync Client
         <property name="log.doxygen"        value="${dir.output}/build_doxygen.log"/>
 
 
-        <property file="build/funambol-outlook-client-forge.properties"/>
+        <property file="build/funambol-windows-client-forge.properties"/>
 
         <!-- Property TODAY contains the formatted date, like "14 November 2008" -->
         <tstamp>
@@ -141,7 +141,7 @@ Forge file for Funambol Outlook Sync Client
         </tstamp>
         
         
-        <!-- Set default dir paths, if not already specified in funambol-outlook-client-forge.properties -->
+        <!-- Set default dir paths, if not already specified in funambol-windows-client-forge.properties -->
         <property environment="env"/>
         <if>
             <isset property="env.PROGRAMFILES"/>
@@ -204,7 +204,7 @@ Forge file for Funambol Outlook Sync Client
     <target name="build" depends="init">
 
         <!-- Update the build date automatically, build number is manually set -->
-        <propertyfile file  = "${dir.distribution}/build/release.properties" comment = "Funambol Outlook Sync Client" >
+        <propertyfile file  = "${dir.distribution}/build/release.properties" comment = "Funambol Windows Sync Client" >
             <entry key="build.date" type="date" value="now" pattern="yyyyMMdd"/>
         </propertyfile>
 
@@ -217,15 +217,15 @@ Forge file for Funambol Outlook Sync Client
 
     <!-- Output dirs for src files -->
     <property name="dir.output_src"               value="${dir.output}/${dir.src}${release.major}.${release.minor}.${build.number}"/>
-    <property name="dir.output_src.home"          value="${dir.output_src}/Funambol/Outlook Sync Client"/>
-    <property name="dir.output_src.outlook"       value="${dir.output_src.home}"/>
+    <property name="dir.output_src.home"          value="${dir.output_src}/Funambol/Windows Sync Client"/>
+    <property name="dir.output_src.windows"       value="${dir.output_src.home}"/>
     <property name="dir.output_src.native_api"    value="${dir.output_src.home}/cpp-sdk"/>
     <property name="dir.output_src.zlib"          value="${dir.output_src.native_api}/tools/zlib"/>
-    <property name="dir.output_src.UI"            value="${dir.output_src.outlook}/UI"/>
-    <property name="dir.output_src.mainclientdll" value="${dir.output_src.outlook}/mainclientdll"/>
-    <property name="dir.output_src.outlookaddin"  value="${dir.output_src.outlook}/Addin"/>
-    <property name="dir.output_src.design"        value="${dir.output_src.outlook}/docs"/>
-    <property name="dir.output_src.install"       value="${dir.output_src.outlook}/install"/>
+    <property name="dir.output_src.UI"            value="${dir.output_src.windows}/UI"/>
+    <property name="dir.output_src.mainclientdll" value="${dir.output_src.windows}/mainclientdll"/>
+    <property name="dir.output_src.outlookaddin"  value="${dir.output_src.windows}/Addin"/>
+    <property name="dir.output_src.design"        value="${dir.output_src.windows}/docs"/>
+    <property name="dir.output_src.install"       value="${dir.output_src.windows}/install"/>
     
     <!-- 
       Set the 'funambol.swv' value, to be passed at the NSIS installer.
@@ -303,7 +303,7 @@ Forge file for Funambol Outlook Sync Client
     -->
     <target name="forge-src" depends="init,build,checkout-src">
 
-        <!-- Copy source files under 'funambol-outlook-sync-client-src-x.y.z' and zip them -->
+        <!-- Copy source files under 'funambol-windows-sync-client-src-x.y.z' and zip them -->
         <mkdir dir="${dir.output_src.home}"/>
         <copy todir="${dir.output_src.home}" >
             <fileset dir="${dir.export.SVN}"/>
@@ -325,12 +325,12 @@ Forge file for Funambol Outlook Sync Client
     <target name="compile" depends="init,checkout-src">
         <mkdir dir="${dir.output}"/>
 
-        <echo message="Compiling Outlook Client..."/>
-        <exec dir="${dir.output_src.outlook}" executable="${vs2005.devenv}/devenv" failonerror="true">
-            <arg line="OutlookClient.sln /Upgrade"/>
+        <echo message="Compiling Windows Client..."/>
+        <exec dir="${dir.output_src.windows}" executable="${vs2005.devenv}/devenv" failonerror="true">
+            <arg line="WindowsClient.sln /Upgrade"/>
         </exec>
-        <exec dir="${dir.output_src.outlook}" executable="${vs2005.devenv}/devenv" failonerror="true">
-            <arg line="OutlookClient.sln /Out ${log.client}  /Build ${client.targetbuild}"/>
+        <exec dir="${dir.output_src.windows}" executable="${vs2005.devenv}/devenv" failonerror="true">
+            <arg line="WindowsClient.sln /Out ${log.client}  /Build ${client.targetbuild}"/>
         </exec>
 
         <!-- Open log and continue -->
@@ -349,12 +349,12 @@ Forge file for Funambol Outlook Sync Client
 
         <!-- Note: compile from dev working dirs -->
 
-        <echo message="Compiling Outlook Client..."/>
-         <exec dir="${dir.outlook}" executable="${vs2005.devenv}/devenv" failonerror="true">
-            <arg line="OutlookClient.sln /Upgrade"/>
+        <echo message="Compiling Windows Client..."/>
+         <exec dir="${dir.windows}" executable="${vs2005.devenv}/devenv" failonerror="true">
+            <arg line="WindowsClient.sln /Upgrade"/>
         </exec>
-        <exec dir="${dir.outlook}" executable="${vs2005.devenv}/devenv" failonerror="true">
-            <arg line="OutlookClient.sln /Out ${log.client} /Build ${client.targetbuild}"/>
+        <exec dir="${dir.windows}" executable="${vs2005.devenv}/devenv" failonerror="true">
+            <arg line="WindowsClient.sln /Out ${log.client} /Build ${client.targetbuild}"/>
         </exec>
 
         <!-- Open log and continue -->
@@ -399,13 +399,13 @@ Forge file for Funambol Outlook Sync Client
         -->
         <copy todir="${dir.fileset}" overwrite="TRUE">
             <fileset dir="${dir.output_src.mainclientdll}/build/${plugin.dir.obj}" includes="winmainclientdll.dll"/>
-            <fileset dir="${dir.output_src.UI}/build/${plugin.dir.obj}"            includes="OutlookPlugin.exe"/>
+            <fileset dir="${dir.output_src.UI}/build/${plugin.dir.obj}"            includes="FunambolClient.exe"/>
             <fileset dir="${dir.output_src.install}/installer/Redemption_Lib"      includes="Redemption.dll"/>
             <fileset dir="${dir.output_src.outlookaddin}/${addin.dir.obj}"         includes="FunambolAddin.dll"/>
         </copy>
 
         <copy todir="${dir.fileset}/images" overwrite="TRUE">
-            <fileset dir="${dir.output_src.UI}/src/res" includes="OutlookPlugin.ico"/>
+            <fileset dir="${dir.output_src.UI}/src/res" includes="mainLogo.ico"/>
         </copy>
         
     <!-- These are DLLs required to run VC++ software -->
@@ -429,7 +429,7 @@ Forge file for Funambol Outlook Sync Client
     <target name="forge-no-checkout" depends="init,build,compile-no-checkout">
 
         <!-- Note: files are copied from dev working dirs -->
-        <echo message="Forge files from ${dir.outlook}..." />
+        <echo message="Forge files from ${dir.windows}..." />
 
         <!-- Create the directory structure under 'fileset' -->
         <mkdir dir="${dir.fileset}"/>
@@ -458,13 +458,13 @@ Forge file for Funambol Outlook Sync Client
         -->
         <copy todir="${dir.fileset}" overwrite="TRUE">
             <fileset dir="${dir.mainclientdll}/build/${plugin.dir.obj}" includes="winmainclientdll.dll"/>
-            <fileset dir="${dir.ui}/build/${plugin.dir.obj}"            includes="OutlookPlugin.exe"/>
+            <fileset dir="${dir.ui}/build/${plugin.dir.obj}"            includes="FunambolClient.exe"/>
             <fileset dir="${dir.redemptionLib}"                         includes="Redemption.dll"/>
             <fileset dir="${dir.outlookaddin}/${addin.dir.obj}"         includes="FunambolAddin.dll"/>
         </copy>
 
         <copy todir="${dir.fileset}/images" overwrite="TRUE">
-            <fileset dir="${dir.ui}/src/res" includes="OutlookPlugin.ico"/>
+            <fileset dir="${dir.ui}/src/res" includes="mainLogo.ico"/>
         </copy>
 
 
@@ -523,6 +523,7 @@ Forge file for Funambol Outlook Sync Client
 
 
         <echo message="${install-builder.nsi}" />
+        <echo message="filename = ${fileNameCared}" />
         <echo message="output to: ${log.NSIS_sp}" />
         <exec dir="${dir.forge}" executable="${install-builder.nsi}" output="${log.NSIS_sp}" failonerror="true">
             <arg line="/DPRODUCT_VERSION=${release.major}.${release.minor}.${build.number}
@@ -547,11 +548,11 @@ Forge file for Funambol Outlook Sync Client
     <target name="copy-NSIS-plugins" depends="init" >
         
         <echo message="copying processwork NSIS plugin..." />
-        <copy file="${dir.outlook}/install/installer/processwork.dll" todir="${install-builder.dir}/Plugins" overwrite="TRUE"/>
+        <copy file="${dir.windows}/install/installer/processwork.dll" todir="${install-builder.dir}/Plugins" overwrite="TRUE"/>
         
         <echo message="copying UAC NSIS plugin..." />
-        <copy file="${dir.outlook}/install/installer/UAC/UAC.nsh" todir="${install-builder.dir}/Include" overwrite="TRUE"/>
-        <copy file="${dir.outlook}/install/installer/UAC/UAC.dll" todir="${install-builder.dir}/Plugins" overwrite="TRUE"/>
+        <copy file="${dir.windows}/install/installer/UAC/UAC.nsh" todir="${install-builder.dir}/Include" overwrite="TRUE"/>
+        <copy file="${dir.windows}/install/installer/UAC/UAC.dll" todir="${install-builder.dir}/Plugins" overwrite="TRUE"/>
         
     </target>
 
@@ -602,7 +603,7 @@ Forge file for Funambol Outlook Sync Client
 
         <mkdir dir="${dir.output}"/>
         <property name="doxyfile"      value="${dir.distribution}/doxygen/Doxyfile"/>
-        <property name="olclient.root" value="${dir.outlook}"   />
+        <property name="olclient.root" value="${dir.windows}"   />
         <property name="cppapi.root"   value="${dir.native_api}"/>
 
         <echo message="Creating documentation with doxygen..." />
@@ -625,7 +626,7 @@ Forge file for Funambol Outlook Sync Client
     -->
 
    <target name="generate-update-info">
-        <property name="ol-upd-info"        value="outlook-upd-info"/>
+        <property name="ol-upd-info"        value="windows-upd-info"/>
        
          <touch file="${dir.output}/${ol-upd-info}"/>
 

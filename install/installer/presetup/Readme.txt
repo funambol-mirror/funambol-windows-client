@@ -1,4 +1,4 @@
-Funambol Outlook Sync Client
+Funambol Windows Sync Client
 ----------------------------
 
 Version: 

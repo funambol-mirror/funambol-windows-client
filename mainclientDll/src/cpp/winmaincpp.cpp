@@ -163,11 +163,79 @@ int initializeClient(bool isScheduled, bool justRead) {
     }
 
     HwndFunctions::initHwnd();
-
     if (strlen(logText) > 0) {
         LOG.info(logText);
     }
+
+    // Checks is MS Outlook and Redemption.dll are installed.
+    // PIM sources will be shown/hidden accordingly.
+    initPIMSources();
+
     return ret;
+}
+
+void initPIMSources() {
+
+    bool isOutlookInstalled = false;
+    bool isRedemptionInstalled = false;
+    
+    OutlookConfig* config = OutlookConfig::getInstance();
+    StringBuffer redemptionPath(config->getWorkingDir());
+    redemptionPath += "\\";
+    redemptionPath += "Redemption.dll";
+    
+    char* olPath = config->readPropertyValue(OUTLOOK_EXE_REGKEY, "", HKEY_LOCAL_MACHINE);
+    if (olPath && strlen(olPath)>0) {
+        LOG.debug("Microsoft Outlook detected installed");
+        isOutlookInstalled = true;
+    }
+
+    char* redPath = config->readPropertyValue(REDEMPTION_CLSID_REGKEY, "", HKEY_CLASSES_ROOT);
+    if (redPath && strlen(redPath)>0) {
+        LOG.debug("Redemption.dll detected already registered");
+        isRedemptionInstalled = true;
+    }
+
+    //
+    // Register Redemption.dll
+    //
+    if (isOutlookInstalled && !isRedemptionInstalled) {
+        LOG.info("Registering Redemption.dll to the system");
+        HRESULT hr = registerDLL(redemptionPath.c_str(), true);
+
+        if (FAILED(hr)) {
+            if (hr == E_ABORT) {
+                LOG.error("Registration aborted: %s", redemptionPath.c_str());
+            } else {
+                LOG.error("Error registering DLL: %s (code 0x%x)", redemptionPath.c_str(), hr);
+            }
+            LOG.info("Redemption.dll not correctly registered: PIM sources will be disabled");
+            isOutlookInstalled = false;
+        }
+    }
+
+    //
+    // Enable/disable PIM sources
+    //
+    bool configChanged = false;
+    if (isOutlookInstalled) {
+        LOG.debug("PIM sources are supported");
+        configChanged |= config->safeAddSourceVisible(CONTACT_);
+        configChanged |= config->safeAddSourceVisible(APPOINTMENT_);
+        configChanged |= config->safeAddSourceVisible(TASK_);
+        configChanged |= config->safeAddSourceVisible(NOTE_);
+    }
+    else {
+        LOG.debug("PIM sources are not supported");
+        configChanged |= config->removeSourceVisible(CONTACT_);
+        configChanged |= config->removeSourceVisible(APPOINTMENT_);
+        configChanged |= config->removeSourceVisible(TASK_);
+        configChanged |= config->removeSourceVisible(NOTE_);
+    }
+    if (configChanged) {
+        LOG.debug("UI sources visible changed: saving config");
+        config->save();
+    }
 }
 
 
@@ -199,7 +267,7 @@ int initLog(bool isScheduled) {
     LOG.setLogName(OL_PLUGIN_LOG_NAME);
     LOG.setLevel(config->getClientConfig().getLogLevel());
 
-    string title = "Outlook Sync Client opened";
+    string title = "Windows Sync Client opened";
     if (!isScheduled) {
         resetLog = true;    // Will reset when first sync starts
     }
@@ -457,7 +525,7 @@ int startSync() {
         if (isMediaSource(name->c_str()))
         {
             // --- Media source ---
-            FileSapiSyncSource source(*ssconfig, ssReport, 0);
+            FileSapiSyncSource source(*ssconfig, ssReport, 0, 0);    // filterDates are both disabled
             res = synchronizeSapi(source, report);
 
             report.addSyncSourceReport(source.getReport());
@@ -1175,41 +1243,32 @@ const int getClientLastErrorCode() {
  */
 void upgradePlugin(const int oldVersion, const int oldFunambolVersion) {
 
-    // Upgrades from v6 are no more supported (since v8.7)
-    if (oldFunambolVersion < 70000) {
+    // Upgrades from a version < v8 are no more supported
+    if (oldFunambolVersion < 80000) {
         return;
     }
 
-    // Old version < 7.1.4: Client name has changed, was "Outlook Plug-in"
-    //   1. move cache files and delete old folder
-    //   2. remove old cache dir
-    //   3. rename scheduler task if existing
-    if (oldFunambolVersion < 70104) {
+    if (oldFunambolVersion < 100000) {
 
+        // Old version < 10.0.0: Client name has changed, was "Outlook Client"
+        // move the cache files under %APPDATA% folder
+        // from "OutlookClient" to "WindowsClient"
         makeDataDirs();
 
         // Get 'application data' folder for current user.
-        WCHAR appDataPath[MAX_PATH_LENGTH];
-        if ( FAILED(SHGetFolderPath(NULL,
-                                    CSIDL_APPDATA | CSIDL_FLAG_CREATE,
-                                    NULL,
-                                    0,
-                                    appDataPath)) ) {
-            DWORD code = GetLastError();
-            char* msg = readSystemErrorMsg(code);
-            LOG.error(ERR_APPDATA_PATH, code, msg);
-            delete [] msg;
-            return;
-        }
+        WCHAR p[MAX_PATH_LENGTH];
+        SHGetSpecialFolderPath(NULL, p, CSIDL_APPDATA, 0); 
 
-        wstring oldDataPath(appDataPath);
+        wstring oldDataPath(p);
         oldDataPath += TEXT("\\");
         oldDataPath += FUNAMBOL_DIR_NAME;
         oldDataPath += TEXT("\\");
-        oldDataPath += TEXT("Outlook Plug-in");
+        oldDataPath += TEXT("OutlookClient");
 
-        static const StringBuffer& pt = PlatformAdapter::getConfigFolder();
-        WCHAR* dataPath = toWideChar(pt.c_str());
+        WCHAR* dataPath = readAppDataPath();
+        if (!dataPath) {
+            return;
+        }
         wstring newDataPath(dataPath);
         delete [] dataPath;
 
@@ -1221,6 +1280,7 @@ void upgradePlugin(const int oldVersion, const int oldFunambolVersion) {
         fileNames.push_back(TEXT("\\contact.db"));
         fileNames.push_back(TEXT("\\note.db"));
         fileNames.push_back(TEXT("\\task.db"));
+        // (pictures cache is not preserved before v10)
 
         // Copy ALL cache files (*.db) to new location.
         wstring oldName, newName;
@@ -1231,29 +1291,22 @@ void upgradePlugin(const int oldVersion, const int oldFunambolVersion) {
             CopyFile(oldName.c_str(), newName.c_str(), FALSE);
         }
 
-        // TODO: better use this method.
-        //char* buf = toMultibyte(oldDataPath.c_str());
-        //StringBuffer oldPath(buf);
-        //delete [] buf;
-        //ArrayList filesToCopy = getAllFilesInDir(oldPath, "*.db");  <-- add in API!
-
-
-        // 2. Now we can remove the old cache dir with all its content.
+        // Now we can remove the old cache dir with all its content.
         char* oldDir = toMultibyte(oldDataPath.c_str());
         removeFileInDir(oldDir);
         delete [] oldDir;
         RemoveDirectory(oldDataPath.c_str());
 
 
-        // 3. Rename the scheduled task for this user only (we don't have more permissions)
-        // was: "C:\Windows\Tasks\Funambol Outlook Plug-in - <username>.job"
+        // Rename the scheduled task for this user only (we don't have more permissions)
+        // was: "C:\Windows\Tasks\Funambol Outlook Client - <username>.job"
         wstring user;
         getWindowsUser(user);
         WCHAR winDir[MAX_PATH_LENGTH];
         GetWindowsDirectory(winDir, MAX_PATH_LENGTH);
 
         wstring oldTaskName(winDir);
-        oldTaskName += TEXT("\\Tasks\\Funambol Outlook Plug-in - ");
+        oldTaskName += TEXT("\\Tasks\\Funambol Outlook Sync Client - ");
         oldTaskName += user;
         oldTaskName += TEXT(".job");
 
@@ -1267,37 +1320,13 @@ void upgradePlugin(const int oldVersion, const int oldFunambolVersion) {
         _wrename(oldTaskName.c_str(), newTaskName.c_str());
     }
 
-    // Old version < 8.7.0: delete the old logfile (old name)
-    if (oldFunambolVersion < 80700) {
-        OutlookConfig* config = OutlookConfig::getInstance();
-        string oldLogPath = config->getLogDir();
-        oldLogPath += "\\outlook-client-log.txt";
-        remove(oldLogPath.c_str());
-    }
-
-    // Old version < 10.0.0: clean pictures map and cache files
-    if (oldFunambolVersion < 100000) {
-
-        StringBuffer configDir = PlatformAdapter::getConfigFolder();
-        removeFileInDir(configDir.c_str(), "picture.map");
-        removeFileInDir(configDir.c_str(), "picture.map.jour");
-
-        StringBuffer cacheDir = configDir;
-        if (!cacheDir.endsWith("\\") && !cacheDir.endsWith("/")) {
-            cacheDir += "/";
-        }
-        cacheDir.append("item_cache");      // #define CACHE_FOLDER, as defined in v9
-        removeFileInDir(cacheDir.c_str(), "picture.dat");
-        removeFileInDir(cacheDir.c_str(), "picture.dat.jour");
-    }
-
     return;
 }
 
 
 void upgradeScheduledTask() {
     //upgrade scheduled task
-    setProgramNameForScheduledTask(L"Outlook-Sync Plug-in");
+    setProgramNameForScheduledTask(WPROGRAM_NAME);
     bool active;
     int dayNum;
     int minNum;
@@ -1379,7 +1408,7 @@ bool checkForMandatoryUpdateBeforeStartingSync() {
 
 void launchSyncClient() {
 
-    // Note: installDir of Outlook Client is read from HKEY_LOCAL_MACHINE tree:
+    // Note: installDir of Windows Client is read from HKEY_LOCAL_MACHINE tree:
     OutlookConfig* config = getConfig();
     const char* dir = config->getWorkingDir();
 
@@ -1387,7 +1416,7 @@ void launchSyncClient() {
         return;
     }
 
-    // program = "C:\...\OutlookPlugin.exe [param]"
+    // program = "C:\...\FunambolClient.exe [param]"
     char* program = NULL;
     program = new char[strlen(dir) + strlen(PROGRAM_NAME_EXE) + 2];
     sprintf(program, "%s\\%s", dir, PROGRAM_NAME_EXE);

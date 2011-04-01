@@ -190,7 +190,7 @@ bool OutlookConfig::read() {
     readSourcesVisible();
 
     // Current working dir: read 'installDir' from HKLM
-    char* installPath = readPropertyValue(PLUGIN_ROOT_CONTEXT, PROPERTY_INSTALLDIR, HKEY_LOCAL_MACHINE);
+    char* installPath = readPropertyValue(SOFTWARE_ROOT_CONTEXT, PROPERTY_INSTALLDIR, HKEY_LOCAL_MACHINE);
     if (!installPath || strlen(installPath) == 0) {
         LOG.error(ERR_INSTALL_DIR);
         char msg[100];
@@ -409,7 +409,7 @@ void OutlookConfig::readSourcesVisible(HKEY rootKey) {
     sourcesVisible.clear();
 
     // Read the (comma separated) source names
-    const char* tmp = readPropertyValue(PLUGIN_ROOT_CONTEXT, PROPERTY_SOURCE_ORDER, rootKey);
+    const char* tmp = readPropertyValue(SOFTWARE_ROOT_CONTEXT, PROPERTY_SOURCE_ORDER, rootKey);
     StringBuffer sources(tmp);
     delete [] tmp;
 
@@ -1029,7 +1029,7 @@ void OutlookConfig::createDefaultConfig() {
     delete sapiConfig;
 
 
-    // Set a unique deviceID = "FOL-<pcName>:<userName>"
+    // Set a unique deviceID = "fol-<pcName>:<userName>"
     setUniqueDevID();
 
 
@@ -1079,7 +1079,7 @@ void OutlookConfig::createDefaultConfig() {
     
 
     // Current working dir: read 'installDir' from HKLM
-    char* installPath = readPropertyValue(PLUGIN_ROOT_CONTEXT, PROPERTY_INSTALLDIR, HKEY_LOCAL_MACHINE);
+    char* installPath = readPropertyValue(SOFTWARE_ROOT_CONTEXT, PROPERTY_INSTALLDIR, HKEY_LOCAL_MACHINE);
     if (!installPath || strlen(installPath) == 0) {
         LOG.error(ERR_INSTALL_DIR);
         return;
@@ -1097,7 +1097,7 @@ void OutlookConfig::createDefaultConfig() {
     setLogDir(logPath);
     
     // set the sapi mediaHub path in the right source config and delete the temp node
-    char* mediaHubPath = readPropertyValue(PLUGIN_ROOT_CONTEXT, PROPERTY_MEDIAHUB_PATH, HKEY_CURRENT_USER);
+    char* mediaHubPath = readPropertyValue(SOFTWARE_ROOT_CONTEXT, PROPERTY_MEDIAHUB_PATH, HKEY_CURRENT_USER);
     if (mediaHubPath  && strcmp(mediaHubPath, "") != 0) {
         SyncSourceConfig* sc = DMTClientConfig::getSyncSourceConfig(PICTURE_);
         sc->setProperty(PROPERTY_MEDIAHUB_PATH, mediaHubPath);
@@ -1166,7 +1166,7 @@ void OutlookConfig::initializeVersionsAndUserAgent() {
         oldFunambolSwv = DLLCustomization::fakeOldFunambolSwv;
     }
 
-    // Set the new User Agent = "Funambol Outlook Sync Client v. x.y.z"
+    // Set the new User Agent = "Funambol Windows Sync Client v. x.y.z"
     char* userAgent = new char[strlen(PROGRAM_NAME) + strlen(newSwv) + 5];
     sprintf(userAgent, "%s v. %s", PROGRAM_NAME, newSwv);
     accessConfig.setUserAgent(userAgent);
@@ -1185,37 +1185,6 @@ void OutlookConfig::initializeVersionsAndUserAgent() {
 void OutlookConfig::upgradeConfig() {
     
     initializeVersionsAndUserAgent();
-
-    // Old version < 7.1.1: add default filtering to events.
-    if (oldFunambolSwv < 70101) {
-        WindowsSyncSourceConfig* ssc = getSyncSourceConfig(APPOINTMENT_);
-        if (ssc) {
-            DateFilter& filter = ssc->getDateFilter();
-            filter.setDirection(DateFilter::DIR_OUT);
-            filter.setRelativeLowerDate(DateFilter::LAST_MONTH);
-            filter.setUpperDate(NULL);
-        }
-    }
-
-    // Old version < 7.1.2: only vCard is used for contacts.
-    if (oldFunambolSwv < 70102) {
-        WindowsSyncSourceConfig* ssc = getSyncSourceConfig(CONTACT_);
-        if (ssc) {
-			// Don't change the source URI. If we were using "scard", it will be preserved during
-			// upgrade. This is required to keep the anchors Server side and avoid a 1st time slow-sync.
-            //ssc->setURI("card");
-            ssc->setType("text/x-vcard");
-            ssc->setVersion("2.1");
-            ssc->setEncoding("bin");
-        }
-    }
-
-    // Old version < 7.1.4: Client name has changed.
-    if (oldFunambolSwv < 70104) {
-        DeviceConfig& dc = getClientConfig();
-        dc.setMod(PROGRAM_NAME);
-    }
-
 
     // Old version < 8.2.0
     if (oldFunambolSwv < 80200) {
@@ -1247,10 +1216,7 @@ void OutlookConfig::upgradeConfig() {
     if (oldFunambolSwv < 80700) {
         getAccessConfig().setMaxMsgSize(MAX_SYNCML_MSG_SIZE);       // now it's 125K
         getAccessConfig().setResponseTimeout(RESPONSE_TIMEOUT);     // now it's 15min
-    }
-	
-	// Old version < 8.7.0
-    if (oldFunambolSwv < 80700) {
+
 		//
 		// SIF-E and SIF-T deprecation. Changed the default in the upgrade from sif to vcalendar
 		//
@@ -1368,7 +1334,7 @@ void OutlookConfig::upgradeConfig() {
         delete sapiConfig;
 
         // set the sapi mediaHub path in the right source config and delete the temp node
-        char* mediaHubPath = readPropertyValue(PLUGIN_ROOT_CONTEXT, PROPERTY_MEDIAHUB_PATH, HKEY_CURRENT_USER);
+        char* mediaHubPath = readPropertyValue(SOFTWARE_ROOT_CONTEXT, PROPERTY_MEDIAHUB_PATH, HKEY_CURRENT_USER);
         if (mediaHubPath  && strcmp(mediaHubPath, "") != 0) {
             SyncSourceConfig* sc = DMTClientConfig::getSyncSourceConfig(PICTURE_);
             sc->setProperty(PROPERTY_MEDIAHUB_PATH, mediaHubPath);
@@ -1445,7 +1411,7 @@ int OutlookConfig::getOldFunambolSwv() {
  * Returns a new allocated buffer, must be deleted by the caller.
  */
 char* OutlookConfig::readCurrentSwv() {
-    return readPropertyValue(PLUGIN_ROOT_CONTEXT, PROPERTY_SOFTWARE_VERSION, HKEY_LOCAL_MACHINE);
+    return readPropertyValue(SOFTWARE_ROOT_CONTEXT, PROPERTY_SOFTWARE_VERSION, HKEY_LOCAL_MACHINE);
 }
 
 StringBuffer OutlookConfig::readFunambolSwv(HKEY rootKey) {
@@ -1455,12 +1421,12 @@ StringBuffer OutlookConfig::readFunambolSwv(HKEY rootKey) {
 
     if (rootKey == HKEY_CURRENT_USER) {
         StringBuffer context;
-        context.sprintf("%s%s%s", PLUGIN_ROOT_CONTEXT, CONTEXT_SPDS_SYNCML, CONTEXT_DEV_DETAIL);
+        context.sprintf("%s%s%s", SOFTWARE_ROOT_CONTEXT, CONTEXT_SPDS_SYNCML, CONTEXT_DEV_DETAIL);
         value = readPropertyValue(context, PROPERTY_FUNAMBOL_SWV, HKEY_CURRENT_USER);
         if (!value || strlen(value)==0) {
 
             // 'funambol_swv' is not found
-            const char* customer = readPropertyValue(PLUGIN_ROOT_CONTEXT, PROPERTY_CUSTOMER, HKEY_LOCAL_MACHINE);
+            const char* customer = readPropertyValue(SOFTWARE_ROOT_CONTEXT, PROPERTY_CUSTOMER, HKEY_LOCAL_MACHINE);
             if (customer && strlen(customer)>0) {
                 // current funambol_swv is an acceptable value for customers builds (swv could be 1.0.0 for example)
                 LOG.debug("Customer = %s", customer);
@@ -1477,7 +1443,7 @@ StringBuffer OutlookConfig::readFunambolSwv(HKEY rootKey) {
     else if (rootKey == HKEY_LOCAL_MACHINE) {
         // this is the default value if the 'funambol_swv' is not found.
         ret = getSwv();
-        value = readPropertyValue(PLUGIN_ROOT_CONTEXT, PROPERTY_FUNAMBOL_SWV, rootKey);
+        value = readPropertyValue(SOFTWARE_ROOT_CONTEXT, PROPERTY_FUNAMBOL_SWV, rootKey);
     }
 
     if (value && strlen(value)>0) {
@@ -1564,7 +1530,7 @@ int OutlookConfig::setUniqueDevID() {
     enc[len] = 0;
 
     char* devID = new char[len+5];
-    sprintf(devID, "fol-%s", enc);
+    sprintf(devID, "%s-%s", DEVICE_ID_PREFIX, enc);
 
 
     // Set it to configuration.
@@ -1605,8 +1571,7 @@ char* OutlookConfig::readPropertyValue(const char* contextA, const char* propert
     char* ret = NULL;
 
     // Need to convert all '/' into '\'.
-    char* fullContextA = new char[strlen(contextA) + 10];
-    sprintf(fullContextA, "%s/%s", "Software", contextA);
+    char* fullContextA = stringdup(contextA);
     toWindows(fullContextA);
 
     WCHAR* fullContext = toWideChar(fullContextA);
@@ -1687,7 +1652,7 @@ bool OutlookConfig::checkPortalBuild() {
     
     bool ret = false;
 
-    char* portal = readPropertyValue(PLUGIN_ROOT_CONTEXT, PROPERTY_SP, HKEY_LOCAL_MACHINE);
+    char* portal = readPropertyValue(SOFTWARE_ROOT_CONTEXT, PROPERTY_SP, HKEY_LOCAL_MACHINE);
     if (portal && *portal == '1') {
         ret = true;
     }

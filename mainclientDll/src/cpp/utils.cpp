@@ -311,34 +311,22 @@ void toWindows(char* str) {
 }
 
 
-
-
-/**
- * Returns the path of current user's application data folder.
- * For example:
- * "C:\Documents And Settings\Settimio\Application Data"
- * The string returned is allocated new, so MUST be freed by caller.
- * Returns NULL in case of errors (set lastErrorMessage).
- *
- * @return   path of current user's tmp folder under 'application data'
- */
 WCHAR* readAppDataPath() {
 
-    static const StringBuffer& pt = PlatformAdapter::getConfigFolder();
-    WCHAR* dataPath = toWideChar(pt.c_str());
-    return dataPath;
+    wchar_t p[MAX_PATH_LENGTH];
+
+    if ( FAILED(SHGetSpecialFolderPath(NULL, p, CSIDL_APPDATA, 0)) ) {
+        LOG.error("Error reading the application data folder, code %d", GetLastError());
+        return NULL;
+    }
+
+    wstring path(p); 
+    path += TEXT("\\");
+    path += TEXT(APPDATA_CONTEXT);
+    return wstrdup(path.c_str());
 }
 
 
-/**
- * Returns the path of file where data files for current user are stored.
- * It is located under 'application data' folder. For example:
- * "C:\Documents And Settings\Settimio\Application Data\Funambol\Outlook Client"
- * The string returned is allocated new, so MUST be freed by caller.
- * Returns NULL in case of errors (set lastErrorMessage).
- *
- * @return   path of current user's tmp folder under 'application data'
- */
 WCHAR* readDataPath(const WCHAR* itemType) {
 
     WCHAR* dataPath = readAppDataPath();
@@ -349,9 +337,7 @@ WCHAR* readDataPath(const WCHAR* itemType) {
     WCHAR* oldItemsPath = new WCHAR[wcslen(dataPath) + wcslen(itemType) + 5];
     wsprintf(oldItemsPath, L"%s\\%s.db", dataPath, itemType);
 
-    if (dataPath) {
-        delete [] dataPath;
-    }
+    delete [] dataPath;
     return oldItemsPath;
 }
 
@@ -526,7 +512,14 @@ int writeToFile(const string& content, const string& filePath, const char* mode)
 int makeDataDirs() {
     int err = 0;
 
-    static const StringBuffer& pt = PlatformAdapter::getConfigFolder();
+    WCHAR* path = readAppDataPath();
+    if (!path) {
+        return 2;
+    }
+    StringBuffer pt;
+    pt.convert(path);
+    delete [] path;
+
     err = createFolder(pt.c_str());
     if (err) {
         setErrorF(getLastErrorCode(), ERR_DIR_CREATE, pt.c_str());
@@ -1014,5 +1007,44 @@ bool isWindowsXP() {
 
     GetVersionEx(&osvi);
 
-    return osvi.dwMajorVersion < 6; // is xp o 2003. if >= 6 is vista or 7      
+    return osvi.dwMajorVersion < 6; // is xp or 2003. if >= 6 is vista or 7      
 }
+
+HRESULT registerDLL(const char* dllPath, bool bRegister) { 
+
+    HRESULT hResult = S_OK;
+    if (!dllPath || strlen(dllPath)==0) {
+        return 1;
+    }
+
+    const WCHAR* wdllPath = toWideChar(dllPath);
+
+    // Load the server dll into our process space. 
+    HINSTANCE hOleServerInst = ::LoadLibrary(wdllPath);
+
+    if (hOleServerInst) { 
+        HRESULT (STDAPICALLTYPE *pfnRegServer)(void); 
+
+        if (bRegister) { 
+            (FARPROC&)pfnRegServer = ::GetProcAddress(hOleServerInst, "DllRegisterServer"); 
+        } 
+        else { 
+            (FARPROC&)pfnRegServer = ::GetProcAddress(hOleServerInst, "DllUnregisterServer"); 
+        } 
+
+        if (pfnRegServer) { 
+            hResult = (*pfnRegServer)(); 
+        } 
+        else { 
+            hResult = HRESULT_FROM_WIN32(::GetLastError()); 
+        } 
+
+        ::CoFreeLibrary(hOleServerInst); 
+    } 
+    else { 
+        hResult = HRESULT_FROM_WIN32(::GetLastError()); 
+    }
+
+    delete [] wdllPath;
+    return hResult; 
+} 

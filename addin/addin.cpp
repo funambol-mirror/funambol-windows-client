@@ -602,7 +602,7 @@ void Caddin::launchSyncClientOutlook(const char* parameter) {
         return;
     }
 
-    // program = "C:\...\OutlookPlugin.exe [param]"
+    // program = "C:\...\FunambolClient.exe [param]"
     char* program = NULL;
     if (parameter) {
         program = new char[strlen(dir) + strlen(PROGRAM_NAME_EXE) + strlen(parameter) + 3];

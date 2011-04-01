@@ -1,3 +1,10 @@
+2011-04-01
+  - toccy: changed product name into "Windows Sync Client": updated defines, labels, docs and projects
+           - removed dependency from MS Outlook: PIM sources are hidden if Outlook is not installed
+           - improved installer: upgrade from old Outlook Sync Client is possible (from version 8 or higher)
+           - Redemption.dll is registered at client startup if necessary 
+             (can be skipped during installation if MS Outlook is not installed)
+
 2011-03-25
   - toccy: updated all client UI icons with better graphics
 

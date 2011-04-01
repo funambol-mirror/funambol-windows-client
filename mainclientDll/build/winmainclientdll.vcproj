@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="OutlookDLL"
+	Name="clientDLL"
 	ProjectGUID="{7459AF2F-7B82-4153-B9E1-E4A71DC61821}"
 	RootNamespace="winmainclientdll"
 	TargetFrameworkVersion="131072"

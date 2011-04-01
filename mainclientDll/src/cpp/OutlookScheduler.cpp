@@ -145,7 +145,7 @@ int setScheduleTask (const char* frequency, const int dayNum, const int minNum) 
         pITask->SetFlags(TASK_FLAG_INTERACTIVE | TASK_FLAG_RUN_ONLY_IF_LOGGED_ON);
     }
 
-    // ...so we have "OutlookPlugin.exe schedule"    
+    // ...so we have "FunambolClient.exe schedule"    
     pITask->SetParameters(SCHED_PARAM);
 
 
@@ -475,7 +475,7 @@ ITaskScheduler* initScheduleInstance() {
 
 /**
  * Used to create the scheduled task name: 
- * "Funambol Outlook Sync Client - <UserName>".
+ * "Funambol Windows Sync Client - <UserName>".
  * 'Username' is the current Windows user, so each user has a different task.
  *
  * @param  taskName  [OUT] the name of task
