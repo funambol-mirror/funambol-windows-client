@@ -466,26 +466,20 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
         }
 
         // Fix the source groupbox height (TODO: should be calculated dinamically)
-        CRect sep3Rect, sep4Rect, sourceGroupBoxRect;
-        GetDlgItem(IDC_SEPARATOR_3)->GetWindowRect(&sep3Rect);
-        GetDlgItem(IDC_SEPARATOR_4)->GetWindowRect(&sep4Rect);
-        int offset = sep4Rect.BottomRight().y - sep3Rect.BottomRight().y;
-        
-        CWnd* sourceGroupBox = GetDlgItem(IDC_SYNC_GROUP_ITEMS);
-        GetDlgItem(IDC_SYNC_GROUP_ITEMS)->GetWindowRect(&sourceGroupBoxRect);
-        sourceGroupBox->SetWindowPos(&CWnd::wndTop, 0, 0, 
-                                     sourceGroupBoxRect.Width(), sourceGroupBoxRect.Height() + offset, 
-                                     SWP_SHOWWINDOW | SWP_NOMOVE);
+        //CRect sep3Rect, sep4Rect, sourceGroupBoxRect;
+        //GetDlgItem(IDC_SEPARATOR_3)->GetWindowRect(&sep3Rect);
+        //GetDlgItem(IDC_SEPARATOR_4)->GetWindowRect(&sep4Rect);
+        //int offset = sep4Rect.BottomRight().y - sep3Rect.BottomRight().y;
+        //
+        //CWnd* sourceGroupBox = GetDlgItem(IDC_SYNC_GROUP_ITEMS);
+        //GetDlgItem(IDC_SYNC_GROUP_ITEMS)->GetWindowRect(&sourceGroupBoxRect);
+        //sourceGroupBox->SetWindowPos(&CWnd::wndTop, 0, 0, 
+        //                             sourceGroupBoxRect.Width(), sourceGroupBoxRect.Height() + offset, 
+        //                             SWP_SHOWWINDOW | SWP_NOMOVE);
     }
     else {
-
-        hideSource(checkPictures, butPictures, &saveSyncTypePictures, IDC_SEPARATOR_4, IDC_SEPARATOR_5);
-        /*
-        checkPictures.ShowWindow(SW_HIDE);
-        butPictures.ShowWindow(SW_HIDE);
-        saveSyncTypePictures = false;
-        GetDlgItem(IDC_SEPARATOR_4)->ShowWindow(SW_HIDE);
-        */
+        // hideSource() to really hide it
+        disableSource(checkPictures, butPictures, &saveSyncTypePictures, IDC_SEPARATOR_4, IDC_SEPARATOR_5);
     }
 
     // VIDEOS
@@ -501,20 +495,20 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
         }
 
         // Fix the source groupbox height (TODO: should be calculated dinamically)
-        CRect sep4Rect, sep5Rect, sourceGroupBoxRect;
-        GetDlgItem(IDC_SEPARATOR_4)->GetWindowRect(&sep4Rect);
-        GetDlgItem(IDC_SEPARATOR_5)->GetWindowRect(&sep5Rect);
-        int offset = sep5Rect.BottomRight().y - sep4Rect.BottomRight().y;
-        
-        CWnd* sourceGroupBox = GetDlgItem(IDC_SYNC_GROUP_ITEMS);
-        GetDlgItem(IDC_SYNC_GROUP_ITEMS)->GetWindowRect(&sourceGroupBoxRect);
-        sourceGroupBox->SetWindowPos(&CWnd::wndTop, 0, 0, 
-                                     sourceGroupBoxRect.Width(), sourceGroupBoxRect.Height() + offset, 
-                                     SWP_SHOWWINDOW | SWP_NOMOVE);
+        //CRect sep4Rect, sep5Rect, sourceGroupBoxRect;
+        //GetDlgItem(IDC_SEPARATOR_4)->GetWindowRect(&sep4Rect);
+        //GetDlgItem(IDC_SEPARATOR_5)->GetWindowRect(&sep5Rect);
+        //int offset = sep5Rect.BottomRight().y - sep4Rect.BottomRight().y;
+        //
+        //CWnd* sourceGroupBox = GetDlgItem(IDC_SYNC_GROUP_ITEMS);
+        //GetDlgItem(IDC_SYNC_GROUP_ITEMS)->GetWindowRect(&sourceGroupBoxRect);
+        //sourceGroupBox->SetWindowPos(&CWnd::wndTop, 0, 0, 
+        //                             sourceGroupBoxRect.Width(), sourceGroupBoxRect.Height() + offset, 
+        //                             SWP_SHOWWINDOW | SWP_NOMOVE);
     }
     else {
-
-        hideSource(checkVideos, butVideos, &saveSyncTypeVideos, IDC_SEPARATOR_5, IDC_SEPARATOR_6);
+        // hideSource() to really hide it
+        disableSource(checkVideos, butVideos, &saveSyncTypeVideos, IDC_SEPARATOR_5, IDC_SEPARATOR_6);
     }
 
     // FILES
@@ -530,20 +524,20 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
         }
 
         // Fix the source groupbox height (TODO: should be calculated dinamically)
-        CRect sep5Rect, sep6Rect, sourceGroupBoxRect;
-        GetDlgItem(IDC_SEPARATOR_5)->GetWindowRect(&sep5Rect);
-        GetDlgItem(IDC_SEPARATOR_6)->GetWindowRect(&sep6Rect);
-        int offset = sep6Rect.BottomRight().y - sep5Rect.BottomRight().y;
-        
-        CWnd* sourceGroupBox = GetDlgItem(IDC_SYNC_GROUP_ITEMS);
-        GetDlgItem(IDC_SYNC_GROUP_ITEMS)->GetWindowRect(&sourceGroupBoxRect);
-        sourceGroupBox->SetWindowPos(&CWnd::wndTop, 0, 0, 
-                                     sourceGroupBoxRect.Width(), sourceGroupBoxRect.Height() + offset, 
-                                     SWP_SHOWWINDOW | SWP_NOMOVE);
+        //CRect sep5Rect, sep6Rect, sourceGroupBoxRect;
+        //GetDlgItem(IDC_SEPARATOR_5)->GetWindowRect(&sep5Rect);
+        //GetDlgItem(IDC_SEPARATOR_6)->GetWindowRect(&sep6Rect);
+        //int offset = sep6Rect.BottomRight().y - sep5Rect.BottomRight().y;
+        //
+        //CWnd* sourceGroupBox = GetDlgItem(IDC_SYNC_GROUP_ITEMS);
+        //GetDlgItem(IDC_SYNC_GROUP_ITEMS)->GetWindowRect(&sourceGroupBoxRect);
+        //sourceGroupBox->SetWindowPos(&CWnd::wndTop, 0, 0, 
+        //                             sourceGroupBoxRect.Width(), sourceGroupBoxRect.Height() + offset, 
+        //                             SWP_SHOWWINDOW | SWP_NOMOVE);
     }
     else {
-
-        hideSource(checkFiles, butFiles, &saveSyncTypeFiles, IDC_SEPARATOR_6, 0);
+        // hideSource() to really hide it
+        disableSource(checkFiles, butFiles, &saveSyncTypeFiles, IDC_SEPARATOR_6, 0);
     }
 
     

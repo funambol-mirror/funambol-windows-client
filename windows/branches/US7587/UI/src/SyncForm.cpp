@@ -1122,7 +1122,7 @@ void CSyncForm::refreshSource( int sourceId )
         }
         else {
             // source not visible: hide the controls
-            hideSource(iconPictures, IDI_PICTURES, 
+            disableSource(iconPictures, IDI_PICTURES_GREY, 
                        IDC_MAIN_STATIC_PICTURES, IDC_MAIN_STATIC_STATUS_PICTURES,
                        panePictures);
             /*
@@ -1215,7 +1215,7 @@ void CSyncForm::refreshSource( int sourceId )
         }
         else {
             // source not visible: hide the controls
-            hideSource(iconVideos, IDI_VIDEOS, 
+            disableSource(iconVideos, IDI_VIDEOS_GREY, 
                        IDC_MAIN_STATIC_VIDEOS, IDC_MAIN_STATIC_STATUS_VIDEOS,
                        paneVideos);
         }
@@ -1301,7 +1301,7 @@ void CSyncForm::refreshSource( int sourceId )
         }
         else {
             // source not visible: hide the controls
-            hideSource(iconFiles, IDI_FILES, IDC_MAIN_STATIC_FILES, IDC_MAIN_STATIC_STATUS_FILES, paneFiles);
+            disableSource(iconFiles, IDI_FILES_GREY, IDC_MAIN_STATIC_FILES, IDC_MAIN_STATIC_STATUS_FILES, paneFiles);
         }
 
         lastSyncFiles = 0;
