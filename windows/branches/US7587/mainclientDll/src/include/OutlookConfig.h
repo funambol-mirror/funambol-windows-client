@@ -243,9 +243,12 @@ public:
     /**
      * Adds the passed source name to the sourcesVisible array, safely:
      * the source is not added if already exists in the array.
+     * @param sourceName the source name to add
+     * @param onlyIfDefault [optional] if true, the source is added ONLY IF it was
+     *                      defined in the default source list, at installation time (default = false)
      * @return true if the element is added, false if not found
      */
-    bool safeAddSourceVisible(const char* sourceName);
+    bool safeAddSourceVisible(const char* sourceName, bool onlyIfDefault = false);
 
     /**
      * Removes the passed source name from the sourcesVisible array.

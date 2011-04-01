@@ -431,7 +431,15 @@ void OutlookConfig::readSourcesVisible(HKEY rootKey) {
 }
 
 
-bool OutlookConfig::safeAddSourceVisible(const char* sourceName) {
+bool OutlookConfig::safeAddSourceVisible(const char* sourceName, bool onlyIfDefault) {
+
+    if (onlyIfDefault) {
+        StringBuffer defaultSources = SOURCE_ORDER_IN_REGISTRY;
+        if (defaultSources.find(sourceName) == StringBuffer::npos) {
+            // Not found in the default source list at installation time
+            return false;
+        }
+    }
 
     for (int i=0; i<sourcesVisible.size(); i++) {
         StringBuffer* element = (StringBuffer*)sourcesVisible.get(i);

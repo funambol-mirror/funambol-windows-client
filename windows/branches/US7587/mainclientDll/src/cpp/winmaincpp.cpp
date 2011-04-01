@@ -220,10 +220,10 @@ void initPIMSources() {
     bool configChanged = false;
     if (isOutlookInstalled) {
         LOG.debug("PIM sources are supported");
-        configChanged |= config->safeAddSourceVisible(CONTACT_);
-        configChanged |= config->safeAddSourceVisible(APPOINTMENT_);
-        configChanged |= config->safeAddSourceVisible(TASK_);
-        configChanged |= config->safeAddSourceVisible(NOTE_);
+        configChanged |= config->safeAddSourceVisible(CONTACT_    , true);
+        configChanged |= config->safeAddSourceVisible(APPOINTMENT_, true);
+        configChanged |= config->safeAddSourceVisible(TASK_       , true);
+        configChanged |= config->safeAddSourceVisible(NOTE_       , true);
     }
     else {
         LOG.debug("PIM sources are not supported");
