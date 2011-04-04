@@ -1521,7 +1521,6 @@ int manageSapiError(const int code) {
         {
             return WIN_ERR_SAPI_NOT_SUPPORTED;      // 13
         }        
-        case ESSMSourceNotSupported:
         case ESSMConfigError:
         case ESSMBeginSyncError:
         case ESSMEndSyncError:

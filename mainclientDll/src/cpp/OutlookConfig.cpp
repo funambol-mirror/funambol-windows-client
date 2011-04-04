@@ -1322,7 +1322,6 @@ void OutlookConfig::upgradeConfig() {
             sc->setSyncModes        (PICTURES_DEVINFO_SYNC_MODES);
             sc->setType             ("image/*");      
             sc->setSupportedTypes   ("application/*");      
-            sc->setProperty         (PROPERTY_USE_SAPI,                     "1");
             sc->setProperty         (PROPERTY_DOWNLOAD_LAST_TIME_STAMP,     "0");
             sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_CLIENT, -1);
             sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_SERVER, -1);
