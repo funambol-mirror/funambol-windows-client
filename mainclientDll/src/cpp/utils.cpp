@@ -367,7 +367,19 @@ StringBuffer getPIMCacheDir() {
     return cachePath;
 }
 
+StringBuffer getLogFileDir() {
 
+    WCHAR* wlogDir = readAppDataPath();
+
+    StringBuffer logDir;
+    logDir.convert(wlogDir);
+    delete [] wlogDir;
+
+    return logDir;
+}
+
+
+// DEPRECATED - not used
 StringBuffer getDefaultPicturesPath() {
 
     StringBuffer path;
@@ -380,6 +392,7 @@ StringBuffer getDefaultPicturesPath() {
     return path;
 }
 
+// DEPRECATED - not used
 StringBuffer getDefaultFilesPath() {
 
     StringBuffer path;
@@ -392,6 +405,7 @@ StringBuffer getDefaultFilesPath() {
     return path;
 }
 
+// DEPRECATED - not used
 StringBuffer getDefaultVideosPath() {
 
     StringBuffer path;

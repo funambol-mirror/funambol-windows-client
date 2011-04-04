@@ -113,6 +113,15 @@ __declspec(dllexport) OutlookConfig* getConfig() {
 
 int initializeClient(bool isScheduled, bool justRead) {
 
+    // --- Uncomment for debug logging at startup ---
+    //makeDataDirs();
+    //StringBuffer logDir = getLogFileDir();
+    //LOG.setLogPath(logDir.c_str());
+    //LOG.setLogName(OL_PLUGIN_LOG_NAME);
+    //LOG.setLevel(LOG_LEVEL_DEBUG);
+    // ----------------------------------------------
+
+    LOG.debug("entering %s", __FUNCTION__);
     int ret=0;
     char logText[512];
     logText[0] = 0;
@@ -125,6 +134,7 @@ int initializeClient(bool isScheduled, bool justRead) {
     // 1. Generate configuration if error reading (may not exist if first time).
     //    Save, to ensure future calls to config.read().
     if (!config->read()) {
+        LOG.debug("error reading user's config: generate default");
         config->createDefaultConfig();
         config->initializeVersionsAndUserAgent();
         config->save();
@@ -176,6 +186,7 @@ int initializeClient(bool isScheduled, bool justRead) {
 
 void initPIMSources() {
 
+    LOG.debug("entering %s", __FUNCTION__);
     bool isOutlookInstalled = false;
     bool isRedemptionInstalled = false;
     
@@ -255,6 +266,7 @@ void initPIMSources() {
  * @return       0 if no errors
  */
 int initLog(bool isScheduled) {
+    LOG.debug("entering %s", __FUNCTION__);
 
     // Log path: get from config (under app data)
     OutlookConfig* config = OutlookConfig::getInstance();
@@ -270,7 +282,6 @@ int initLog(bool isScheduled) {
         }
     }
 
-    //Log(0, config->getLogDir(), OL_PLUGIN_LOG_NAME);
     LOG.setLogPath(config->getLogDir());
     LOG.setLogName(OL_PLUGIN_LOG_NAME);
     LOG.setLevel(config->getClientConfig().getLogLevel());
@@ -1255,6 +1266,8 @@ const int getClientLastErrorCode() {
  */
 void upgradePlugin(const int oldVersion, const int oldFunambolVersion) {
 
+    LOG.debug("Upgrade client from version %d", oldFunambolVersion);
+
     // Upgrades from a version < v8 are no more supported
     if (oldFunambolVersion < 80000) {
         return;
@@ -1305,9 +1318,10 @@ void upgradePlugin(const int oldVersion, const int oldFunambolVersion) {
 
         // Now we can remove the old cache dir with all its content.
         char* oldDir = toMultibyte(oldDataPath.c_str());
+        LOG.debug("Removing all files from %s", oldDir);
         removeFileInDir(oldDir);
-        delete [] oldDir;
         RemoveDirectory(oldDataPath.c_str());
+        delete [] oldDir;
 
 
         // Rename the scheduled task for this user only (we don't have more permissions)
@@ -1337,6 +1351,8 @@ void upgradePlugin(const int oldVersion, const int oldFunambolVersion) {
 
 
 void upgradeScheduledTask() {
+    LOG.debug("entering %s", __FUNCTION__);
+
     //upgrade scheduled task
     setProgramNameForScheduledTask(WPROGRAM_NAME);
     bool active;
