@@ -69,6 +69,7 @@
 !define PROPERTY_MEDIAHUB_TITLE                 "MediaHub Location"
 !define PROPERTY_MEDIAHUB_DESCRIPTION           "Select the MediaHub Folder Location."
 !define PROPERTY_MEDIAHUB_TEXT                  "Pictures, videos and files stored in the MediaHub folder will be kept in sync with your online account."
+!define PROPERTY_MEDIAHUB_FOLDER_ALERT          "NOTE: All pictures, videos, and files will now be downloaded to the designated folder below on your computer (instead of to the \Pictures or \MyPictures directory)."
 !define PROPERTY_MEDIAHUB_FOLDER                "MediaHub Folder"
 !define PROPERTY_MEDIAHUB_SELECT_FOLDER         "Choose a location for your MediaHub folder. A folder called 'MediaHub' will be created in the folder that you select."
 
@@ -204,6 +205,12 @@ Function nsDialogsPage
         
         ${NSD_CreateLabel} 0 0 100% 25u "${PROPERTY_MEDIAHUB_TEXT}"
 	Pop $Label
+	
+	; if MediaHub foder changed, let's append an alert text.
+	${If} $showMediaHubPanel == "FolderChanged"
+            ${NSD_CreateLabel} 0 25u 100% 25u "${PROPERTY_MEDIAHUB_FOLDER_ALERT}"
+	    Pop $Label
+        ${EndIf}
 	
 	${If} $mediaHubFolderChoosen == ""
 	        StrCpy $mediaHubFolderChoosen "$DOCUMENTS"
@@ -557,6 +564,8 @@ Function CheckAppInstalled
        ReadRegStr $tmp  HKCU "${PLUGIN_REGKEY_CONTEXT}\${PROPERTY_PICTURE_MEDIAHUB_KEY}" "${PROPERTY_MEDIAHUB_REG_KEY}"    ; Check if the mediaHub for pictures has value
        ${If} $tmp != ""
              StrCpy $showMediaHubPanel "NO"
+       ${Else}
+             StrCpy $showMediaHubPanel "FolderChanged"
        ${EndIf}
        
        Goto done
