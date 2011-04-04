@@ -134,6 +134,7 @@ const ArrayList& OutlookConfig::getSourcesVisible() {
  */
 bool OutlookConfig::read() {
 
+    LOG.debug("entering %s", __FUNCTION__);
     unsigned int i=0;
 
     // Read timezone info.
@@ -502,6 +503,8 @@ void OutlookConfig::sortSourceVisible() {
  * @return TRUE if no errors
  */
 bool OutlookConfig::save(SyncReport* report) {
+
+    LOG.debug("entering %s", __FUNCTION__);
 
     bool ret = false;
     LOG.debug(DBG_WRITING_CONFIG_TO_DM);
@@ -1028,6 +1031,8 @@ const TimeZoneInformation* OutlookConfig::getCurrentTimezone() const {
  */
 void OutlookConfig::createDefaultConfig() {
 
+    LOG.debug("entering %s", __FUNCTION__);
+
     //
     // AccessConfig
     //
@@ -1162,6 +1167,8 @@ void OutlookConfig::createDefaultConfig() {
  */
 bool OutlookConfig::checkToUpgrade() {
 
+    LOG.debug("entering %s", __FUNCTION__);
+
     bool ret = false;
     const char* newSwv = readCurrentSwv();
     const char* oldSwv = getClientConfig().getSwv();
@@ -1207,6 +1214,7 @@ void OutlookConfig::initializeVersionsAndUserAgent() {
  */
 void OutlookConfig::upgradeConfig() {
     
+    LOG.debug("entering %s", __FUNCTION__);
     initializeVersionsAndUserAgent();
 
     // Old version < 8.2.0

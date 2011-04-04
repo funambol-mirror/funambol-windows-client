@@ -132,6 +132,12 @@ StringBuffer getSapiCacheDir();
  */
 StringBuffer getPIMCacheDir();
 
+/**
+ * Returns the path where log file for current user is stored.
+ * It is located under 'application data' folder.
+ */
+StringBuffer getLogFileDir();
+
 int    makeDataDirs    ();
 int    getWindowsUser  (std::wstring& userName);
 int    getWindowsUserEx(std::wstring& userName);
