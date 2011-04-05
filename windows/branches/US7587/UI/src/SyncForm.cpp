@@ -256,50 +256,51 @@ LRESULT CSyncForm::OnInitForm(WPARAM, LPARAM) {
 
         iconStatusContacts.GetWindowRect(&rectIcon);
         ScreenToClient(&rectIcon);
+        int posX = (int)(dx - rectIcon.Width()- 70);    // a fixed X position for all status icons...
         iconStatusContacts.SetWindowPos(&CWnd::wndTop,
-            (int)(dx - rectIcon.Width()- 70),
+            posX,
             rectIcon.TopLeft().y, rectIcon.Width(),
             rectIcon.Height(), SWP_SHOWWINDOW);
 
         iconStatusCalendar.GetWindowRect(&rectIcon);
         ScreenToClient(&rectIcon);
         iconStatusCalendar.SetWindowPos(&CWnd::wndTop, 
-            (int)(dx - rectIcon.Width()- 70),
+            posX,
             rectIcon.TopLeft().y, rectIcon.Width(),
             rectIcon.Height(), SWP_SHOWWINDOW);
 
         iconStatusTasks.GetWindowRect(&rectIcon);
         ScreenToClient(&rectIcon);
         iconStatusTasks.SetWindowPos(&CWnd::wndTop, 
-            (int)(dx - rectIcon.Width()- 70),
+            posX,
             rectIcon.TopLeft().y, rectIcon.Width(),
             rectIcon.Height(), SWP_SHOWWINDOW);
 
         iconStatusNotes.GetWindowRect(&rectIcon);
         ScreenToClient(&rectIcon);
         iconStatusNotes.SetWindowPos(&CWnd::wndTop, 
-            (int)(dx - rectIcon.Width()- 70),
+            posX,
             rectIcon.TopLeft().y, rectIcon.Width(),
             rectIcon.Height(), SWP_SHOWWINDOW);
 
         iconStatusPictures.GetWindowRect(&rectIcon);
         ScreenToClient(&rectIcon);
         iconStatusPictures.SetWindowPos(&CWnd::wndTop, 
-            (int)(dx - rectIcon.Width()- 70),
+            posX,
             rectIcon.TopLeft().y, rectIcon.Width(),
             rectIcon.Height(), SWP_SHOWWINDOW);
 
         iconStatusVideos.GetWindowRect(&rectIcon);
         ScreenToClient(&rectIcon);
         iconStatusVideos.SetWindowPos(&CWnd::wndTop, 
-            (int)(dx - rectIcon.Width()- 70),
+            posX,
             rectIcon.TopLeft().y, rectIcon.Width(),
             rectIcon.Height(), SWP_SHOWWINDOW);
 
         iconStatusFiles.GetWindowRect(&rectIcon);
         ScreenToClient(&rectIcon);
         iconStatusFiles.SetWindowPos(&CWnd::wndTop, 
-            (int)(dx - rectIcon.Width()- 70),
+            posX,
             rectIcon.TopLeft().y, rectIcon.Width(),
             rectIcon.Height(), SWP_SHOWWINDOW);
     }
@@ -1143,6 +1144,8 @@ void CSyncForm::refreshSource( int sourceId )
         if (syncSourcePictureState != SYNCSOURCE_STATE_OK) {
             iconStatusPictures.SetIcon(LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ALERT)));
             panePictures.hPrevStatusIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ALERT));
+        } else {
+            panePictures.hPrevStatusIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_OK));
         }
 
         // update the UI source status
@@ -1232,6 +1235,8 @@ void CSyncForm::refreshSource( int sourceId )
         if (syncSourceVideoState != SYNCSOURCE_STATE_OK) {
             iconStatusVideos.SetIcon(LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ALERT)));
             paneVideos.hPrevStatusIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ALERT));
+        } else {
+            paneVideos.hPrevStatusIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_OK));
         }
 
         // update the UI source status
@@ -1319,6 +1324,8 @@ void CSyncForm::refreshSource( int sourceId )
         if (syncSourceFileState != SYNCSOURCE_STATE_OK) {
             iconStatusFiles.SetIcon(LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ALERT)));
             paneFiles.hPrevStatusIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ALERT));
+        } else {
+            paneFiles.hPrevStatusIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_OK));
         }
 
         // update the UI source status
