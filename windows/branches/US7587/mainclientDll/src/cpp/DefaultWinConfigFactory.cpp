@@ -201,6 +201,7 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         sc->setEncoding         ("bin");                                 // not really used, as it's detected from each item received
         sc->setSupportedTypes   ("application/*");
         sc->setIsEnabled        (PICTURE_SOURCE_ENABLED);
+        sc->setBoolProperty     (PROPERTY_USE_SAPI, true);
         sc->setProperty         (PROPERTY_DOWNLOAD_LAST_TIME_STAMP,     "0");
         sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_CLIENT, -1);
         sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_SERVER, -1);
@@ -217,7 +218,8 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         sc->setVersion          ("");
         sc->setEncoding         ("bin");                                 // not really used, as it's detected from each item received
         sc->setSupportedTypes   ("application/*");
-        sc->setIsEnabled        (VIDEO_SOURCE_ENABLED);        
+        sc->setIsEnabled        (VIDEO_SOURCE_ENABLED);
+        sc->setBoolProperty     (PROPERTY_USE_SAPI, true);
         sc->setProperty         (PROPERTY_DOWNLOAD_LAST_TIME_STAMP,     "0");
         sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_CLIENT, -1);
         sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_SERVER, -1);
@@ -234,7 +236,8 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         sc->setVersion          ("");
         sc->setEncoding         ("bin");                                 // not really used, as it's detected from each item received
         sc->setSupportedTypes   ("application/*");
-        sc->setIsEnabled        (FILE_SOURCE_ENABLED);        
+        sc->setIsEnabled        (FILE_SOURCE_ENABLED); 
+        sc->setBoolProperty     (PROPERTY_USE_SAPI, true);
         sc->setProperty         (PROPERTY_DOWNLOAD_LAST_TIME_STAMP,     "0");
         sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_CLIENT, -1);
         sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_SERVER, -1);
