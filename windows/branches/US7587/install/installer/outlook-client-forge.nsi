@@ -210,6 +210,8 @@ Function nsDialogsPage
 	${If} $showMediaHubPanel == "FolderChanged"
             ${NSD_CreateLabel} 0 25u 100% 25u "${PROPERTY_MEDIAHUB_FOLDER_ALERT}"
 	    Pop $Label
+            CreateFont $1 "$(^Font)" 8 600
+            SendMessage $Label ${WM_SETFONT} $1 0
         ${EndIf}
 	
 	${If} $mediaHubFolderChoosen == ""
