@@ -69,7 +69,7 @@
 !define PROPERTY_MEDIAHUB_TITLE                 "MediaHub Location"
 !define PROPERTY_MEDIAHUB_DESCRIPTION           "Select the MediaHub Folder Location."
 !define PROPERTY_MEDIAHUB_TEXT                  "Pictures, videos and files stored in the MediaHub folder will be kept in sync with your online account."
-!define PROPERTY_MEDIAHUB_FOLDER_ALERT          "NOTE: All pictures, videos, and files will now be downloaded to the designated folder below on your computer (instead of to the \Pictures or \MyPictures directory)."
+!define PROPERTY_MEDIAHUB_FOLDER_ALERT          "NOTE: All pictures, videos, and files will now be downloaded to the designated folder above (instead of \Pictures or \MyPictures directory)."
 !define PROPERTY_MEDIAHUB_FOLDER                "MediaHub Folder"
 !define PROPERTY_MEDIAHUB_SELECT_FOLDER         "Choose a location for your MediaHub folder. A folder called 'MediaHub' will be created in the folder that you select."
 
@@ -208,7 +208,7 @@ Function nsDialogsPage
 	
 	; if MediaHub foder changed, let's append an alert text.
 	${If} $showMediaHubPanel == "FolderChanged"
-            ${NSD_CreateLabel} 0 25u 100% 25u "${PROPERTY_MEDIAHUB_FOLDER_ALERT}"
+            ${NSD_CreateLabel} 0 85u 100% 25u "${PROPERTY_MEDIAHUB_FOLDER_ALERT}"
 	    Pop $Label
             CreateFont $1 "$(^Font)" 8 600
             SendMessage $Label ${WM_SETFONT} $1 0
@@ -218,16 +218,16 @@ Function nsDialogsPage
 	        StrCpy $mediaHubFolderChoosen "$DOCUMENTS"
 	${EndIf}
 	
-	${NSD_CreateText} 3% 83u 70% 15u "$mediaHubFolderChoosen\${PROPERTY_MEDIAHUB}"
+	${NSD_CreateText} 3% 43u 70% 15u "$mediaHubFolderChoosen\${PROPERTY_MEDIAHUB}"
 	Pop $DirRequest
 	${NSD_OnChange} $DirRequest nsDialogsPageTextChange
 
-	${NSD_CreateButton} 76% 83u 20% 15u "Browse..."
+	${NSD_CreateButton} 76% 43u 20% 15u "Browse..."
 	Pop $Button
 	GetFunctionAddress $0 OnClick
 	nsDialogs::OnClick $Button $0
 	
-        ${NSD_CreateGroupBox} 0 69u 100% 40u "${PROPERTY_MEDIAHUB_FOLDER}"
+        ${NSD_CreateGroupBox} 0 29u 100% 40u "${PROPERTY_MEDIAHUB_FOLDER}"
 	Pop $GroupBox
  
         nsDialogs::Show
