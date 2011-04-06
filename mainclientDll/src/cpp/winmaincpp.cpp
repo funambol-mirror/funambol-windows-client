@@ -1323,12 +1323,17 @@ void upgradePlugin(const int oldVersion, const int oldFunambolVersion) {
         }
 
         // Now we can remove the old cache dir with all its content.
-        char* oldDir = toMultibyte(oldDataPath.c_str());
-        LOG.debug("Removing all files from %s", oldDir);
+        wstring oldPictureCache = oldDataPath;
+        oldPictureCache += TEXT("\\item_cache");
+        char* oldDir = toMultibyte(oldPictureCache.c_str());
+        removeFileInDir(oldDir);
+        RemoveDirectory(oldPictureCache.c_str());
+        delete [] oldDir;
+
+        oldDir = toMultibyte(oldDataPath.c_str());
         removeFileInDir(oldDir);
         RemoveDirectory(oldDataPath.c_str());
         delete [] oldDir;
-
 
         // Rename the scheduled task for this user only (we don't have more permissions)
         // was: "C:\Windows\Tasks\Funambol Outlook Client - <username>.job"
@@ -1349,7 +1354,7 @@ void upgradePlugin(const int oldVersion, const int oldFunambolVersion) {
         newTaskName += name;
         newTaskName += TEXT(".job");
 
-        _wrename(oldTaskName.c_str(), newTaskName.c_str());
+        MoveFile(oldTaskName.c_str(), newTaskName.c_str());
     }
 
     return;
