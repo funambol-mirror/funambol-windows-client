@@ -66,7 +66,7 @@
 #include "base/util/XMLProcessor.h"
 
 #include "sapi/FileSapiSyncSource.h" //SAPI
-#include "sapi/MediaSapiSyncSource.h" //SAPI
+//#include "sapi/MediaSapiSyncSource.h" //SAPI
 #include "sapi/SapiSyncManager.h"
 #include "spds/MappingsManager.h"
 
@@ -550,11 +550,11 @@ int startSync() {
         {
             // --- Media source ---
             SapiSyncSource* source;
-            if (strcmp(name->c_str(), PICTURE_) == 0 || strcmp(name->c_str(), VIDEO_) == 0) {
-                source = new MediaSapiSyncSource(*ssconfig, ssReport, 0, 0, sapiCacheDir.c_str());    // filterDates are both disabled            
-            } else {
+            //if (strcmp(name->c_str(), PICTURE_) == 0 || strcmp(name->c_str(), VIDEO_) == 0) {
+            //    source = new MediaSapiSyncSource(*ssconfig, ssReport, 0, 0, sapiCacheDir.c_str());    // filterDates are both disabled            
+            //} else {
                 source = new FileSapiSyncSource(*ssconfig, ssReport, 0, 0, sapiCacheDir.c_str());    // filterDates are both disabled                            
-            }
+            //}
             res = synchronizeSapi(*source, report);
             report.addSyncSourceReport(source->getReport());
             delete source;
