@@ -488,6 +488,8 @@ Forge file for Funambol Windows Sync Client
     -->
     <target name="build-install" depends="init,copy-NSIS-plugins" >
         <mkdir dir="${dir.output}"/>
+        
+        <property file="${dir.distribution}/build/release.properties"/>
 
         <echo message="${install-builder.nsi}" />
         <echo message="output to: ${log.NSIS}" />
@@ -520,6 +522,8 @@ Forge file for Funambol Windows Sync Client
         <copy todir="${dir.fileset}" overwrite="TRUE">
             <fileset dir="${dir.redemptionLibRedist}" includes="Redemption.dll"/>
         </copy>
+        
+        <property file="${dir.distribution}/build/release.properties"/>
 
 
         <echo message="${install-builder.nsi}" />
