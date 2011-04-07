@@ -551,9 +551,9 @@ int startSync() {
             // --- Media source ---
             SapiSyncSource* source;
             if (strcmp(name->c_str(), PICTURE_) == 0 || strcmp(name->c_str(), VIDEO_) == 0) {
-                source = new FileSapiSyncSource(*ssconfig, ssReport, 0, 0, sapiCacheDir.c_str());    // filterDates are both disabled            
+                source = new MediaSapiSyncSource(*ssconfig, ssReport, 0, 0, sapiCacheDir.c_str());    // filterDates are both disabled            
             } else {
-                source = new MediaSapiSyncSource(*ssconfig, ssReport, 0, 0, sapiCacheDir.c_str());    // filterDates are both disabled                            
+                source = new FileSapiSyncSource(*ssconfig, ssReport, 0, 0, sapiCacheDir.c_str());    // filterDates are both disabled                            
             }
             res = synchronizeSapi(*source, report);
             report.addSyncSourceReport(source->getReport());
