@@ -131,6 +131,25 @@ WindowsSyncSource* createContactWindowsSyncSource() {
 
 }
 
+WindowsSyncSource* createAppointmentWindowsSyncSource() {
+
+    OutlookConfig* config = getConfig();
+    config->getServerConfig().setNoFieldLevelReplace("event");
+
+    WIN_ASSERT_NOT_NULL(config, TEXT("The config is null. Please verify the an Outlook client is already installed"));
+    WindowsSyncSourceConfig* sc = config->getSyncSourceConfig(APPOINTMENT_);
+    WindowsSyncSource* ss = new WindowsSyncSource(APPOINTMENT, sc);
+    int ret = ss->beginSync();   
+    WIN_ASSERT_ZERO(ret, TEXT("beginSync is not 0"));
+
+    SyncSourceReport* ssReport = new SyncSourceReport();
+    ssReport->setSourceName(sc->getName());
+    ssReport->setState(SOURCE_ACTIVE);
+    ss->setReport(ssReport);
+
+    return ss;
+
+}
 
 
 /**
@@ -658,5 +677,62 @@ BEGIN_TEST(CTCapTest)
     WIN_ASSERT_STRING_EQUAL(ctcapTest.c_str(), s->c_str(), L"Ctcap different");
     //printf("%s", s->c_str());
     int c = 0;
+}
+END_TEST
+
+/**
+* Removed the STATUS from the winevent parser
+*/
+BEGIN_TEST(WinEventNoSTATUS)
+{
+    int ret = 0;
+    SyncItem* item = NULL;
+    WCHAR* internalKey = NULL;
+    wstring propValue; 
+
+    WindowsSyncSource* ss = createAppointmentWindowsSyncSource();   
+    WIN_ASSERT_NOT_NULL(ss, TEXT("The syncSource is null."));
+
+    StringBuffer VCal;
+    VCal.append("BEGIN:VCALENDAR\r\n");
+    VCal.append("VERSION:1.0\r\n");
+    VCal.append("BEGIN:VEVENT\r\n");
+    VCal.append("X-FUNAMBOL-FOLDER:DEFAULT_FOLDER\r\n");
+    VCal.append("X-FUNAMBOL-ALLDAY:1\r\n");
+    VCal.append("DTSTART:20110407\r\n");
+    VCal.append("DTEND:20110408\r\n");
+    VCal.append("X-MICROSOFT-CDO-BUSYSTATUS:FREE\r\n");
+    VCal.append("CATEGORIES:\r\n");
+    VCal.append("DESCRIPTION:\r\n");
+    VCal.append("LOCATION:Roma\r\n");
+    VCal.append("PRIORITY:1\r\n");
+    VCal.append("STATUS:NEED ACTION\r\n");
+    VCal.append("X-MICROSOFT-CDO-REPLYTIME:\r\n");
+    VCal.append("SUMMARY;ENCODING=QUOTED-PRINTABLE;CHARSET=UTF-8:Da test\r\n");
+    VCal.append("CLASS:PUBLIC\r\n");
+    VCal.append("AALARM:20110406T060000Z;;0;\r\n");
+    VCal.append("RRULE:\r\n");
+    VCal.append("X-FUNAMBOL-BILLINGINFO:\r\n");
+    VCal.append("X-FUNAMBOL-COMPANIES:\r\n");
+    VCal.append("X-FUNAMBOL-MILEAGE:\r\n");
+    VCal.append("X-FUNAMBOL-NOAGING:0 \r\n");
+    VCal.append("END:VEVENT\r\n");
+    VCal.append("END:VCALENDAR");
+
+    item = new SyncItem(TEXT("GUID"));
+    item->setData(VCal.c_str(), VCal.length());
+    
+    WCHAR* tt = toWideChar(VCal.c_str());
+
+    WinEvent d(tt);
+    printf("%S", d.toString().c_str());        
+
+    // insert test item
+    ret = ss->addItem(*item);
+    WIN_ASSERT_EQUAL(ret, 201, TEXT("Adding item is not correct"));    
+    internalKey = (WCHAR*)item->getKey();        
+    
+    delete item;
+    delete ss;
 }
 END_TEST
