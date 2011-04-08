@@ -1,5 +1,10 @@
+2011-04-08
+  - toccy: fixed bug 10593 - Branding tool should not customize the client's user-agent
+           fixed bug 8449  - Windows Sync Client - outlook sync out of order
+
 2011-04-04
   - magi:  Fixed CTCap format as for SyncML specification
+  
 2011-04-01
   - toccy: changed product name into "Windows Sync Client": updated defines, labels, docs and projects
            - removed dependency from MS Outlook: PIM sources are hidden if Outlook is not installed

@@ -1197,13 +1197,13 @@ void OutlookConfig::initializeVersionsAndUserAgent() {
     }
 
     // Set the new User Agent = "Funambol Windows Sync Client v. x.y.z"
-    char* userAgent = new char[strlen(PROGRAM_NAME) + strlen(newSwv) + 5];
-    sprintf(userAgent, "%s v. %s", PROGRAM_NAME, newSwv);
-    accessConfig.setUserAgent(userAgent);
+    // It is a fixed value even for branded builds.
+    StringBuffer ua(FUNAMBOL_USER_AGENT);
+    ua += " v. ";
+    ua += funambolNewSwv;
+    accessConfig.setUserAgent(ua.c_str());
 
     delete [] newSwv;
-    delete [] userAgent;
-
 }
 
 
@@ -1215,6 +1215,8 @@ void OutlookConfig::initializeVersionsAndUserAgent() {
 void OutlookConfig::upgradeConfig() {
     
     LOG.debug("entering %s", __FUNCTION__);
+
+    // always!
     initializeVersionsAndUserAgent();
 
     // Old version < 8.2.0
