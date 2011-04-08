@@ -135,7 +135,8 @@ ClientApplication::ClientApplication(bool checkAttach) {
 
         // "MAPI" = the only available message store.
         pMAPI = pApp->GetNamespace(MAPI);		
-
+        
+        MAPIFolderPtr tmpFolder = pMAPI->GetDefaultFolder(olFolderInbox);
         // To Logon Outlook (if Outlook closed, it will be opened in bkground)
         LOG.debug("Logon to Outlook MAPI: default profile, show-dialog = %s, new-session = %s", (OL_SHOW_DIALOG)? "true":"false", (OL_NEW_SESSION)? "true":"false");
         pMAPI->Logon(OL_PROFILE, OL_PASSWORD, OL_SHOW_DIALOG, OL_NEW_SESSION);
