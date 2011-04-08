@@ -61,7 +61,7 @@
 // Addin customization
 // This macro is used into the Outlook menu. The & is the value used to create a shortcut to open the client
 #define ADDIN_MENU_LABEL                    L"Funa&mbol"
-#define LAST_COMPATIBLE_VERSION             80207                       /**< "8.2.6" is the latest version compatible with this addin - change this value when addin need to be reinstalled */
+#define LAST_COMPATIBLE_VERSION             100000                       /**< "10.0.0" is the latest version compatible with this addin - change this value when addin need to be reinstalled */
 
 // The program folder
 #define FUNAMBOL_DIR_NAME                   TEXT("Funambol")
@@ -166,6 +166,10 @@
 // The deviceId will be like: "fol-b64(%1:%2)" - see OutlookConfig::setUniqueDevID()
 // where %1 is the local machine name, %2 is the Windows current user name (encoded in base64)
 #define DEVICE_ID_PREFIX                    "fol"
+
+// The user-agent is this fixed value + the funambol sw version.
+// For example: "Funambol Windows Sync Client v. 10.0.0"
+#define FUNAMBOL_USER_AGENT                 "Funambol Windows Sync Client"
 
 // Auto-update feature
 #define UP_URL_RESOURCE                     "/sapi/profile/client?action=get-update-info"
