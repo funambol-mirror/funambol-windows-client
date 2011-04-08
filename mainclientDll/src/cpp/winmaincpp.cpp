@@ -156,6 +156,10 @@ int initializeClient(bool isScheduled, bool justRead) {
         upgradePlugin(config->getOldSwv(), config->getOldFunambolSwv());
 
         config->save();
+
+        // this is dirty: it is necessary to get a clean config with all the sources in the right order
+        // (TODO: remove me after refactoring of OutlookConfig: remove WinSourceConfig and use ArrayList)
+        config->read();
         sprintf(logText, INFO_SWV_UPGRADED, config->getSwv(), config->getFunambolSwv().c_str());
 
         upgradeScheduledTask();
