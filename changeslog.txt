@@ -1,6 +1,7 @@
 2011-04-08
   - toccy: fixed bug 10593 - Branding tool should not customize the client's user-agent
            fixed bug 8449  - Windows Sync Client - outlook sync out of order
+  - magi: fixed bug #10528
 
 2011-04-04
   - magi:  Fixed CTCap format as for SyncML specification
