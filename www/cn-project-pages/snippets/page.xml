@@ -23,10 +23,6 @@
       <title localize="false">Download</title>
       <filename>HtmlSnippet3.html</filename>
     </component>
-    <component visibility="1" type="ActivityPanel" order="7">
-      <title localize="false" />
-      <filename>HtmlSnippet4.html</filename>
-    </component>
   </component_list>
 </page>
 
