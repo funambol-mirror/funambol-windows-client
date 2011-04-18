@@ -1,0 +1,1005 @@
+2011-04-08
+  - toccy: fixed bug 10593 - Branding tool should not customize the client's user-agent
+           fixed bug 8449  - Windows Sync Client - outlook sync out of order
+  - magi: fixed bug #10528
+
+2011-04-04
+  - magi:  Fixed CTCap format as for SyncML specification
+  
+2011-04-01
+  - toccy: changed product name into "Windows Sync Client": updated defines, labels, docs and projects
+           - removed dependency from MS Outlook: PIM sources are hidden if Outlook is not installed
+           - improved installer: upgrade from old Outlook Sync Client is possible (from version 8 or higher)
+           - Redemption.dll is registered at client startup if necessary 
+             (can be skipped during installation if MS Outlook is not installed)
+
+  - magi:  Added backward compatibility support. Removed one-way from client / to server       
+  
+2011-03-25
+  - toccy: updated all client UI icons with better graphics
+
+2011-03-24
+  - toccy: added item max size for media sources (0 = unlimited for pictures and files, 100 MB for videos)
+  - magi : improved NSIS installation file adding custom dialog to select the MediaHub folder.
+           updated uninstalled to remove properly the Desktop.ini file for all users.
+           added custom ico to the MediaHub folder
+2011-03-22
+  - toccy: fixed upgrade procedure
+           removed WindowsSyncSourceConfig internal params, now proxy methods to CustomConfig stringmap
+           added sapi params to customization.h
+
+2011-03-21
+  - toccy: reintegrated branch US7483: online and local quota full
+           - added 2 new source states in case of online quota exceeded and local storage full
+           - reworked windows error codes
+  - toccy: added sapi retry mechanism config params (retry 2 times, sleep time 0.5 sec)
+           fixed syncItem Listeners in case of retry uploads
+
+2011-03-16
+  - magi:  updated trunk version to 10.0.0
+           added dialog to let the user set the Media-Hub folder
+  
+2011-03-14
+  - toccy: reintegrated branch US7480: media sync
+           * added pictures/videos/files sync 2-way (new media sync implementation, sapi based)
+           * reworked media sources settings panels
+           * fixed UI source state after client restart (last source state was lost)
+           * syncall now starts separate sync sessions for each source under sync.
+             This makes the source progress management easier and the UI messages clearer.
+           * improved cancel sync, it's now more responsive (http interface can be stopped)
+           * improved source/transport listeners for media sources, added progress events
+           * improved logging and sync report errors (WIN-x error codes)
+           * some minor UI fix
+
+2011-03-10
+  - toccy: fixed bug 10289: Yearly all-day events are not updated on outlook 2010 and outlook 2007 SP2
+           It is a patch for a MS Outlook issue on yearly recurring events, that are 
+           differently managed on different Outlook versions.
+           In case of error inserting a (right) interval like 1,2,3 we try again with 12,24,36.
+
+2010-01-21
+  - maria: Release 9.0.2 and create branch v9
+
+2011-01-21
+  - toccy: fixed bug 10551: Copyright dates on Readme.txt are not updated to 2011
+
+2010-12-20
+  - maria: Release 9.0.1
+
+2010-12-16
+  - toccy: fixed bug 9716 - Outlook Sync Client: Last sync information is not sufficiently detailed
+
+2010-12-15
+  - toccy: fixed bug 10459 - About page formatting on Windows XP
+  
+2010-12-10
+  - magi: added redemption.readme.txt file. Updated how_to_build with redemption info
+  
+2010-11-29
+  - magi: updated copyright info from 2010 to 2011
+
+2010-11-15
+  - toccy: updated icons: main icon, sync all button, about logo, addin icon
+
+2010-11-11
+  - toccy: reintegrated branch US6508: "1-way sync removal upgrade"
+           - fixed upgrade (reset anchors for sources involved, so a slow sync will be done)
+           - added a warning popup in case of upgrade
+
+2010-11-04
+  - toccy: reintegrated branch US6604: "1-way sync removal"
+           - removed the 1-way syncmode from PIM sources. In case of upgrade and the 
+             syncmode used was 1-way, the source is disabled.
+           - Added customization params for every source for:
+             * the default sync mode
+             * the list of available sync modes (comma separated values)
+           - SyncSettings UI changed: display the syncmode if it's a one-way
+           - Source settings UI changed: dynamically use the editbox instead of the
+             dropdown list if the available syncmode is only 1
+
+2010-10-26
+  - toccy: fixed bug 10260 - Yearly recurring events not added in Outlook 2003 and 2007 (Error inserting recurrence property 'Interval')
+           On Outlook 2003 and 2007 the "interval" property is not set in yearly events,
+           since it's not supported and may cause an error saving the recurrence pattern.
+
+2010-09-22
+  - magi: added support for the noFieldLevelReplace capability only for contact x-text/vcard
+          Modified the dataTransformer for contact
+          Added unit test for Contact against the backend using WinUnit (http://msdn.microsoft.com/en-us/magazine/cc136757.aspx)
+          and added readme to use it
+          Modified the project with new test
+
+2010-09-08
+   - toccy: fixed bug 8918 - Task icon appears in dark before the first sync
+   - toccy: updated projects and build.properties: the default environment is now Visual Studio 2008.
+
+2010-08-06
+  - toccy: improved parsing of X-FUNAMBOL-FOLDER property, server to client (speed up).
+           (added smartGetFolderTag in WindowsSyncSource)
+2010-08-03
+  - maria: Release 8.7.2
+2010-07-29
+  - toccy: merged from branch v87:
+           (APIs windows/vocl): added patternEndDate info to vCalendar, for outgoing items (WM and OL clients)
+           Now patternEndDate and Occurrences are both included in vCalendar, for compatibility.
+           Some refactoring on the WinRecurrence::toString() method.
+
+2010-07-13
+  - maria: Release 8.7.1.
+
+2010-07-28
+  - toccy: created branch "files_sync".
+           Added Files sync (like pictures sync, Server-to-Client only):
+           - main screen: fixed UI pane, cannot be hidden
+           - settings: source can be enabled/disabled, destination folder (default = user's documents dir), 
+             remote URI (default = "file")
+           - recover: only from server to client
+           Notes:
+           - Using VS2008 projects
+           - Pictures source is fixed on UI too (no dynamically hidden)
+
+2010-07-20
+  - toccy: improved logging when error occurs saving a recurring event/task (print the list of all props)
+
+2010-06-29
+  - toccy: fixed bug #9556 - Some yearly events in VCAL format are not synced to the server
+           Outlook APIs have a bug: yearly and yearNth recurrences (rec types 5 and 6) are returned
+           with a wrong interval when read: interval 12,24,36... instead of 1,2,3.
+           So an appropriate patch is applied to the interval value in ClientRecurrence.cpp.
+
+2010-06-01
+  - toccy: fixed bug #9324 -  Only the first exception in a recurring event is syncronized correctly from server to Outlook
+           (APIs) The EXDATE and RDATE properties were not parsed correctly in WinEvent (only the first element was read)
+
+2010-05-28
+  - magi : fixed bug #9429 - Autoupdate pop-up remains in bg and client stops working. Modification into
+           winmaincpp to put in foreground the client when an update popup comes up.  
+
+  - toccy: fixed bug #8671  - Issue on recurring events on Outlook
+           The 'change-day' flag is set to FALSE, so the events recurrence are always expected in local time.
+           This is used ONLY when syncing against a Server that doesn't support events timezones (TZ).
+           It's consistent, since the client always sends the events in local time + TZ, even if the
+           Server doesn't support TZ.
+
+2010-05-27
+  - toccy: fixed appointments date filtering: it was disabled on a fresh install
+
+2010-05-26
+  - toccy: fixed bug #9384 - Outlook Client crashes if the server defined a datastore like "./contacts" (APIs C++)
+
+2010-05-12
+  - toccy: Imported Vietnamese translations (now 3 languages are supported: English, German, Vietnamese)
+  
+  - toccy: Reintegrated branch "MT02" to trunk - Mailtrust contribution:
+           
+           Bugs fixed:
+                #6087 - Issue on synchronizing recurrent tasks that are completed
+                #6075 - Issue on recurrent task on Windows Vista + Outlook 2007
+                #9308 - The move of an item to a different folder on the Server, is not managed correctly
+                #9306 - Cannot handle 2+ modified exceptions of a recurring event
+                #6639 - Outlook inserts carriage return character in the contact's NOTE field
+                #8578 - outlook adds an empty note field to any contact
+                #8198 - Deleted field on portal does't update outlook
+                #5441 - Error syncing recurring SIF task
+                #9393 - [Babel] vCalendar STATUS field is not correctly mapped on MeetingStatus attribute into Meeting object (Outlook)
+           
+           New features (enabled):
+                - Support for events' ATTENDEES (appointment recipients) - see bug 946
+                - Support for custom properties (user properties: X-FOO, must be defined on Server too)
+                - Tabs in options window have new graphics (color/black and white)
+
+           Other improvements:
+                - Improved stability accessing Outlook APIs (COM pointer errors)
+                - Improver PIM sync processing (speed increase for events processing, some redesign)
+                - Reduced process priority for scheduled syncs to reduce impact on system
+                - Manage move events between folders (keep a map of to remember old LUIDs)
+                - No more backward compatibility from v6 (clean / speeds up upgrades)
+
+           New features (now disabled, can be enabled at build time):
+                - Support for PIM shared folders
+                - Added Send Log (via HTTP) from the Logging screen
+                - Added log rotation and log size settings (user can select number of logs [1<->20] and log size [1<->20MB] from Logging screen)
+                - Improved slow sync prompting policy (will not auto-continue if sync direction is set to one-way)
+                - Added UI option: "Only sync when outlook is open" for scheduled sync
+                - Warn user with a popup about switch from one-way to two-way syncs
+                - Added a dialog for user confirmation if 50% of items or more are deleted locally (prevents unwanted deletes on server)
+                - Added checkboxes to include shared folders in sync (advanced screen for PIM sources)
+                - Added a welcome screen (disabled by default)
+
+          Added customization params (now disabled, can be enabled at build time) to:
+                - avoid sending contact's photo
+                - avoid auto-continue a slow if sync direction is set to one-way
+                - send filtered out items as Delete items, in case of refresh sync
+                - send items as new instead of updated, if moved to another folder
+                - don't send items out of the calendar filter as Deleted items
+                - save the contact's "fileAs" field, otherwise it's auto generated by Outlook
+                - avoid sync of calendar's attendees
+                - hide the "include subfolders" UI checkbox, and force as it was enabled
+                - force a slow if sync folder changed from client's settings (PIM only)
+                - hide the "Data Format" section in the sources details screen
+                - lock the calendar filtering on a value (cannot be changed from UI)
+                - set the default direction in the recover screen
+                - show a warning message before a "refresh-from-client" and/or "refresh-from-server" sync (recover screen)
+                - set the "Sync All" text color (RGB value)
+           
+           Reverted to current trunk behavior:
+                - Removed software updater alternate module: XMLUpdater (we already have a sw updater)
+                - Removed (Mailtrust) customizable scheduled times and settings (we have same custom params now)
+                - removed any reference to PASSKEY (for encryption, it's not used anymore)
+                - Removed OutlookConfig::checkPortalBuild() it was deprecated, now portal build is like a normal build
+                - Fixed crash in SendLog (in APIs WinTransportAgent, buffer overflow writing the http headers)
+                - Reverted 512K max message size to 125K (for timeout issues on slow servers - http timeout is 15min)
+                - Reverted usage of OEM devinfo param (it was used to store the Outlook version installed, but it's not correct)
+                - Reverted USE_CHANGE_DAY = TRUE (btw it's not used since we use timezones for appointments)
+                - Reverted default debug @ info, default target build @ release
+                - Reverted some customization params, to keep current behavior:
+                  * SIF is deprecated for contacts/calendar/tasks (i.e. DLLCustomization::sourceContactsDefaultSif)
+                  * sourceDefaultEncoding = "bin" (was empty)
+                  * showSlowSyncWarnings (we already have DISPLAY_SLOWSYNC_WARNING with the same meaning)
+                  * shouldFakeOldFunambolSwv (set to false)
+                  * sendMovedAsNew (set to false)
+                  * sendTimezone (set to true)
+                  * attachOption (set to false)
+                  * clearAnchorsOnFolderChange (set to false)
+                  * confirmOnRefreshFromClient (set to false)
+                  * warnOnLargeDelete (set to false)
+
+2010-05-10
+  - toccy: fixed bug #6218: The "+" of the international country code is missing after sync
+           (added a check in the installer script, in order to set a default telephony locale if missing)
+ 
+  - magi : Removed sif support for calendar and task. A fresh installation use the vCalendar as default
+           for appointment and task. The sourceURI are "event" and "task".
+           For an upgrade the sourceURI remain the same as before (scal and stask) but using the
+           vCalendar format.
+           Updated the UI accordling to remove sif choice
+           Added support of ctcaps capabilities for all the sources (vcard and vcalendar) 
+           Added the support for using compression by default
+           Fixed the build.xml, funambol-outlook-client-forge.properties and outlook-client-forge.nsi to be used with VS2008
+
+2010-05-03
+  - toccy: fixed build.xml (target generate-upd-info) to safely work on both DOS and UNIX systems
+
+2010-04-28
+  - magi : Added the value of the scheduled values in the customization.h
+           The default is the value in only one. If more then one it gets the first default indication.
+           If no minutes and hours, the scheduled is hidden.
+           Valid minutes are > 4 and < 60. Valid hours are >=1 and <=24. Others values are ignored
+           #define SCHEDULED_MINUTES_VALUES            "5,10,15(default),30,45"
+           #define SCHEDULED_HOURS_VALUES              "1,2,4,6,8,12,24"
+           
+           Fixed issue in FullSync panel when sources are disabled
+  
+  - magi : Added new define in customization.h to have the sourceOrder and the list of enabled sources
+           so that they are defined in a single place.
+           #define SOURCE_ORDER_IN_REGISTRY      "contact,appointment,task,note"  
+           #define CONTACT_SOURCE_ENABLED        true  
+           #define APPOINTMENT_SOURCE_ENABLED    true  
+           #define TASK_SOURCE_ENABLED           true  
+           #define NOTE_SOURCE_ENABLED           true             
+
+2010-04-20
+  - magi : hide the encryption groupbox and checkbox if ENABLE_ENCRYPTION_SETTINGS is 0 
+  - toccy: merged from trunk to branch v85 (@rev 468)
+           * fixed bug #8987: Otlook Sync deletes preexisting appointments auto generated from birthdays in contacts
+           (using appointment's CreationDate to check if it was created by us during the sync)
+
+2010-04-02
+  - toccy: fixed upd-info file creation for cared builds
+  - toccy: fixed bug #9067: URL for manual of outlook sync client still points to v8.0
+
+2010-03-31
+--- released Outlook Sync Client v.8.5.3 (v8.5 RC1) ---
+
+2010-03-26
+  - toccy: reintegrated branch US4500:
+           * added UAC plugin for NSIS installer (support for UAC on Win Vista / Win 7)
+           * Fixed bug #4198 ("cannot schedule" issue in WinVista, due to UAC ON)
+           * Fixed bug #5502 (Error synchronizing when UAC is ON and Outlook 2007 is open)
+
+2010-03-23
+  - toccy: fixed issue on recurring tasks: added workaround to remove the recurrence on some
+           tasks that are not correctly created in Outlook, saving the tasks twice.
+
+2010-03-18
+  - toccy: fixed bug #8894: Changes to task's recurrency is not apllied on Outlook (US4501)
+
+2010-03-05
+  - toccy: added "about_powered_by.bmp" image, used instead of the plain text string for branded clients
+           Fixed About screen: ok button and dialog size/position are dynamically set given the objects drawn.
+
+2010-03-01
+  - toccy: updated trunk version to 8.7.0
+           created branch "v85": Funambol Outlook Sync Client v.8.5 (linked to SDK C++ v.8.5)
+  - toccy: created tag: Funambol Outlook Sync Client v.8.5.2 (linked to SDK C++ v.8.5.1)
+
+2010-02-24
+   - toccy: fixed bug #8734: Sources not enabled in settings are greyed out in Recover screen
+
+2010-02-19
+   - magi: reintegrated branch us3184 at rev 421
+
+2010-02-16
+   - magi: added autoupdate feature. Added UpdateManager class (implemented the UpdaterUI interface). 
+           it implements also the autoupdate mandatory feature 
+
+2010-02-01
+   - teo: created tag: Funambol Outlook Sync Client v.8.5.1
+
+2010-01-17
+   - maria: upgraded version to 8.5.0
+
+2010-01-13
+   - toccy: fixed UI bug #8469: Source is not enabled if clicking on 'Details' before pressing 'Ok'
+   - toccy: updated about and readme.txt copyright (year 2010)
+
+2009-12-24
+   - toccy: merged from branch "US1987" (pictures bacward compatibility) branch closed at rev399
+
+2009-12-23
+   - toccy: fixed bug #8419: trapped ClientException that can be thrown when filling an item
+   - toccy: fixed bug #8395: OutlookConfig::saveWinSourceConfig() could save the wrong source node
+
+2009-12-22
+   - toccy: fixed bug #8395: some syncsource props were lost after client upgrade
+   - toccy: fixed bug #8401: Cancelling sync when saving server capabilities causes severe error
+   - toccy: [US1987] fixed bug #8404: UI not correctly loaded at first run
+   - toccy: [US1987] fixed bug #8406: Outlook plugin crash if server location is not correct
+
+2009-12-21
+   - toccy: [US1987] added a check at the end of each sync, to enable/disable source pictures.
+            added "Ending..." msg in UI, during the save of configuration (can be very slow!!)
+
+2009-12-18
+   - toccy: [US1987] source picture is now dinamically enabled/disabled reading the config key sourceOrder
+            [US1987] added 'sourcesVisible' ArrayList in config, as the list of sources visible in Client's UI
+                     read/save operate on registry key 'sourceOrder' under the root node
+                     NOTE: contacts,appointment,task,note CANNOT be hidden at the moment (TODO)
+            [US1987] fixed upgrade procedure: force a GET of Server caps if old sw < 8.2 (for pictures enable/disable)
+
+2009-12-10
+   - toccy: fixed bug#8280: fixed upgrade procedure from Funambol versions < v.8.2
+   - toccy: fixed bug#8279: catch shortcut for View-user-guide: return if the UG is disabled.
+
+2009-12-07
+   - toccy: added the Recover option for Pictures (only refresh-from-server is available)
+            some refactoring of FullSync class
+   - toccy: User Guide is now hidden by default (can be enabled/disabled from customization.x):
+            * startmenu link is shown/hidden by the installer
+            * UI menu is dynamically adjusted at runtime
+
+2009-11-27
+*** Funambol Outlook Sync Client v.8.2.7 (linked to SDK C++ v.8.2.1) ***
+   - toccy: fixed bug #8033: uninstall needs to copy CRT DLLs into Windir, in order to correctly
+            load the Funambol addin after when Outlook is opened after the uninstall, to cleanup bar/menu.
+
+2009-11-26
+   - toccy: merged from US1660 to trunk: pictures settings
+            * added dialog for pictures settings (browse destination folder, remote URI)
+            * added SHOW_ADVANCED_SETTINGS in customization.h (default = 1)  
+            * Pictures source is now enabled by default                    
+
+2009-11-25
+   - toccy: changed default HTTP response timeout = 15min (was 10 min)
+            changed default maxMsgSize = 125KB (was 250KB)
+            added MAX_SYNCML_MSG_SIZE and RESPONSE_TIMEOUT into customization.h
+
+2009-11-24
+*** Funambol Outlook Sync Client v.8.2.6 (linked to SDK C++ v.8.2.1) ***
+   - toccy: Client's menu translated in German (added German resources for menu and accelerator)
+
+2009-11-19
+   - toccy: fixed "Status" <-> vCal STATUS property mappings, for tasks (in APIs, under vocl/winObjects)
+
+2009-11-17
+   - toccy: added processwork.dll in SVN repository, copied automatically to NSIS plugins dir during build
+
+2009-11-13
+   - toccy: fixed upgrade process for branded/unbranded versions of the Client
+   - toccy: fixed addin commandBar name: it's stored in the registry (like the menubar label) for a correct cleanup during uninstall
+
+2009-11-12
+   - toccy: added German translation in VS resources (TODO: translate pictures related labels)
+   - toccy: added ability to show/hide the readme/userguide/website from the startmenu, at build time
+
+*** Funambol Outlook Sync Client v.8.2.5 (linked to SDK C++ v.8.2.1) ***
+   - toccy: fixed installer check for a different version of Outlook already installed (check on CUSTOMER param)
+
+2009-11-10
+   - toccy: fixed Outlook addin (bug #8033):
+            * the commandBar was not detected by its name but by its caption (wrong)
+            * added a HKCU key "menuLabel" to store the menubar label, in order to remove it safely
+            * some small refactoring / code cleaning
+
+2009-11-03
+*** Funambol Outlook Sync Client v.8.2.4 (linked to SDK C++ v.8.2.1) ***
+   - toccy: * NSIS installer -> added customization defines for website & userguide links, and for website link label
+                                website and usergide links are now created dynamically.
+            * Client DLL     -> added customization for userguide link (removed from resources)
+            * Addin          -> fixed tollbar icon caption: it's not visible so keep the same value (no customization)
+
+2009-10-28
+*** Funambol Outlook Sync Client v.8.2.3 (linked to SDK C++ v.8.2.1) ***
+
+   - toccy: fixed some UI titles on error/warning messages, to load string from resources
+   - toccy: added important comment about the Client's root context in customization.x
+
+2009-10-23
+   - toccy: * fixed registration of Redemption.dll in build.xml
+            * cleaned up build.xml: removed obsolete targets, removed SP define and passkey (unused)
+            * fixed build.xml to load the 'Program Files' dir
+
+2009-10-22
+*** Funambol Outlook Sync Client v.8.2.2 (linked to SDK C++ v.8.2.1) ***
+
+   - toccy: Added "funambol_swv" property in config (HKLM key in registry set by the installer)
+            It's used to distinguish between the swv and the funambol swv (can be different in customers builds)
+
+2009-09-16
+*** Funambol Outlook Sync Client v.8.2.1 (linked to SDK C++ v.8.2.1) ***
+
+   - toccy: added ENABLE_ENCRYPTION_SETTINGS param in customization.h
+   - toccy: fixed UI main / settings / recover dialogs, to show dynamically sources from itemTypesUsed[] array
+
+2009-09-15
+   - toccy: improvements for customization and branding purposes
+            * added defines in customization.h to customize the about screen
+            * removed custom params from resource.rc and OutlookPlugin.cpp
+            * moved defines from addin.h, OutlookConfig.h and winmaincpp.h to customization.h
+            * fixed addin removal: to clear also Funambol menu that could be left
+            * fixed installer: moved custom definitions to an external file "customization.ini"
+            * replaced "funambol.url" with "website.url", fixed url label in installer
+            * added the possibility to hide the AGPL license and readme.txt from the istallation process
+
+2009-09-02
+   - toccy: fixed bug #1132 on the About window title
+
+2009-08-31
+   - toccy: fixed check to support Outlook 2010
+   - toccy: updated trunk version to "8.2.0"
+
+2009-06-03
+   - teo: added filter on slowsync for appointment also with the incoming events to avoid dupes.
+
+2009-05-21
+   - toccy: Raised max number of source errors to stop syncsource (from 10 to 500)
+   - toccy: Fixed bug#5964: Client terminates showing "Failed to create empty document"
+
+2009-04-29
+   - toccy: fixed upgrade procedure for new swv = 8.5.0
+            using 'customer' property in build procedure
+            Addin using defines from customization.h
+
+2009-04-28
+   - toccy: updated trunk version to "8.5.0"
+
+2009-04-20
+   - toccy: added safe check for recurring calendar items with no timezone information (corrupted or imported with other apps)
+
+2009-04-17
+   - toccy: merged from branch US2148 (Sync direction not saved when source is disabled) - r154
+
+2009-04-16
+   released Funambol Outlook Sync Client 7.3.US2148.0
+   - toccy: [US2148] use the SyncSourceConfig::enabled flag to know if a source is enabled/disabled.
+            Sync direction "none" is not used anymore.
+
+2009-04-15
+   - teo:   added customization.h
+   - toccy: created branch US2148 (Sync direction not saved when source is disabled) - r138
+
+2009-03-31
+   - toccy: merged from branch US1655 (Pictures Sync - main screen) - r128
+
+2009-03-27
+   - teo: added extended added handlig feature
+
+2009-03-23
+   released Funambol Outlook Sync Client 7.2.US1655.0
+   - toccy: [US1655] added "Pictures" pane on main screen, and resources for the pictures sync.
+   - toccy: [US1655] added PicturesSyncsource class and pictures configuration in DLL, to handle pictures sync.
+   - toccy: [US1655] added utils functions to manage source name/ID conversion, fixed printReport.
+   - toccy: [US1655] Now SyncSource** array passed to WindowsSyncClient is no more a WindowsSyncSource**, because one source is a PicturesncSource.
+   - toccy: [US1655] some code cleaning and reformatting of UI/MainSyncfOrm, UI/SyncForm, UI/CustomPane.
+
+   - toccy: Created branch US1655 (from r88) Pictures Sync - main screen
+
+Funambol Outlook Sync Client 7.1.10
+---------------------------------------
+2009-01-09
+    - magi: Fixed link to get user guide
+            Build with new sdk api (7.1.4) 
+
+Funambol Outlook Sync Client 7.1.9
+---------------------------------------
+2008-12-18
+    - magi: Fixed issue related to the "Outlook Client" used by the plug-in and the "OutlookClient" name used also from the api. 
+            They used now the same "OutlookClient" from the PlatformAdapter class of the api.
+            Be sure the upgrade come from a 7.0.x version (previous ga).
+            Fixed minor issue related to japanese chars
+
+Funambol Outlook Sync Client 7.1.8
+---------------------------------------
+2008-12-14
+    - magi:  Fixed issue with japanese chars into folder names
+             Fixed issue in BusyStatus property that was not properly handled
+             if it was in the X-MICROSOFT-CDO property vcalendar. In SIF is a value 0,1,2,3
+             In vCal it is FREE, BUSY, TENTATIVE, OOF and must be converted. The property is put in the
+             complex ones list
+
+Funambol Outlook Sync Client 7.1.7
+---------------------------------------
+2008-12-02
+    - magi:  Fixed issue related to delete recurring appointment from the server
+    - toccy: Don't change the source URI of contacts during upgrades from versions < 7.1.2. 
+             If we were using "scard", it will be preserved during upgrade. 
+             This is required to keep the anchors Server side and avoid a 1st time slow-sync of contacts.
+
+Funambol Outlook Sync Client 7.1.6
+---------------------------------------
+2008-11-28
+   - toccy: just updated to the Native API HEAD at 2008-11-28
+
+Funambol Outlook Sync Client 7.1.5
+---------------------------------------
+2008-11-17
+   - toccy: fixed NSIS installer: check also for old plugin running at startup (bug #6374)
+            fixed OutlookConfig::read(), to correctly manage upgrade of configuration (bug #6369)
+
+Funambol Outlook Sync Client 7.1.4
+---------------------------------------
+2008-11-14
+   - toccy: changed name of application: "Outlook Plug-in" into "Outlook Sync Client"
+              * changed UI titles and labels
+              * changed the cache directory: "<app_data>\Funambol\Outlook Plugin" -> "<app_data>\Funambol\Outlook Client"
+              * changed log file name: "outlook-client-log.txt"
+              * changed scheduler task name: "Funambol Outlook Sync Client - <username>"
+              * fixed installer and application, to manage upgrades from previous versions
+   - toccy: fixed installer script: INSTDIR can be changed by the user, we MUST save it with a global var ($9) 
+            to make sure we delete the old files.
+   - toccy: build.xml script will now update the Readme.txt automatically with version and release date.
+            So it's no more necessary to update the Readme file for each build.
+   - toccy: replaced obsolete calls to config->getDeviceConfig() with config->getClientConfig().
+   - toccy: updated link to UserGuide
+
+2008-11-13
+   - toccy: removed obsolete folder 'UI\Language'
+
+Funambol Outlook Plugin 7.1.3
+---------------------------------------
+2008-11-11
+   - toccy: fixed parser/formatter of contacts for Windows Clients (WinContact.cpp), to support all vCard properties.
+            Now using X-ANNIVERSARY, X-MANAGER, X-SPOUSE (fix in API C++).
+
+Funambol Outlook Plugin 7.1.2
+---------------------------------------
+2008-10-29
+   - Toccy: Now the only choice for contacts is vCard: SIF-C cannot be selected anymore from Client's UI.
+            Default settings is also vCard, in case of upgrade the data type is changed to vCard.
+            BTW, SIF-C is still supported (for backward compatibility), so SIF contacts are still accepted by the Client.
+
+2008-10-23
+   - Toccy: added main solution for all Outlook projects, under the root: "OutlookClient.sln". It's for VisualStudio2005.
+
+2008-10-20
+   - Toccy: Updated design doc (calendar filtering).
+
+Funambol Outlook Plugin 7.1.1
+---------------------------------------
+2008-10-15
+   - Toccy: Added calendar filtering.
+            Filter involves only outgoing items (Client -> Server) but the filter_direction is configurable.
+            Filter options can be changed from Appointment details UI.
+   - Toccy: Added more logging when reading all items from Outlook, before sync (for debug purpose).
+   - Toccy: Removed the display of slow-sync warning (configurable).
+
+Funambol Outlook Plugin 7.1.0
+---------------------------------------
+2008-10-03
+   - Toccy: * Fixed bug #5693, yearly recurring events are now handled correctly.
+            * Deprecated methods in WindowsSyncSource: getFirstItemKey() and getNextItemKey(). 
+              Now using removeAllItems() to clear Outlook data.
+
+2008-09-23
+   - Toccy: Fixed build.xml to checkout source code from new SubVersion repository
+
+Funambol Outlook Plugin 7.0.8
+---------------------------------------
+2008-08-04
+   - Toccy: Fixed bug regarding patternEndDate: to make sure it's the correct date in local time.
+
+
+Funambol Outlook Plugin 7.0.7
+---------------------------------------
+2008-07-29
+   - Toccy: Fixed bug: empty fields were not updated in Outlook.
+
+
+Funambol Outlook Plugin 7.0.6
+---------------------------------------
+2008-07-24
+   - Magi: Added check to improve the Timezone handling if the PatternStartDate is in UTC.
+           Actually the fix is in the WinEventSIF api file
+
+Funambol Outlook Plugin 7.0.5
+---------------------------------------
+2008-07-10
+  - Toccy: Just fixed the readme.txt file
+
+Funambol Outlook Plugin 7.0.4
+---------------------------------------
+2008-07-02
+  - Magi: Changed a little the procedure to build the plugin
+
+Funambol Outlook Plugin 7.0.3
+---------------------------------------
+
+2008-06-17
+  - Magi: Fixed issue in task recurrence and PatterEndDate handling.
+
+2008-06-12
+  - Magi: fixed timezone issue: after set the timezone in recurring apps, the
+          start and end date changed and their value was related to the tz of the OS
+          instead of the tz of the appointment. So its value is modified after the tz set.
+          Removed the choice between vnote and sif-n. It is only sif-e.  
+
+Funambol Outlook Plugin 7.0.2
+---------------------------------------
+2008-06-06
+  - Magi: fixed bugs related to the note visualization
+          changed default settings for comed and cared version
+
+Funambol Outlook Plugin 7.0.1
+---------------------------------------
+2008-05-08
+  - Magi: unified build for cared and comed version. Changed the encryption key
+          for cared version.
+          Changed key selection for addin to avoid conflicts with the ones
+          buit in in outlook
+          Improved the way to find the proper timezone string in the registry.
+          If the rule of the server appointment is the same of the one on the laptop
+          this is retrieved
+  
+  
+2008-05-05
+  - Magi: added Timezone handling on recurring events.
+          updated release version to 7.0.0
+          updated to new c++ api configuration 
+2008-04-11
+  - Fixed bug on recurrence events like "every 12*n months"
+
+2008-02-12
+  - replaced all direct references to lastErrorMsg, now using only get/set methods for errors.
+
+
+Released Funambol Outlook Plugin 6.6.0
+---------------------------------------
+
+2007-12-07
+  - Removed event properties "OptionalAttendees" and "UnRead" 
+    (not required and not mapped with vCalendar)
+  - Updated design document with complete list of properties mapping (Appendix C)
+
+2007-12-06
+  - Full support for vNotes 1.1 (parser/formatter are in API)
+  - Added auto-upgrade of the config if previous installed plugin is < 6.6.0
+
+2007-12-05
+  - Added vTodo option on UI advanced dialog of tasks
+  - Added vNote option on UI advanced dialog of notes
+
+2007-12-03
+  - Added 'version' value in registry for SIF data (1.0).
+
+2007-11-28
+  - Changed License.txt (AGPL)
+  - changed headers of source files (AGPL)
+  - updated about dialog (AGPL licence)
+
+2007-11-20
+  - All data types are using WinObjects from API (windows/vocl). 
+    Parsing/formatting of SIF / vCard / vCalendar is managed only by API.
+  - Removed obsolete functions for data transformation
+
+2007-11-14
+  - Added 'Importance' as complex task property (often the value received is wrong, safe checks)
+  - Removed task properties (unused + no vTodo correspondance): 
+    ContactNames, NoAging, Owner, Role, SchedulePlusPriority, UnRead
+
+<-- BRANCHED "b_v65" -->
+
+2007-11-14
+  - changed headers of source files (GPLv3)
+  - updated about dialog (added GPL V3 licence)
+
+
+Released Funambol Outlook Plugin 6.5.4 (beta2)
+----------------------------------------------
+
+2007-11-08
+  - Added message for error code 403 (forbidden)
+
+2007-11-06
+  - Changed FunambolAddin target build to "Release MinDependency" to maximize compatibility with all systems.
+
+
+Released Funambol Outlook Plugin 6.5.3 (beta1)
+----------------------------------------------
+
+2007-11-02
+  - Fixed PatternEndDate value for recurring events.
+    Now PatternEndDate is the exact date+time when the last occurrence starts.
+
+
+Released Funambol Outlook Plugin 6.5.2
+--------------------------------------
+
+2007-10-31
+  - Close the OUTLOOK.EXE process during installation/uninstallation is Outlook is stuck
+  - "ReminderTime" property of tasks is now sent in local time "YYYYMMDDThhmmss" instead of UTC. 
+    However both UTC and local time values are accepted for incoming tasks.
+  - "BusinessWebPage" is no more supported for contacts on Outlook plugin.
+
+2007-10-29
+  - Scheduler time is set -1min, to avoid starting a sync immediately
+  - Scheduler options are fixed with a drop-down list
+
+2007-10-26
+  - Added a messagebox for error code 2102 (no sources to sync)
+
+2007-10-25
+  - Added warning msgbox in case of items dropped on Server side (if we receive at least 1 status 500)
+
+2007-10-19
+  - Fixed release of RedUtils library: it must be released normally for synchronizations.
+    But it should not be invoked when accessing Outlook only to pickFolder from options.
+
+Released Funambol Outlook Plugin 6.5.1
+--------------------------------------
+
+2007-10-17
+  - Fixed handling of contacts picture, added TYPE attribute to <Photo> tag in SIF
+  - Fixed conversion of default folder name from Client to Server
+
+2007-10-10
+  - Modified UI for portal version semplifications: remove the settings for remote uri & item format
+
+2007-09-05
+ - Fixed error on Anniversary/Birthday handling: use REFERRED_MAX_DATE to clear dates
+
+
+Released Funambol Outlook Plugin 6.5.0
+--------------------------------------
+
+2007-08-09
+  - Plugin won't stop in case of bad items found (drawing/recording files in notes folder)
+  - Portal build: notes syncMode is set to "none" every sync.
+
+2007-08-08
+  - Added handling of 'ReminderSoundFile' property for appointments
+  - Added "Picture" property for contacts. It's supported only by Outlook 2003 or later.
+
+2007-08-06
+  - dataTransformer.cpp: SIF contacts are parsed/formatted using WinContactSIF from API
+
+2007-07-11
+  - vObject conversion is now moved to API (windows/vocl classes)
+  - Cleaned up utils functions about time/string conversions: some no more used, some moved to API
+  - Recurrence fields are now separated from event/task fields.
+    get/set recurrence properties only from the recurrence object (getPropertyValue, setPropertyValue)
+  - added 'CLientRecurrence::isAllDay' attribute to better check if the father event is an allday-event
+  - allday format changed from "yyyy-MM-dd" to "yyyyMMdd": now vCalendar format is the default
+  - removed +1/-1 correction of EndDate for allday-events: now vCalendar format is the default
+  - more efficient implementation of ClientApplication::getSMTPfromEX() method
+
+2007-06-22
+  - Added error messages for Server failure (2052) and Timeout (2029)
+  - Fixed 'OnMsgSyncSourceState': the spinning icon should be stopped immediately
+  - Updated projects: API source files under 'win32' have been moved to 'windows'
+
+2007-06-19
+  - Changed sequence to save an appointment item: 
+    get the new ID before saving all exceptions, so we can handle also dummy events with all occurrences deleted ;)
+  - Added support of 'X-FUNAMBOL-FOLDER' for vCard / vCalendar.
+
+2007-06-18
+  - Added patch to correctly manage DST changes since 2007 for U.S. (bug #307186)
+
+2007-06-15
+  - Changed shortcut for Users Guide to CTRL+U
+  - Added 'currentTimezone' structure in OutlookConfig to store the tz inforations. 
+    It's populated when configuaration is read.
+
+2007-06-12
+  - Redemption.dll is no more registered to the system.
+    It's now used as a Registration-Free COM object (see manifest file)
+
+2007-06-11
+  - improved handling of bad items found during initial scan (pushAllItemsToList).
+    'distribution_list' items are recognized and ignored.
+ 
+2007-06-06
+  - Fixed bugs #30710: "Categories" are sent out comma separated, instead of semicolon separated.
+    Both formats are accepted for incoming items. 
+  - Fixed bug #307104: "Color" is deprecated inOutlook2007 ("Categories" is used) 
+    so 'Color' is now ignored if using Outlook2007
+  - "FileAs" is set after name fields, otherwise Outlook will automatically fill it with a name field.
+  - First add of Outlook Plug-in Design Document v6
+  - Fixed bug #307005: must use 'toMultibyte' and 'toWideChar' when reading/writing files to disk, 
+    to ensure correct conversions with UTF-8
+
+2007-05-23
+  - Task and notes supports only SIF format, so if mime-type is wrong we use the default = SIF
+  - "StartDate" property is the first one to set for Tasks (MUST be set before "DueDate")
+
+2007-05-10
+  - Added doxygen documentation (first add)
+
+2007-05-08
+  - Updated Redemption.dll to v.4.3
+
+2007-05-07
+  - reworked build.xml procedure: now release build will checkout files automatically from CVS
+    * added specifc targets ("ant release" and "ant installer")
+    * added 'checkout' target to export src files from CVS (MUST set a correct tag for this)
+    * redirected some output to log files (NSIS, builds, CVS)
+    * 'forge-src' and 'forge' read files directly exported from CVS (only for release)
+    * improved output / added checks 'failonerror'
+
+
+Released Funambol Outlook Plugin 6.0.14 (v6 stable release)
+------------------------------------------------------------
+
+2007-05-05
+  - new message for the error 503 from server.
+
+2007-05-03
+Released Funambol Outlook Plugin 6.0.12
+
+2007-04-30
+  - fixed error on UI: sync direction was not usable for Calendar item type
+  - fixed errors with special characters (from client to server)
+  - reset log file if its size is too big (1MB for addin, 10MB for plugin)
+
+2007-04-27
+Released Funambol Outlook Plugin 6.0.11
+
+2007-04-26
+  - Added keyboard shortcuts to Outlook Addin (ALT+M / G / T)
+  - Char "\" is converted to "%5C"for subfolders names (client to server)
+  - Fixed error of cache files for appointment exceptions
+
+2007-04-20
+Released Funambol Outlook Plugin 6.0.10
+
+2007-04-18
+  - Merged branch "e_6_0_8_UIfixes" into HEAD (Razvan):
+    * display problem with dpi settings != 96 (now plugin is usable)
+    * main window menu could disappear at the end of sync
+    * fixed UI freezing problem
+    * cleaned up obsolete code in UI
+    * resources are loaded using AfxGetInstanceHandle() -> to ensure resources loaded from exe file
+    * updated Language.dll to new resources
+  - Fixed error on chars "\" and "/" inside folders names - "\" is sent escaped as "\\"
+  - added 'upgradePlugin' function for all actions to do when upgrading plugin to newer version
+
+2007-04-16
+  - Fixed scheduler: now scheduled jobs are specific for each user
+  - Updating items (from server to client) with <Folder> tag changed, will result in moving items to the new position in Outlook
+  - Fixed errors on config button "Select Folder"
+
+2007-04-13
+Released Funambol Outlook Plugin 6.0.9
+  - Fixed error on reminderMinutes of iCal: value must be rounded to int
+  - added User Guide links to plugin menu and Start menu folder
+
+2007-04-12
+  - Private data (username/pwd) are stored encrypted in win registry
+  - log file has .txt extention (was .log)
+  - vCard/iCal: all fields are always sent, even if empty
+  - iCal: DTEND is sent/expected +1day for all-day events
+  - Improved cache of old items.db (store item's ID and also Folder, to catch if a folder name has been changed)
+
+2007-04-05
+Released Funambol Outlook Plugin 6.0.8
+
+2007-04-04
+  - added checks on VCard/iCal productID (MUST match) and version (log.info if wrong) for incoming items
+  - added warning msg if some items dropped on Outlook at the end of sync
+  - Addin: Funambol menu placed before Help menu
+
+2007-04-02
+  - Improved installer: automatically close Outlook or plugin if opened
+  - Config panel is opened on sync-settings by default
+  - Improved build.xml: API C++ and ZLB library added to forge_src
+
+2007-03-30
+  - Removed syncThreadController, added SyncException class to handle exceptions of sync process
+  - Added lock and unlock of main UI buttons (for first phase of sync)
+
+2007-03-23
+Released Funambol Outlook Plugin 6.0.7
+  - Improved plugin stability: added checks on threads from StartSync()
+  - Changed winSourceConfigs array in OutlookConfig
+  - Changed plugin icon
+  - Changed Funambol menu inside Outlook (Sync All / Go to... / Options...)
+
+2007-03-14
+Released Funambol Outlook Plugin 6.0.6
+  - improved UI (spinning arrows, greyed buttons, selection buttons on option left menu)
+  - Support for ZLIB on SyncML messages (in API C++) -> checkout "sync4j/tools/zlib/" module from CVS.
+  - Portal build: disable encryption from UI
+  - CleanUp() of ClientApplication moved after Release() of OL pointers (caused stability issues)
+  - Fixed StartDate value on recurring task items (PatternStartDate is copied from StartDate)
+
+2007-03-01
+Released Funambol Outlook Plugin 6.0.5
+  - Fixed bug #306709: Protected fields are overwritten with the ones of the first item used
+  - Changed sync-mutex usage -> imporved stability when canceling sync
+  - Tasks re-enabled for portal build
+  - Changed About dialog window
+
+2007-02-23
+Released Funambol Outlook Plugin 6.0.4
+  - Improved client stability on scheduled sync (see known issues of 6.0.3)
+  - Changed "PatternStartDate" field on SIF appointments (now it's always = "Start" field)
+  - Changed plugin icon
+  - Scheduled sync don't reset the log file
+
+2007-02-20
+  - Fixed errors for scheduled sync with UI opened
+  - Improved client stability on scheduled sync
+
+2007-02-19
+  - Changed "PatternStartDate" and "PatternEndDate" to "yyyy-MM-dd" format
+  - Fixed some memory leaks
+  - Changed color of main button when mouse is over (blue)
+
+2007-02-15
+  - Refresh-from-server: items are removed internally BEFORE the sync
+  - Added support for appointments exceptions for iCal
+  - Use vCard/iCal as default if MIME type not specified (or wrong)
+  - Added checks for items dropped and items internally removed on syncReport
+
+2007-02-08
+Released Funambol Outlook Plugin 6.0.3 (alpha1)
+  - Plugin UI has been reworked, new icons used
+  - Support for appointment exceptions (using SIF)
+  - New synchronization report (in the log)
+  - Improved error handling of plugin
+  - fixed addin error: Outlook bar/icon not removed after uninstall
+  - fixed issues related to scheduled sync running with UI opened
+  - minor bugs fixed
+  
+2007-01-25
+Released Funambol Outlook Plugin 6.0.2 (pre-alpha1)
+  - New User-Interface completely reworked
+  - improved plugin stability
+  - fixed error of multiple birthday creation
+  - fixed error on 'Tools->Set Log Level'
+  - fixed bug on subfolders selection
+  - fixed error of synchronization with vCard
+  - minor bugs fixed
+
+2007-01-08
+Released Funambol Outlook Plugin 6.0.1
+  - changed plugin icon
+  - scheduler tasks could not be saved
+  - minor bugs fixed
+
+2006-12-22
+First v6 major release: Funambol Outlook Plugin 6.0.0
+  - Main improvements from 3.0:
+    * Multiuser support / plugin can be used by users without Admin rights
+    * Subfolders support for all sources
+    * New User-Interface completely reworked
+    * added ability to cancel sync
+    * all sources synced in same syncml session
+    * select folder support (also from different datastore)
+    * recurrence support for tasks
+    * logs/datafiles moved under "D&S\<userName>\Application Data\Funabol" folder
+    * upgrade of installer (from older/same version, only available from 6.0.0 or later)
+    * threaded sync -> no freezed GUI
+    * sync process has a lower priority
+    * Improved stability on Outlook Addin
+    * Added keyboard shortcuts for Plugin and Outlook Addin
