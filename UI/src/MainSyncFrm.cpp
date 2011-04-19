@@ -1724,6 +1724,11 @@ LRESULT CMainSyncFrame::OnMsgPopup(WPARAM wParam, LPARAM lParam) {
  */
 afx_msg LRESULT CMainSyncFrame::OnMsgSapiProgress(WPARAM wParam, LPARAM lParam) {
 
+    // if it is scheduled, don't update anything
+    if(getConfig()->getScheduledSync()) {
+        return 0;
+    }
+
     //StringBuffer msg;
     //msg.sprintf("[%s] wParam = %d, lParam = %d", __FUNCTION__, wParam, lParam);
     //printLog(msg, LOG_DEBUG);
