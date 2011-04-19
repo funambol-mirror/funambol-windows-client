@@ -1,3 +1,6 @@
+2011-04-15
+  - magi: removed referral to PIM sources if Outlook is not installed.
+          changed UI, settings and About screen. US8234, US8043, US8196
 2011-04-08
   - toccy: fixed bug 10593 - Branding tool should not customize the client's user-agent
            fixed bug 8449  - Windows Sync Client - outlook sync out of order

@@ -157,6 +157,9 @@ public:
     afx_msg void OnBnClickedSchedulerCheckEnabled();
     afx_msg void OnCbnSelchangeSchedulerComboValue();
     afx_msg void OnBnClickedSyncCheckOutlookOpen();
+
+    void resizeForMediaOnly();
+    void moveResource(int res, int offset);    
 };
 
 

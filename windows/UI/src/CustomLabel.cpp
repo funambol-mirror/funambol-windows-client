@@ -118,3 +118,17 @@ void CCustomLabel::init(){
     SetFont(&fontNormal);
     
 }
+
+void CCustomLabel::initNoBold(){
+    LOGFONT lf;
+    memset(&lf, 0, sizeof(LOGFONT));      
+    GetFont()->GetLogFont(&lf);
+    //lf.lfWeight = FW_BOLD; 
+    lf.lfUnderline = TRUE;
+    VERIFY(fontNormal.CreateFontIndirect(&lf));  
+
+    VERIFY(fontHover.CreateFontIndirect(&lf));  
+
+    SetFont(&fontNormal);
+    
+}

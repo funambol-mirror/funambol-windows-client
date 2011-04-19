@@ -256,6 +256,15 @@ void CMainSyncFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMe
         goto finally;
     }
 
+    // remove recover if there are no PIM
+    if (nIndex == 1 && !arePIMSourcesVisible()) { 
+        UINT secondItem = pPopupMenu->GetMenuItemID(2);
+        if (secondItem == ID_TOOLS_FULLSYNC) {
+            // remove Recover option
+            pPopupMenu->RemoveMenu(2, MF_BYCOMMAND  | MF_BYPOSITION);
+        }
+    }
+
     if (!VIEW_USER_GUIDE_LINK) {
         //
         // Menu index: 0 = File, 1 = Tools, 2 = Help
@@ -1762,7 +1771,7 @@ afx_msg LRESULT CMainSyncFrame::OnMsgSapiProgress(WPARAM wParam, LPARAM lParam) 
     if (percentage > 100) {
         percentage = 100;
     }
-
+        
     StringBuffer perc;
     perc.sprintf(" (%i%%)", percentage);
 

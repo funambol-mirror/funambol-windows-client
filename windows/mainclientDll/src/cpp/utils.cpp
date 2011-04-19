@@ -991,6 +991,14 @@ bool isSourceVisible(const WCHAR* sourceName) {
     return isSourceVisibleA(name.c_str());
 }
 
+bool arePIMSourcesVisible() {
+
+    if (isSourceVisible(CONTACT) || isSourceVisible(APPOINTMENT) ||
+        isSourceVisible(TASK) || isSourceVisible(NOTE)) {
+            return true;
+    } 
+    return false;
+}
 
 int countSourceVisible() {
     const ArrayList& sourcesVisible = getConfig()->getSourcesVisible();

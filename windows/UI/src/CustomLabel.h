@@ -63,6 +63,7 @@ public:
     CFont fontHover;
     bool bMouseCaptured;
     void init() ;
+    void initNoBold() ;
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     
 	DECLARE_MESSAGE_MAP()

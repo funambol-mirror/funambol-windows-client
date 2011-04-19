@@ -385,6 +385,14 @@ void CVideosSettings::OnCbnSelchangeVideosComboSynctype()
         supportedData.append(".");
     }
    
+    CString s2;
+    s2.LoadString(IDS_MEDIA_HUB_VIDEO_MAX_SIZE);
+    StringBuffer s, sss;    
+    s = ConvertToChar(s2);
+    sss.sprintf(s.c_str(), (int)SAPI_MAX_VIDEO_SIZE/1024/1024);
+    supportedData.append(" ");
+    supportedData.append(sss);
+
     CString suppData = supportedData;
 
     int index = 0;

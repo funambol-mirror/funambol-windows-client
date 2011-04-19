@@ -376,6 +376,7 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
     }
     else {
         disableSource(checkContacts, butContacts, &saveSyncTypeContacts, IDC_SEPARATOR_1, 0);
+        hideSource(checkContacts, butContacts, &saveSyncTypeContacts, IDC_SEPARATOR_1, 0);
         /*
         checkContacts.ShowWindow(SW_HIDE);
         butContacts.ShowWindow(SW_HIDE);
@@ -398,6 +399,7 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
     }
     else {
         disableSource(checkCalendar, butCalendar, &saveSyncTypeCalendar, IDC_SEPARATOR_1, IDC_SEPARATOR_2);
+        hideSource(checkCalendar, butCalendar, &saveSyncTypeCalendar, IDC_SEPARATOR_1, IDC_SEPARATOR_2);
         /*
         checkCalendar.ShowWindow(SW_HIDE);
         butCalendar.ShowWindow(SW_HIDE);
@@ -421,6 +423,7 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
     }
     else {
         disableSource(checkTasks, butTasks, &saveSyncTypeTasks, IDC_SEPARATOR_2, IDC_SEPARATOR_3);
+        hideSource(checkTasks, butTasks, &saveSyncTypeTasks, IDC_SEPARATOR_2, IDC_SEPARATOR_3);
         /*
         checkTasks.ShowWindow(SW_HIDE);
         butTasks.ShowWindow(SW_HIDE);
@@ -444,6 +447,7 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
     }
     else {
         disableSource(checkNotes, butNotes, &saveSyncTypeNotes, IDC_SEPARATOR_3, IDC_SEPARATOR_4);
+        hideSource(checkNotes, butNotes, &saveSyncTypeNotes, IDC_SEPARATOR_3, IDC_SEPARATOR_4);
         /*
         checkNotes.ShowWindow(SW_HIDE);
         butNotes.ShowWindow(SW_HIDE);
@@ -617,8 +621,71 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
         pfnSetWindowTheme (groupSecurity.m_hWnd,L" ",L" ");
     };
 
+    if (!arePIMSourcesVisible() ) {
+        resizeForMediaOnly();
+    }
+
     return 0;
 }
+
+
+void CSyncSettings::moveResource(int res, int offset) {
+    
+    CRect rect;
+    GetDlgItem(res)->GetWindowRect(&rect);
+    ScreenToClient(&rect);    
+    GetDlgItem(res)->SetWindowPos(&CWnd::wndTop,(int)(rect.TopLeft().x), rect.TopLeft().y - offset, rect.Width(), rect.Height(), SWP_SHOWWINDOW);
+
+}
+
+void CSyncSettings::resizeForMediaOnly() {
+    
+    CRect rect1, rect2, rect;
+    // calculate the y offset
+    GetDlgItem(IDC_SYNC_CHECK_CONTACTS)->GetWindowRect(&rect1);
+    ScreenToClient(&rect1);
+    GetDlgItem(IDC_SYNC_CHECK_PICTURES)->GetWindowRect(&rect2);
+    ScreenToClient(&rect2);        
+    int offset = rect2.TopLeft().y - rect1.TopLeft().y;
+
+    // move element with offset
+    moveResource(IDC_SYNC_CHECK_PICTURES, offset);
+    moveResource(IDC_SYNC_BUT_PICTURES, offset);
+    moveResource(IDC_SEPARATOR_5, offset);
+    moveResource(IDC_SYNC_CHECK_VIDEOS, offset);
+    moveResource(IDC_SYNC_BUT_VIDEOS, offset);
+    moveResource(IDC_SEPARATOR_6, offset);
+    moveResource(IDC_SYNC_CHECK_FILES, offset);
+    moveResource(IDC_SYNC_BUT_FILES, offset);
+
+    // resize the group items
+    GetDlgItem(IDC_SYNC_GROUP_ITEMS)->GetWindowRect(&rect);
+    ScreenToClient(&rect);    
+    GetDlgItem(IDC_SYNC_GROUP_ITEMS)->SetWindowPos(&CWnd::wndTop,(int)(rect.TopLeft().x), rect.TopLeft().y, rect.Width(), rect.Height() - offset, SWP_SHOWWINDOW);
+
+    // move schedule box
+    moveResource(IDC_SCHEDULER_GROUP, offset);
+    moveResource(IDC_SCHEDULER_CHECK_ENABLED, offset);
+    moveResource(IDC_SCHEDULER_COMBO_VALUE, offset);
+    moveResource(IDC_SYNC_CHECK_OUTLOOK_OPEN, offset);
+    GetDlgItem(IDC_SYNC_CHECK_OUTLOOK_OPEN)->ShowWindow(SW_HIDE);
+
+    
+    // move encryption and hide
+    moveResource(IDC_SECURITY_GROUP, offset);
+    moveResource(IDC_SYNC_CHECK_ENCRYPTION, offset);    
+    GetDlgItem(IDC_SECURITY_GROUP)->ShowWindow(SW_HIDE);
+    GetDlgItem(IDC_SYNC_CHECK_ENCRYPTION)->ShowWindow(SW_HIDE);
+    
+
+    
+    // move buttons OK/Cancel
+    //moveResource(IDC_SYNC_OK, offset);
+    //moveResource(IDC_SYNC_CANCEL, offset);      
+    
+}
+
+
 
 void CSyncSettings::OnBnClickedSyncCheckContacts()
 {

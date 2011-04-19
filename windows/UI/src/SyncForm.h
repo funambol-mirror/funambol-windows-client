@@ -206,6 +206,7 @@ public:
     afx_msg LRESULT OnInitForm(WPARAM, LPARAM);
     afx_msg void OnBnClickedMainButSync();
     afx_msg void OnNcPaint( );
+    afx_msg void OnPaint();
     afx_msg HBRUSH OnCtlColor( CDC* pDC, CWnd* pWnd, UINT nCtlColor);
     afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 
@@ -220,6 +221,9 @@ public:
     afx_msg void OnStnClickedMainBkPictures();
     afx_msg void OnStnClickedMainBkVideos();
     afx_msg void OnStnClickedMainBkFiles();
+
+    void moveMediaSources();
+    void moveElement(int resourceFrom, int resourceTo);
 };
 
 

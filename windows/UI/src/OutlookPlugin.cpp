@@ -136,8 +136,12 @@ protected:
     afx_msg BOOL OnSetCursor(CWnd* pWnd,  UINT nHitTest,  UINT message );
 public:
     CCustomLabel linkSite;
+    CCustomLabel linkPortalSite;
 public:
     afx_msg void OnStnClickedAboutLink();
+    afx_msg void OnStnClickedPortalLink();
+    void openLink(StringBuffer link);
+
 };
 
 CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
@@ -152,6 +156,8 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
     //{{AFX_DATA_MAP(CAboutDlg)
     //}}AFX_DATA_MAP
     DDX_Control(pDX, IDC_ABOUT_LINK, linkSite);
+    DDX_Control(pDX, IDC_MYFUN_LINK, linkPortalSite);
+    
 }
 
 BOOL CAboutDlg::OnInitDialog(){
@@ -199,12 +205,23 @@ BOOL CAboutDlg::OnInitDialog(){
     // Link site
     if (ABOUT_SCREEN_SHOW_MAIN_WEB_SITE) {
         linkSite.init();
+        linkPortalSite.initNoBold();
         s1 = ABOUT_SCREEN_TEXT_MAIN_WEB_SITE; 
         SetDlgItemText(IDC_ABOUT_LINK, s1);
-        lastObjectID = IDC_ABOUT_LINK;
+        CString part1; part1.LoadString(IDS_ABOUT_GOTO_PORTAL1);
+        CString part2; part2.LoadString(IDS_ABOUT_GOTO_PORTAL2);
+        SetDlgItemText(IDC_ABOUT_ONLINE_ACCOUNT1, part1);
+        SetDlgItemText(IDC_ABOUT_ONLINE_ACCOUNT2, part2);
+        s1 = ABOUT_SCREEN_TEXT_PORTAL_WEB_SITE;
+        SetDlgItemText(IDC_MYFUN_LINK, s1);
+        
+        lastObjectID = IDC_ABOUT_ONLINE_ACCOUNT2;        
     }
     else {
         linkSite.ShowWindow(SW_HIDE);
+        linkPortalSite.ShowWindow(SW_HIDE);
+        GetDlgItem(IDC_ABOUT_ONLINE_ACCOUNT1)->ShowWindow(SW_HIDE);
+        GetDlgItem(IDC_ABOUT_ONLINE_ACCOUNT2)->ShowWindow(SW_HIDE);
     }
 
     //
@@ -267,6 +284,7 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
     ON_WM_SETCURSOR()
     //}}AFX_MSG_MAP
     ON_STN_CLICKED(IDC_ABOUT_LINK, &CAboutDlg::OnStnClickedAboutLink)
+    ON_STN_CLICKED(IDC_MYFUN_LINK, &CAboutDlg::OnStnClickedPortalLink)
 END_MESSAGE_MAP()
 
 
@@ -576,21 +594,19 @@ BOOL COutlookPluginApp::registerFunClass() {
 }
 
 
-
-void CAboutDlg::OnStnClickedAboutLink()
-{
+void CAboutDlg::openLink(StringBuffer link) {
     SHELLEXECUTEINFO lpExecInfo;
     memset(&lpExecInfo, 0, sizeof(SHELLEXECUTEINFO));
     lpExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
     
     CString site;
-    StringBuffer address(ABOUT_SCREEN_TEXT_MAIN_WEB_SITE);
+    StringBuffer address = link;
     if (address.find("http://") != StringBuffer::npos) {
         site = address.c_str();
     }
     else {
         site = "http://"; 
-        site += ABOUT_SCREEN_TEXT_MAIN_WEB_SITE;
+        site += link;
     }
 
     lpExecInfo.lpFile = site;
@@ -599,4 +615,17 @@ void CAboutDlg::OnStnClickedAboutLink()
     lpExecInfo.lpVerb = _T("open");
     ShellExecuteEx(&lpExecInfo);
     ZeroMemory(&lpExecInfo, sizeof(SHELLEXECUTEINFO));
+}
+
+
+void CAboutDlg::OnStnClickedAboutLink()
+{
+    StringBuffer address(ABOUT_SCREEN_TEXT_MAIN_WEB_SITE);
+    openLink(address);
+}
+
+void CAboutDlg::OnStnClickedPortalLink()
+{
+    StringBuffer address(ABOUT_SCREEN_TEXT_PORTAL_WEB_SITE);
+    openLink(address);
 }

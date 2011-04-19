@@ -126,6 +126,7 @@ BEGIN_MESSAGE_MAP(CSyncForm, CFormView)
 
     ON_MESSAGE( WM_INITDIALOG, OnInitForm ) 
     ON_WM_NCPAINT( )
+    ON_WM_PAINT( )
     ON_WM_CTLCOLOR()
     ON_WM_ERASEBKGND()
     
@@ -375,6 +376,74 @@ void CSyncForm::OnNcPaint(){
     CScrollView::SetScrollSizes(MM_TEXT, CSize(0,0));
     //CScrollView::SetScrollSizes(MM_TEXT, CSize(0,0));         <---- double ???
 }
+bool done = false;
+void CSyncForm::OnPaint(){
+    
+    // If num sources changed, resize the dialog
+    if (!arePIMSourcesVisible() && done == false) {   
+        // Resize main window
+        CPoint size = getMainWindowSize();          
+        //GetDlgItem(IDD_SYNC_FORM)->SetWindowPos(&CWnd::wndTop, NULL, NULL, size.x, size.y, SWP_SHOWWINDOW | SWP_NOMOVE);
+        AfxGetMainWnd()->SetWindowPos(&CWnd::wndTop, NULL, NULL, size.x, size.y, SWP_SHOWWINDOW | SWP_NOMOVE);
+        
+        moveMediaSources();
+        done = true;      
+    }
+        
+    CFormView::OnPaint();
+   
+}
+
+void CSyncForm::moveElement(int resourceFrom, int resourceTo) {
+
+    CRect rect;    
+    GetDlgItem(resourceFrom)->GetWindowRect(&rect);
+    ScreenToClient(&rect);
+    GetDlgItem(resourceTo)->SetWindowPos(&CWnd::wndTop,(int)(rect.TopLeft().x), rect.TopLeft().y, rect.Width(), rect.Height(), SWP_SHOWWINDOW);
+    
+}
+
+void CSyncForm::moveMediaSources() {
+    // CAnimatedIcon& icon, int iconres, int resource1, int resource2, CCustomPane& pane
+    hideSource(iconContacts, IDI_CONTACTS, 
+                   IDC_MAIN_STATIC_CONTACTS, IDC_MAIN_STATIC_STATUS_CONTACTS,
+                   paneContacts);
+    hideSource(iconCalendar, IDI_CALENDAR, 
+                   IDC_MAIN_STATIC_CALENDAR, IDC_MAIN_STATIC_STATUS_CALENDAR,
+                   paneCalendar);
+    hideSource(iconTasks, IDI_TASKS, 
+                   IDC_MAIN_STATIC_TASKS, IDC_MAIN_STATIC_STATUS_TASKS,
+                   paneTasks);
+    hideSource(iconNotes, IDI_NOTES, 
+                   IDC_MAIN_STATIC_NOTES, IDC_MAIN_STATIC_STATUS_NOTES,
+                   paneNotes);        
+    GetDlgItem(IDC_MAIN_BK_CONTACTS)->ShowWindow(SW_HIDE);
+    GetDlgItem(IDC_MAIN_BK_CALENDAR)->ShowWindow(SW_HIDE);
+    GetDlgItem(IDC_MAIN_BK_TASKS)->ShowWindow(SW_HIDE);
+    GetDlgItem(IDC_MAIN_BK_NOTES)->ShowWindow(SW_HIDE);
+       
+    // move pictures to contact
+    moveElement(IDC_MAIN_BK_CONTACTS,            IDC_MAIN_BK_PICTURES);
+    moveElement(IDC_MAIN_ICON_CONTACTS,          IDC_MAIN_ICON_PICTURES);
+    moveElement(IDC_MAIN_ICON_STATUS_CONTACTS,   IDC_MAIN_ICON_STATUS_PICTURES);
+    moveElement(IDC_MAIN_STATIC_CONTACTS,        IDC_MAIN_STATIC_PICTURES);
+    moveElement(IDC_MAIN_STATIC_STATUS_CONTACTS, IDC_MAIN_STATIC_STATUS_PICTURES);
+
+    // move video to calendar
+    moveElement(IDC_MAIN_BK_CALENDAR,            IDC_MAIN_BK_VIDEOS);
+    moveElement(IDC_MAIN_ICON_CALENDAR,          IDC_MAIN_ICON_VIDEOS);
+    moveElement(IDC_MAIN_ICON_STATUS_CALENDAR,   IDC_MAIN_ICON_STATUS_VIDEOS);
+    moveElement(IDC_MAIN_STATIC_CALENDAR,        IDC_MAIN_STATIC_VIDEOS);
+    moveElement(IDC_MAIN_STATIC_STATUS_CALENDAR, IDC_MAIN_STATIC_STATUS_VIDEOS);
+
+    // move files to tasks
+    moveElement(IDC_MAIN_BK_TASKS,               IDC_MAIN_BK_FILES);
+    moveElement(IDC_MAIN_ICON_TASKS,             IDC_MAIN_ICON_FILES);
+    moveElement(IDC_MAIN_ICON_STATUS_TASKS,      IDC_MAIN_ICON_STATUS_FILES);
+    moveElement(IDC_MAIN_STATIC_TASKS,           IDC_MAIN_STATIC_FILES);
+    moveElement(IDC_MAIN_STATIC_STATUS_TASKS,    IDC_MAIN_STATIC_STATUS_FILES);
+
+}
 
 
 /**
@@ -434,16 +503,6 @@ HBRUSH CSyncForm::OnCtlColor( CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 }
 
 void CSyncForm::refreshSources() {
-
-    // If num sources changed, resize the dialog
-    int newPanesCount = countSourceVisible();
-    if (panesCount != newPanesCount) {
-        // Resize main window
-        CPoint size = getMainWindowSize();
-        AfxGetMainWnd()->SetWindowPos(&CWnd::wndTop, NULL, NULL, size.x, size.y, SWP_SHOWWINDOW | SWP_NOMOVE);
-        //this->SetWindowPos(&CWnd::wndTop, NULL, NULL, rectDialog.Width(), newHeight, SWP_SHOWWINDOW | SWP_NOMOVE);
-        panesCount = newPanesCount;
-    }
 
     // refresh all sources
     refreshSource(SYNCSOURCE_CONTACTS);
@@ -801,6 +860,7 @@ void CSyncForm::hideSource(CAnimatedIcon& icon, int iconres, int resource1,
     GetDlgItem(resource1)->ShowWindow(SW_HIDE);
     GetDlgItem(resource2)->ShowWindow(SW_HIDE);
     pane.ShowWindow(SW_HIDE);
+    disableSource(icon, iconres, resource1, resource2, pane);
 
 }
 void CSyncForm::disableSource(CAnimatedIcon& icon, int iconres, int resource1, 
