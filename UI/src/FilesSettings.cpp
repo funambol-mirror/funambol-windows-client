@@ -388,6 +388,15 @@ void CFilesSettings::OnCbnSelchangeFilesComboSynctype()
         
     }
     */
+
+    CString s2;
+    s2.LoadString(IDS_MEDIA_HUB_FILE_MAX_SIZE);
+    StringBuffer s, sss;    
+    s = ConvertToChar(s2);
+    sss.sprintf(s.c_str(), (int)SAPI_MAX_FILE_SIZE/1024/1024);
+    supportedData.append(" ");
+    supportedData.append(sss);
+
     CString suppData = supportedData;
 
     int index = 0;

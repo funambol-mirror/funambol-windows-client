@@ -205,6 +205,11 @@ bool isSourceVisibleA(const char* sourceName);
 bool isSourceVisible(const WCHAR* sourceName);
 
 /**
+ * return true if at least one PIM source is visible. false otherwise (no outlok installed)
+ */
+bool arePIMSourcesVisible();
+
+/**
  * Used to check the total number of sources visible.
  * It checks the sourcesVisible array.
  */
