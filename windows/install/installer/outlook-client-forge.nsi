@@ -820,6 +820,7 @@ Section "MainSection" SEC01
 !ifdef SHOW_STARTMENU_WEBSITE
       CreateShortCut  "$SMPROGRAMS\$ICONS_GROUP\${WEB_SITE_LINK_TITLE}.lnk"        "$INSTDIR\website.url"         "" "" "" "" "" "${WEB_SITE_LINK_TITLE}"
 !endif
+      
       !insertmacro MUI_STARTMENU_WRITE_END
 
 
@@ -828,7 +829,9 @@ Section "MainSection" SEC01
       
       ; Create the MediaHub Folder previously set
       Call createMediaHubFolder
-      
+      ;MessageBox MB_ICONSTOP "$mediaHubFolder"
+      CreateShortCut  "$DESKTOP\${PROPERTY_MEDIAHUB}.lnk" "$mediaHubFolder" "" "$INSTDIR\images\MediaHubFolder.ico" "" "" "" "Open $(^Name) Folder "
+
       ; check if telephony location is correctly set
       Call checkTelephonyLocation
 
@@ -888,6 +891,7 @@ Section Uninstall
      !insertmacro MUI_STARTMENU_GETFOLDER "Application" $ICONS_GROUP
      Delete "$SMPROGRAMS\$ICONS_GROUP\*.*"
 
+     Delete  "$DESKTOP\${PROPERTY_MEDIAHUB}.lnk"
 
      ; Delete recursively empty folders created on install.
      StrCpy $R4 "$INSTDIR"
