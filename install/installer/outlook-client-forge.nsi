@@ -830,7 +830,7 @@ Section "MainSection" SEC01
       ; Create the MediaHub Folder previously set
       Call createMediaHubFolder
       ;MessageBox MB_ICONSTOP "$mediaHubFolder"
-      CreateShortCut  "$DESKTOP\${PROPERTY_MEDIAHUB}.lnk" "$mediaHubFolder" "" "$INSTDIR\images\MediaHubFolder.ico" "" "" "" "Open $(^Name) Folder "
+      CreateShortCut  "$DESKTOP\${PROPERTY_MEDIAHUB}.lnk" "$mediaHubFolder" "" "$INSTDIR\images\MediaHubFolder.ico" "" "" "" "Open ${PRODUCT_PUBLISHER} ${PROPERTY_MEDIAHUB} Folder "
 
       ; check if telephony location is correctly set
       Call checkTelephonyLocation
