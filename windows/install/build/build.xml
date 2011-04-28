@@ -486,10 +486,8 @@ Forge file for Funambol Windows Sync Client
     BUILD-INSTALL
     ========================================================================
     -->
-    <target name="build-install" depends="init,copy-NSIS-plugins" >
+    <target name="build-install" depends="build,copy-NSIS-plugins" >
         <mkdir dir="${dir.output}"/>
-        
-        <property file="${dir.distribution}/build/release.properties"/>
 
         <echo message="${install-builder.nsi}" />
         <echo message="output to: ${log.NSIS}" />
@@ -514,7 +512,7 @@ Forge file for Funambol Windows Sync Client
     BUILD-INSTALL_FOR_CARED
     ========================================================================
     -->
-    <target name="build-install-cared" depends="init,copy-NSIS-plugins" >
+    <target name="build-install-cared" depends="build,copy-NSIS-plugins" >
         <mkdir dir="${dir.output}"/>
 
         <!-- Portal version is builded with the REDIST REDEMPTION.DLL -->
@@ -523,9 +521,6 @@ Forge file for Funambol Windows Sync Client
             <fileset dir="${dir.redemptionLibRedist}" includes="Redemption.dll"/>
         </copy>
         
-        <property file="${dir.distribution}/build/release.properties"/>
-
-
         <echo message="${install-builder.nsi}" />
         <echo message="filename = ${fileNameCared}" />
         <echo message="output to: ${log.NSIS_sp}" />
