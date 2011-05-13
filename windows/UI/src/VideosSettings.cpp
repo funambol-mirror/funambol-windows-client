@@ -385,6 +385,7 @@ void CVideosSettings::OnCbnSelchangeVideosComboSynctype()
         supportedData.append(".");
     }
    
+    /*
     CString s2;
     s2.LoadString(IDS_MEDIA_HUB_VIDEO_MAX_SIZE);
     StringBuffer s, sss;    
@@ -392,8 +393,20 @@ void CVideosSettings::OnCbnSelchangeVideosComboSynctype()
     sss.sprintf(s.c_str(), (int)SAPI_MAX_VIDEO_SIZE/1024/1024);
     supportedData.append(" ");
     supportedData.append(sss);
+    */
+    CString s2;
+    s2.LoadString(IDS_MEDIA_HUB_VIDEO_MAX_SIZE);
+    WCHAR tmp[1024];
+    wsprintf(tmp, s2.GetBuffer(), (int)SAPI_MAX_VIDEO_SIZE/1024/1024);
+    wstring w1 = tmp;
+    WCHAR* tmp2 = toWideChar(supportedData.c_str());
+    wstring w2 = tmp2;
+    delete [] tmp2;
 
-    CString suppData = supportedData;
+    w2.append(L" ");
+    w2.append(w1);
+
+    CString suppData(w2.c_str()); //supportedData;
 
     int index = 0;
     if (lstSyncType.GetCount() > 1) {
