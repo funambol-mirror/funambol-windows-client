@@ -1035,17 +1035,17 @@ TIME_ZONE_INFORMATION* ClientApplication::getTimezone(ClientAppointment* cApp) {
         VARIANT* ptr = NULL;
 
         // set the timezone blob
+        if (!pRedUtils) {
+            createSafeInstances();
+        }
+        _variant_t vtProp = _variant_t((long) 0x8233, VT_I4);
         prop = pRedUtils->GetIDsFromNames(cApp->getCOMPtr()->MAPIOBJECT, 
                                                        "{00062002-0000-0000-C000-000000000046}", 
-                                                       0x8233, 
+                                                        vtProp, 
                                                        VARIANT_TRUE);       
 
         prop = prop | 0x0102; // binary
         
-        if (!pRedUtils) {
-            createSafeInstances();
-        } 
-
         _variant_t timezone = pRedUtils->HrGetOneProp(cApp->getCOMPtr()->MAPIOBJECT, prop);                         
         VARIANT& vt = timezone.GetVARIANT();        
         SAFEARRAY* safe = vt.parray;         
@@ -1164,9 +1164,10 @@ void ClientApplication::setTimezone(ClientAppointment* cApp) {
     } 
     
     // set the timezone blob
+    _variant_t vtProp = _variant_t((long) 0x8233, VT_I4);
     long timezone_bin = pRedUtils->GetIDsFromNames(cApp->getCOMPtr()->MAPIOBJECT, 
                                                     "{00062002-0000-0000-C000-000000000046}", 
-                                                    0x8233, VARIANT_TRUE);
+                                                    vtProp, VARIANT_TRUE);
    
     timezone_bin = timezone_bin | 0x0102; // binary
     
@@ -1174,9 +1175,10 @@ void ClientApplication::setTimezone(ClientAppointment* cApp) {
     
     
     // set the timezone string information
+    vtProp = _variant_t((long) 0x8234, VT_I4);
     long timezone_display = pRedUtils->GetIDsFromNames(cApp->getCOMPtr()->MAPIOBJECT, 
                                                     "{00062002-0000-0000-C000-000000000046}", 
-                                                    0x8234, VARIANT_TRUE);
+                                                    vtProp, VARIANT_TRUE);
     
     timezone_display = timezone_display | 0x001E; // PT_STRING8
     
@@ -1290,18 +1292,20 @@ bool ClientApplication::setStartAndEnd(ClientAppointment* cApp, DATE start, DATE
     _variant_t variant_start(startUTC), variant_end(endUTC); 
     
     // set start in UTC
+    _variant_t vtProp = _variant_t((long) 0x820D, VT_I4);
     long type = pRedUtils->GetIDsFromNames(cApp->getCOMPtr()->MAPIOBJECT, 
                                                     "{00062002-0000-0000-C000-000000000046}", 
-                                                    0x820D, VARIANT_TRUE);
+                                                    vtProp, VARIANT_TRUE);
    
     type = type | 0x0040; // PT_SYSTIME
     
     long res = pRedUtils->HrSetOneProp(cApp->getCOMPtr(), type, variant_start, VARIANT_TRUE);   
     
     // set end in UTC
+    vtProp = _variant_t((long) 0x820E, VT_I4);
     type = pRedUtils->GetIDsFromNames(cApp->getCOMPtr()->MAPIOBJECT, 
                                                     "{00062002-0000-0000-C000-000000000046}", 
-                                                    0x820E, VARIANT_TRUE);
+                                                    vtProp, VARIANT_TRUE);
    
     type = type | 0x0040; // PT_SYSTIME
     
