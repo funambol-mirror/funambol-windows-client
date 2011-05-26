@@ -232,6 +232,10 @@ BOOL CAboutDlg::OnInitDialog(){
         GetDlgItem(IDC_ABOUT_LICENCE)->ShowWindow(SW_HIDE);
         GetDlgItem(IDC_POWERED_BY)->ShowWindow(SW_SHOW);
         lastObjectID = IDC_POWERED_BY;
+
+        GetDlgItem(IDC_ABOUT_ONLINE_ACCOUNT1)->ShowWindow(SW_HIDE);
+        GetDlgItem(IDC_ABOUT_ONLINE_ACCOUNT2)->ShowWindow(SW_HIDE);
+        GetDlgItem(IDC_MYFUN_LINK)->ShowWindow(SW_HIDE);
     }
     else if (ABOUT_SCREEN_SHOW_LICENSE) {
         s1 = licence;
