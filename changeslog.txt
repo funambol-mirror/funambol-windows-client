@@ -1,3 +1,6 @@
+2011-07-08
+  - toccy: release 10.0.2
+
 2011-07-05
   - toccy: reintegrated branch US8802: added customization params
            * SHOW_ACCOUNT_LOGIN_INFO  (false)
