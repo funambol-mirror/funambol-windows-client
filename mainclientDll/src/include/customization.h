@@ -53,10 +53,11 @@
 #define MSGBOX_ERROR_TITLE                  PROGRAM_NAME " Error"
 #define WMSGBOX_ERROR_TITLE                 TEXT(PROGRAM_NAME) TEXT(" Error")
 
-// Default values for Account settings
+// Login screen
 #define DEFAULT_URL                         "http://my.funambol.com/sync"
 #define DEFAULT_USERNAME                    ""
 #define DEFAULT_PASSWORD                    ""
+#define SHOW_ACCOUNT_LOGIN_INFO             false                       /** If true, a label is displayed in the account screen with basic informations for the user */
 
 // Addin customization
 // This macro is used into the Outlook menu. The & is the value used to create a shortcut to open the client
@@ -117,6 +118,11 @@
 // MediaHub info.
 #define MEDIA_HUB_DEFAULT_FOLDER            "MediaHub"     // name of the default folder to store picture/video/files
 #define MEDIA_HUB_DEFAULT_ICO               "MediaHubFolder.ico"     // name of the default ico to put in the Desktop.ini
+
+// If true, the client will integrate with Microsoft Outlook for PIM sync.
+// If false, all Outlook references are removed (no Redemption/addin DLL registration)
+// and only media sync is possible (PIM sources are removed from SOURCE_ORDER_IN_REGISTRY).
+#define USE_OUTLOOK                         true
 
 // This is the list of sources visible on UI, by default.
 #define SOURCE_ORDER_IN_REGISTRY            "contact,appointment,task,note,picture,video,files"
