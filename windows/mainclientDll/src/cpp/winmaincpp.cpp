@@ -202,7 +202,7 @@ void initPIMSources() {
     
     char* olPath = config->readPropertyValue(OUTLOOK_EXE_REGKEY, "", HKEY_LOCAL_MACHINE);
     if (olPath && strlen(olPath)>0) {
-        LOG.debug("Microsoft Outlook detected installed");
+        if (USE_OUTLOOK) { LOG.debug("Microsoft Outlook detected installed"); }
         isOutlookInstalled = true;
     }
 
@@ -212,10 +212,11 @@ void initPIMSources() {
         isRedemptionInstalled = true;
     }
 
+
     //
     // Register Redemption.dll
     //
-    if (isOutlookInstalled && !isRedemptionInstalled) {
+    if (USE_OUTLOOK && isOutlookInstalled && !isRedemptionInstalled) {
         LOG.info("Registering Redemption.dll to the system");
         HRESULT hr = registerDLL(redemptionPath.c_str(), true);
 
@@ -234,7 +235,7 @@ void initPIMSources() {
     // Enable/disable PIM sources
     //
     bool configChanged = false;
-    if (isOutlookInstalled) {
+    if (USE_OUTLOOK && isOutlookInstalled) {
         LOG.debug("PIM sources are supported");
         configChanged |= config->safeAddSourceVisible(CONTACT_    , true);
         configChanged |= config->safeAddSourceVisible(APPOINTMENT_, true);
@@ -256,7 +257,7 @@ void initPIMSources() {
 
 
     // Sets the mappings folder for PIM sources.
-    if (isOutlookInstalled) {
+    if (USE_OUTLOOK && isOutlookInstalled) {
         PIMMappingStoreBuilder* pmsb = new PIMMappingStoreBuilder();
         MappingsManager::setBuilder(pmsb);
     }
