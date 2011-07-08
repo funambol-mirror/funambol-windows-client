@@ -1,4 +1,14 @@
 2011-07-05
+  - toccy: updated from v10 branch (reintegrated branch US8802): added customization params
+           * SHOW_ACCOUNT_LOGIN_INFO  (false)
+             If true, a label is displayed in the account screen 
+             with basic informations for the user), default = false.
+           * USE_OUTLOOK   (true)
+             If true, the client will integrate with Microsoft Outlook for PIM sync.
+             If false, all Outlook references are removed (no Redemption/addin DLL registration)
+             and only media sync is possible (PIM sources are removed from SOURCE_ORDER_IN_REGISTRY).
+
+2011-07-05
   - toccy: updated trunk version to 10.5.0
 
 2011-05-16
@@ -7,6 +17,7 @@
            otherwise VT_BSTR is assumed leading to access violation.
            
   - toccy: created branch v10 - Release 10.0.1
+           updated version to 10.0.1
 
 2011-05-13
   - toccy: updated german strings resources

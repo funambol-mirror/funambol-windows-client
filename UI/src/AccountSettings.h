@@ -63,6 +63,7 @@ public:
 protected:
    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support  
    virtual BOOL PreTranslateMessage(MSG* pMsg);
+   CFont fontBold;
    DECLARE_MESSAGE_MAP()
 public:   
     CEdit editUrl;
@@ -73,6 +74,7 @@ public:
 
     bool saveSettings(bool saveToDisk);   
     void resetMediaSourcesParameters();
+    void moveResource(int res, int offset); 
 
     afx_msg void OnBnClickedAccountButCancel();
     afx_msg void OnBnClickedAccountButOk();
