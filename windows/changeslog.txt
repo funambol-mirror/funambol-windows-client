@@ -1,3 +1,6 @@
+2011-07-14
+  - toccy: fixed bug #11252: Tab index is not correct for fields selection in windows client settings
+
 2011-07-05
   - toccy: updated from v10 branch (reintegrated branch US8802): added customization params
            * SHOW_ACCOUNT_LOGIN_INFO  (false)
