@@ -161,14 +161,15 @@ LRESULT CAccountSettings::OnInitForm(WPARAM, LPARAM){
         GetDlgItem(IDC_ACCOUNT_LOGIN_INFO)->GetWindowRect(&rect);
         int offset = rect.Height();
 
-        moveResource(IDC_ACCOUNT_GROUP_SERVER,    offset);
-        moveResource(IDC_ACCOUNT_EDIT_URL,        offset);
-        moveResource(IDC_ACCOUNT_EDIT_USERNAME,   offset);
+        // this order: to keep TAB order!
+        moveResource(IDC_ACCOUNT_BUT_PROXY,       offset);
         moveResource(IDC_ACCOUNT_EDIT_PASSWORD,   offset);
+        moveResource(IDC_ACCOUNT_EDIT_USERNAME,   offset);
+        moveResource(IDC_ACCOUNT_EDIT_URL,        offset);
+        moveResource(IDC_ACCOUNT_GROUP_SERVER,    offset);
         moveResource(IDC_ACCOUNT_STATIC_URL,      offset);
         moveResource(IDC_ACCOUNT_STATIC_USERNAME, offset);
         moveResource(IDC_ACCOUNT_STATIC_PASSWORD, offset);
-        moveResource(IDC_ACCOUNT_BUT_PROXY,       offset);
     }
 
 
