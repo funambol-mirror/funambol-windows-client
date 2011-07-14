@@ -1,3 +1,10 @@
+2011-07-14
+  - toccy: merged from trunk at rev.828:
+      - toccy: fixed bug #11252: Tab index is not correct for fields selection in windows client settings
+      - toccy: applied patch for OW bug #315955: OutlookPlugin crashes trying to read recurring events
+               Specify _variant_t argument to be of type VT_I4 in MAPIUtils.GetIDsFromNames(), 
+               otherwise VT_BSTR is assumed leading to access violation.
+               
 2011-07-08
   - toccy: release 10.0.2
 

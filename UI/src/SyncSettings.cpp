@@ -607,6 +607,8 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
         checkAttach.ShowWindow(SW_HIDE);
         int dy = -17;
         moveItem(this, GetDlgItem(IDC_SECURITY_GROUP), 0, dy);
+        moveItem(this, GetDlgItem(IDC_SYNC_CANCEL), 0, 0);
+        moveItem(this, GetDlgItem(IDC_SYNC_OK), 0, 0);
         moveItem(this, &checkEncryption, 0, dy);
         resizeItem(GetDlgItem(IDC_SCHEDULER_GROUP), 0, dy);
     }
@@ -648,41 +650,39 @@ void CSyncSettings::resizeForMediaOnly() {
     ScreenToClient(&rect2);        
     int offset = rect2.TopLeft().y - rect1.TopLeft().y;
 
+    // (reverse order to keep tab order)
+
+    // move encryption and hide
+    moveResource(IDC_SYNC_CHECK_ENCRYPTION, offset);
+    moveResource(IDC_SECURITY_GROUP, offset);   
+    GetDlgItem(IDC_SECURITY_GROUP)->ShowWindow(SW_HIDE);
+    GetDlgItem(IDC_SYNC_CHECK_ENCRYPTION)->ShowWindow(SW_HIDE);
+
+    // move schedule box
+    moveResource(IDC_SYNC_CHECK_OUTLOOK_OPEN, offset);
+    moveResource(IDC_SCHEDULER_COMBO_VALUE, offset);
+    moveResource(IDC_SCHEDULER_CHECK_ENABLED, offset);
+    moveResource(IDC_SCHEDULER_GROUP, offset);
+    GetDlgItem(IDC_SYNC_CHECK_OUTLOOK_OPEN)->ShowWindow(SW_HIDE);
+
     // move element with offset
-    moveResource(IDC_SYNC_CHECK_PICTURES, offset);
-    moveResource(IDC_SYNC_BUT_PICTURES, offset);
-    moveResource(IDC_SEPARATOR_5, offset);
-    moveResource(IDC_SYNC_CHECK_VIDEOS, offset);
-    moveResource(IDC_SYNC_BUT_VIDEOS, offset);
-    moveResource(IDC_SEPARATOR_6, offset);
-    moveResource(IDC_SYNC_CHECK_FILES, offset);
     moveResource(IDC_SYNC_BUT_FILES, offset);
+    moveResource(IDC_SYNC_CHECK_FILES, offset);
+    moveResource(IDC_SEPARATOR_6, offset);
+    moveResource(IDC_SYNC_BUT_VIDEOS, offset);
+    moveResource(IDC_SYNC_CHECK_VIDEOS, offset);
+    moveResource(IDC_SEPARATOR_5, offset);
+    moveResource(IDC_SYNC_BUT_PICTURES, offset);
+    moveResource(IDC_SYNC_CHECK_PICTURES, offset);
 
     // resize the group items
     GetDlgItem(IDC_SYNC_GROUP_ITEMS)->GetWindowRect(&rect);
     ScreenToClient(&rect);    
     GetDlgItem(IDC_SYNC_GROUP_ITEMS)->SetWindowPos(&CWnd::wndTop,(int)(rect.TopLeft().x), rect.TopLeft().y, rect.Width(), rect.Height() - offset, SWP_SHOWWINDOW);
-
-    // move schedule box
-    moveResource(IDC_SCHEDULER_GROUP, offset);
-    moveResource(IDC_SCHEDULER_CHECK_ENABLED, offset);
-    moveResource(IDC_SCHEDULER_COMBO_VALUE, offset);
-    moveResource(IDC_SYNC_CHECK_OUTLOOK_OPEN, offset);
-    GetDlgItem(IDC_SYNC_CHECK_OUTLOOK_OPEN)->ShowWindow(SW_HIDE);
-
-    
-    // move encryption and hide
-    moveResource(IDC_SECURITY_GROUP, offset);
-    moveResource(IDC_SYNC_CHECK_ENCRYPTION, offset);    
-    GetDlgItem(IDC_SECURITY_GROUP)->ShowWindow(SW_HIDE);
-    GetDlgItem(IDC_SYNC_CHECK_ENCRYPTION)->ShowWindow(SW_HIDE);
-    
-
     
     // move buttons OK/Cancel
     //moveResource(IDC_SYNC_OK, offset);
     //moveResource(IDC_SYNC_CANCEL, offset);      
-    
 }
 
 
