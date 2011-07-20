@@ -271,6 +271,8 @@ int CMainSyncFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     bSyncStarted = false;
 	bSchedulerWasDisabledByLogin = false;
 
+    Invalidate();
+
 	return 0;
 }
 

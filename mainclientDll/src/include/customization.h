@@ -159,6 +159,7 @@
 /// asking to continue charging the account, or to abort. If false, no warning popup/charge is executed.
 #define ENABLE_PAYMENT_REQUIRED_CHARGE      false
 #define RESTORE_CHARGE_TIMEOUT              30       /**< Timeout (in seconds) for restore charge sapi request. */
+#define DATA_PLAN_WEB_PAGE                  ""
 
 
 // List of available sync modes for each source (comma separated values).

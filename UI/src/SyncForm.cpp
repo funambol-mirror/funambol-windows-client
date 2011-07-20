@@ -821,7 +821,10 @@ void CSyncForm::OnStnClickedMainBkPictures()
     if ( panePictures.state == STATE_PANE_DISABLED ) {
         // 
         CString str;
-        str.LoadString(IDS_WARNING_PAYMENT_REQUIRED_FOR_SOURCE_PICTURES);
+        CString sourceName;
+        sourceName.LoadString(IDS_MAIN_PICTURES);
+        str.FormatMessage(IDS_WARNING_PAYMENT_REQUIRED_FOR_SOURCE, sourceName, _T(DATA_PLAN_WEB_PAGE));
+
         MessageBox((LPCTSTR)str, TEXT(PROGRAM_NAME), MB_OK | MB_ICONEXCLAMATION | MB_APPLMODAL | MB_SETFOREGROUND);
         return;
     }
@@ -858,7 +861,9 @@ void CSyncForm::OnStnClickedMainBkVideos()
 
     if ( paneVideos.state == STATE_PANE_DISABLED ) {
         CString str;
-        str.LoadString(IDS_WARNING_PAYMENT_REQUIRED_FOR_SOURCE_VIDEOS);
+        CString sourceName;
+        sourceName.LoadString(IDS_MAIN_VIDEOS);
+        str.FormatMessage(IDS_WARNING_PAYMENT_REQUIRED_FOR_SOURCE, sourceName, _T(DATA_PLAN_WEB_PAGE));
         MessageBox((LPCTSTR)str, TEXT(PROGRAM_NAME), MB_OK | MB_ICONEXCLAMATION | MB_APPLMODAL | MB_SETFOREGROUND);
         return;
     }
@@ -896,7 +901,9 @@ void CSyncForm::OnStnClickedMainBkFiles()
 
     if ( paneFiles.state == STATE_PANE_DISABLED ) {
         CString str;
-        str.LoadString(IDS_WARNING_PAYMENT_REQUIRED_FOR_SOURCE_FILES);
+        CString sourceName;
+        sourceName.LoadString(IDS_MAIN_FILES);
+        str.FormatMessage(IDS_WARNING_PAYMENT_REQUIRED_FOR_SOURCE, sourceName, _T(DATA_PLAN_WEB_PAGE));
         MessageBox((LPCTSTR)str, TEXT(PROGRAM_NAME), MB_OK | MB_ICONEXCLAMATION | MB_APPLMODAL | MB_SETFOREGROUND);
         return;
     }
