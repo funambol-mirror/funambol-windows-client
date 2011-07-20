@@ -8,8 +8,8 @@
              (so it's the client to request a slow sync, instead of letting the server
              decide because anchors = 0 are not valid)
            * handling SyncML error code 402 (payment required)
-           * added SAPI service profiling (login with &details), disabled by default (see ...)                          <---------
-           * added SAPI restore charge (in case of code 402 = payment required), disabled by default (see ...)          <---------
+           * added SAPI service profiling (login with &details), disabled by default (see ENABLE_PAYMENT_REQUIRED_CHARGE)
+           * added SAPI restore charge (in case of code 402 = payment required), disabled by default (see ENABLE_LOGIN_ON_ACCOUNT_CHANGE)
            * when account is changed: a SAPI login is done and all source tstamps are resetted
            * removed 5,10,15 mins from scheduler settings (new default and minimum value is 30 min)
            * UI: added method to be notified when user clicks on a disabled pane
