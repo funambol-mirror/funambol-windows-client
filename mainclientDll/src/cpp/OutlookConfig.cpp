@@ -1380,6 +1380,23 @@ void OutlookConfig::upgradeConfig() {
         if (mediaHubPath) { delete [] mediaHubPath; }
     }
 
+    if (oldFunambolSwv < 100002) {
+
+        // Added config params
+        DeviceConfig& dc = getClientConfig();
+        dc.setAutoSync               (DEFAULT_AUTO_SYNC);
+	    dc.setDataplanExpirationDate (0L);
+	    dc.setNetworkWarning         (false);
+
+        // Added source allowed flag
+        for (unsigned int i=0; i<sourceConfigsCount; i++) {
+            WindowsSyncSourceConfig* sc = getSyncSourceConfig(i);
+            if (sc) {
+                sc->setIsAllowed(true);
+            }
+        }
+    }
+
 
     // ALWAYS - if a syncmode currently unavailable was in use, 
     // the source is disabled and the default is set + last anchor reset (SLOW).

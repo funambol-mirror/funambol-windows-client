@@ -39,7 +39,13 @@ EXPORTS
 
 initializeClient
 closeClient
+getSourcesToSync
+resetAllSourcesTimestamps
 startSync
+doSapiLoginThread
+doSAPIRestoreCharge
+getRefreshSourcesListToSync
+setRefreshSourcesListToSync
 softTerminateSync
 hardTerminateSync
 checkSyncInProgress

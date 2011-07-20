@@ -52,6 +52,11 @@
 // Thread related
 DWORD WINAPI syncThread(LPVOID lpParam);
 DWORD WINAPI syncThreadKiller(LPVOID lpParam);
+DWORD WINAPI callSAPIRestoreCallThread(LPVOID lpParam);
+
+DWORD WINAPI loginThread(LPVOID lpParam);
+DWORD WINAPI loginThreadKiller(LPVOID lpParam);
+DWORD WINAPI callSAPIRestoreKiller(LPVOID lpParam);
 
 
 /**
@@ -73,6 +78,8 @@ public:
 protected:
 
     HANDLE hSyncThread;
+	HANDLE hLoginThread;
+	
     DWORD dwThreadId;
     bool configOpened;
     int dpiX, dpiY;
@@ -133,6 +140,7 @@ public:
     HBITMAP hBmpBlue;
     HBITMAP hBmpDark;
     HBITMAP hBmpLight;
+	HBITMAP hBmpDisabled;
 
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	virtual ~CMainSyncFrame();
@@ -155,9 +163,21 @@ public:
     CSplitter wndSplitter;
     bool bSyncStarted;
 
+	bool bSchedulerWasDisabledByLogin; // if true the scheduler was cancelled after login settings
+									   // useful if we want to show a messagebox after the sync process,
+									   // for warning the user that the Windows task was deleted by
+							           // server settings
+
+	CString lastSyncURL;
+	CString lastUserName;			   // used for detecting if was changed
+	CString lastUserPassword;		   // used for detecting if was changed
+
+
     void OnConfigClosed();
     void StartSync();
     int CancelSync(bool confirm = true);
+	void StartLogin();
+	void RestoreCharge(); // starts the thread for SAPI Restore charge
 
     //afx_msg void OnUpdatePage(CCmdUI *pCmdUI); //status bar update
     afx_msg LRESULT OnMsgSyncBegin      (WPARAM , LPARAM);
@@ -172,6 +192,20 @@ public:
     //afx_msg LRESULT OnMsgSyncSourceState(WPARAM, LPARAM);
     afx_msg LRESULT OnMsgUnlockButtons  (WPARAM, LPARAM);
     afx_msg LRESULT OnMsgLockButtons    (WPARAM, LPARAM);
+
+	// sended after login process if task was cancelled from server setting (auto-sync was disabled)
+	afx_msg LRESULT OnMsgSchedulerDisabled( WPARAM , LPARAM lParam); 
+	afx_msg LRESULT OnMsgRefreshSources (WPARAM , LPARAM);  // for refresh sources PANE after SAPI Login!
+	afx_msg LRESULT OnMsgSapiLoginBegin (WPARAM , LPARAM);  // shows a message 
+	afx_msg LRESULT OnMsgSAPILoginEnded (WPARAM , LPARAM);
+
+	afx_msg LRESULT OnMsgSapiRestoreChargeBegin(WPARAM wParam, LPARAM lParam); // sapi for restore charge begins
+	afx_msg LRESULT OnMsgSapiRestoreChargeEnded(WPARAM wParam, LPARAM lParam); 
+
+
+	
+
+
 
     // progress percentage. wparam is the total size. lparam is the partial upload or download
     afx_msg LRESULT OnMsgSapiProgress   (WPARAM , LPARAM);

@@ -50,6 +50,9 @@
 #include "outlook/ClientException.h"
 #include "SyncException.h"
 
+#include "sapi/SapiServiceProfiling.h"
+#include "sapi/SapiRestoreCharge.h"
+
 // Listeners
 #include "event/SetListener.h"
 #include "event/ManageListener.h"
@@ -85,6 +88,17 @@ bool resetLog        = false;
 void launchSyncClient();
 
 int synchronizeSapi(SapiSyncSource& sapiSource, SyncReport& report);
+
+bool refreshSourcesListToSync = true;
+bool getRefreshSourcesListToSync ( void ) {
+	return refreshSourcesListToSync;
+}
+
+void setRefreshSourcesListToSync ( bool b ) {
+	refreshSourcesListToSync = b;
+}
+
+
 
 /**
  * Returns a pointer to the OutlookConfig object (singleton).
@@ -308,6 +322,56 @@ int initLog(bool isScheduled) {
 
 
 
+
+// returns the arrayList of sources that currently needs to sync
+ArrayList * getSourcesToSync(bool refreshSources, bool *syncingPIM) {
+	// (reset abortSync flag)
+    OutlookConfig* config = getConfig();
+    config->setAbortSync(false);
+
+	static bool isSyncingPIM = false;
+	static ArrayList sources;  // source names (defined here, no compile error)
+
+	if ( refreshSources || (sources.size() == 0 ) ) {
+		sources.clear();
+
+		LOG.debug("Creating SyncSources...");
+		int sourcesCount = config->getSyncSourceConfigsCount();
+	    
+		int j=0;
+		//bool syncingPIM = false;
+		config->sortSourceVisible();
+		const ArrayList& sourcesOrder = config->getSourcesVisible();
+		for (int j=0; j<sourcesOrder.size(); j++) {
+			for (int i=0; i<sourcesCount; i++) {
+				const bool enabled = config->getSyncSourceConfig(i)->isEnabled();
+				const bool isRefresh = config->getSyncSourceConfig(i)->getIsRefreshMode();
+
+				if ( (enabled || isRefresh) && config->getSyncSourceConfig(i)->isAllowed()){ // managing allowed params (V.10+)
+					StringBuffer* name = (StringBuffer*)sourcesOrder.get(j);
+					if (*name == config->getSyncSourceConfig(i)->getName()) {
+						// Here the right SyncSource is added to the array of sources to sync.
+						sources.add(*name);
+						if (isPIMSource(name->c_str())) {
+							isSyncingPIM = true;
+							*syncingPIM = isSyncingPIM;
+						}
+					}
+				}
+			}
+		}
+	} else {
+		*syncingPIM = isSyncingPIM;
+		LOG.debug("Keeping old SyncSources array");
+	}
+
+	return &sources;
+}
+
+
+
+
+
 /**
  ***************************************************
  * Entry point to start the synchronization process.
@@ -331,7 +395,8 @@ int startSync() {
     int sourcesActive = 0;
     int priority      = 0;
     WCHAR* wname      = NULL;
-    string mutexName  = "";
+    
+	//ArrayList sources;  // source names (defined here, no compile error)
 
     // Set the cache dir for SAPI sources
     StringBuffer sapiCacheDir = getSapiCacheDir();
@@ -379,14 +444,63 @@ int startSync() {
     LOG.setLevel(config->getClientConfig().getLogLevel());
     LOG.debug("Starting the Sync process...");
 
-    if (isScheduledSync) {
+
+    // Create sync mutex (to avoid 2 concurrent syncs)
+    syncMutex = mutexAlloc();
+    if(!syncMutex){
+        char* msg = readSystemErrorMsg();
+        setErrorF(getLastErrorCode(), ERR_MUTEX_CREATE, msg);
+        LOG.error(getLastErrorMsg());
+        delete [] msg;
+        ret = 1;
+        goto finally;
+    }
+    if(GetLastError() == ERROR_ALREADY_EXISTS) {
+        char* msg = readSystemErrorMsg();
+        setErrorF(getLastErrorCode(), ERR_MUTEX_ALREADY_EXISTS, msg);
+        LOG.error(getLastErrorMsg());
+        delete [] msg;
+        ret = 1;
+        goto finally;
+    }
+
+
+    //
+    // Service profiling (SAPI login with &details)
+    // --------------------------------------------
+    if (ENABLE_SERVICE_PROFILING) {
+
+	    // show a message in status bar
+	    HWND dd = HwndFunctions::getWindowHandle();
+        ::SendMessage(dd, ID_MYMSG_SYNC_BEGIN, 0, 0);
+
+	    ret = doSapiLogin(); // returns the error code ESapiMediaRequestStatus
+	
+	    // update UI
+	    HWND ddh = HwndFunctions::getWindowHandle();
+	    ::SendMessage(ddh, ID_MYMSG_REFRESH_SOURCES, 0, ret);
+    }
+
+
+	bool autosync = config->getClientConfig().getAutoSync();
+	if ((config->getClientConfig().getAutoSync() == false) && isScheduledSync) {
+		// this user don't have rights for auto update!
+		LOG.info(" *** Sorry, Scheduled sync not allowed! ***");
+
+		setError(WIN_ERR_AUTOSYNC_DISABLED, ERR_AUTOSYNC_DISABLED);
+        ret = WIN_ERR_AUTOSYNC_DISABLED;
+        goto finally;
+	}
+
+	// abort if auto-sync is false and isScheduledSync is true
+	if (isScheduledSync) {
         LOG.info(" *** Scheduled sync started ***");
     }
+	
 
     // If here, this is the ONLY instance of sync process
     // -> set the scheduled flag on win registry.
     config->setScheduledSync(isScheduledSync);
-
 
     // Reads timeStamps from registry -> update the config.
     // (a scheduled sync could have completed with the UI open)
@@ -428,44 +542,27 @@ int startSync() {
     //
     // Create the array of SyncSource names (only if source enabled)
     // -------------------------------------------------------------
-    LOG.debug("Creating SyncSources...");
-    int sourcesCount = config->getSyncSourceConfigsCount();
-    ArrayList sources;  // source names
-    int j=0;
     bool syncingPIM = false;
-    config->sortSourceVisible();
-    const ArrayList& sourcesOrder = config->getSourcesVisible();
-    for (int j=0; j<sourcesOrder.size(); j++) {
-        for (int i=0; i<sourcesCount; i++) {
-            const bool enabled = config->getSyncSourceConfig(i)->isEnabled();
-            const bool isRefresh = config->getSyncSourceConfig(i)->getIsRefreshMode();
-            if (enabled || isRefresh) {
-                StringBuffer* name = (StringBuffer*)sourcesOrder.get(j);
-                if (*name == config->getSyncSourceConfig(i)->getName()) {
-                    // Here the right SyncSource is added to the array of sources to sync.
-                    sources.add(*name);
-                    if (isPIMSource(name->c_str())) {
-                        syncingPIM = true;
-                    }
-                }
-            }
-        }
-    }
+	ArrayList *sources = getSourcesToSync(getRefreshSourcesListToSync(), &syncingPIM);
+	int sSize = sources->size(); // @#@#@#@#@#
+	// ---------------------------------------------------------------------------------------
+	// end of Creating the array of SyncSource names 
+	// ---------------------------------------------------------------------------------------
 
     // Exit if no sources to sync
-    if (sources.size() == 0) {
+    if (sources->size() == 0) {
         //safeMessageBox(MSGBOX_NO_SOURCES_TO_SYNC);
         setError(WIN_ERR_NO_SOURCES, ERR_NO_SOURCES_TO_SYNC);
         ret = WIN_ERR_NO_SOURCES;
         goto finally;
     }
 
-    for (int i=0; i< sources.size(); i++) {
-        StringBuffer* name = (StringBuffer*)sources.get(i);
+    for (int i=0; i< sources->size(); i++) {
+        StringBuffer* name = (StringBuffer*)sources->get(i);
         if (isMediaSource(name->c_str())) {
             // If media hub not set remove from the source to sync if in background
             if (isScheduledSync && !isMediaHubFolderSet()) {
-                sources.removeElementAt(i);
+                sources->removeElementAt(i);
                 i--;
                 continue;
             }
@@ -505,52 +602,21 @@ int startSync() {
     }
 
 
-    //
-    // Create the mutex for sync process.
-    // **********************************
-    //
-    // Refresh the 'beginSync' timestamp now, and save (only this value) to winreg.
-    char buf[21];
-    unsigned long timestamp = (unsigned long)time(NULL);
-    timestampToAnchor(timestamp, buf);
-    config->getAccessConfig().setBeginSync(timestamp);
-    config->saveBeginSync();
-
-    // - Use always a different mutex name, to avoid errors on pending mutexes (if sync drastically aborted).
-    // - We need to know the mutex name from different plugin instances, so use the 'BeginSync' value
-    //   that is re-written each time a sync process starts (write it here).
-    mutexName = getSyncMutexName();
-    LOG.debug("Creating the sync-mutex (\"%s\")", mutexName.c_str());
-    syncMutex = CreateMutexA(NULL, TRUE, mutexName.c_str());
-    if(!syncMutex){
-        char* msg = readSystemErrorMsg();
-        setErrorF(getLastErrorCode(), ERR_MUTEX_CREATE, msg);
-        LOG.error(getLastErrorMsg());
-        delete [] msg;
-        ret = 1;
-        goto finally;
-    }
-    if(GetLastError() == ERROR_ALREADY_EXISTS) {
-        char* msg = readSystemErrorMsg();
-        setErrorF(getLastErrorCode(), ERR_MUTEX_ALREADY_EXISTS, msg);
-        LOG.error(getLastErrorMsg());
-        delete [] msg;
-        ret = 1;
-        goto finally;
-    }
+    
 
 
     // --------------------------------------------------
     // Kick off the sync: one source at time
-    for (int i=0; i< sources.size(); i++) {
+    for (int i=0; i< sources->size(); i++) {
         int res = 0;    // it's the sync result for this source
-        StringBuffer* name = (StringBuffer*)sources.get(i);
+        StringBuffer* name = (StringBuffer*)sources->get(i);
         if (!name) continue;
 
         SyncSourceReport ssReport(name->c_str());
         WindowsSyncSourceConfig* wssconfig = config->getSyncSourceConfig(name->c_str());
         SyncSourceConfig* ssconfig = wssconfig->getCommonConfig();
 
+        StringBuffer lastSyncMode = config->getSyncSourceConfig(name->c_str())->getSync();
         if (isMediaSource(name->c_str()))
         {
             // --- Media source ---
@@ -570,11 +636,18 @@ int startSync() {
             wname = *name;
             WindowsSyncSource source(wname.c_str(), wssconfig);
             WindowsSyncClient winClient(source);
+            
+            if ( config->getSyncSourceConfig(name->c_str())->getLast() == 0L ) {
+                config->getSyncSourceConfig(name->c_str())->setSync(SYNC_MODE_SLOW); // set sync mode == "slow" if timestamp is 0L @#@#
+            }
             res = synchronize(winClient, source);
-
+            
             report.addSyncSourceReport(*source.getReport());
         }
-
+        // came back to initial sync mode (it was possible that syncmode become "slow" due lasttimestamp == 0L)
+        if (! isMediaSource(name->c_str()) ) {
+            config->getSyncSourceConfig(name->c_str())->setSync(lastSyncMode.c_str()); // come back to previous value of sync mode @#@#
+        }
         if (res) {
             // Update the sync report (global error for all syncs!)
             SyncSourceReport* ssr = report.getSyncSourceReport(name->c_str());
@@ -586,11 +659,12 @@ int startSync() {
         } else {
             LOG.info("Sync of %s completed successfully", name->c_str());
         }
-
+       
         // for these codes, we stop all the queued syncs
         if (res == WIN_ERR_INVALID_CREDENTIALS ||
             res == WIN_ERR_PROXY_AUTH_REQUIRED ||
-            res == WIN_ERR_WRONG_HOST_NAME) {
+            res == WIN_ERR_WRONG_HOST_NAME     || 
+            res == WIN_ERR_PAYMENT_REQUIRED ) { // added a break for 402 alert code (payment required) @#@#
             break;
         }
     }
@@ -602,7 +676,7 @@ finally:
     // It is used to show popups in case of error!
     ret = report.getLastErrorCode();
 
-    endSync();
+    endSync(); // releases the mutex...
 
     // Sync was canceled: fix the return code to avoid popups
     if (ret && config->getAbortSync()) {
@@ -646,6 +720,257 @@ finally:
 }
 
 
+/*
+	execute SAPI login and set sources parameters in config
+*/
+int doSapiLogin() {
+
+	// Open current configuration: call initialize(0) if not called yet!
+    // (reset abortSync flag)
+	int ret = 0;
+	int errorCode = 0;
+    OutlookConfig* config = getConfig();
+    config->setAbortSync(false);
+
+	// new sapi sync manager call
+	SapiServiceProfiling *sapiServiceProfiling = new SapiServiceProfiling(*config);
+	
+	if ( ( ret = sapiServiceProfiling->login() ) < 0 ) {
+		errorCode = sapiServiceProfiling->getError();
+
+		LOG.error("SAPI login failed!Error code: %d", errorCode);
+	} else {
+		// login ok: setting parameters in config
+		
+		// auto-sync parameter
+		config->getClientConfig().setAutoSync(sapiServiceProfiling->getAutoSync());
+		config->getClientConfig().setDataplanExpirationDate(sapiServiceProfiling->getExpireTime());
+
+		// delete the windows TASK if auto-sync is disabled
+		if ( !config->getClientConfig().getAutoSync() ) {
+			int minutes;
+			if ( getScheduler(&minutes) ){
+				setScheduler(false, 0);	// delete the scheduler
+				SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SCHEDULER_DISABLED, NULL, NULL);
+			}
+		}
+
+		//----------------------------------------------------------------------
+		// setting allowed param for every sources with values from sapi login
+		
+		WindowsSyncSourceConfig* ssc = NULL;
+		StringBuffer sb;
+
+		// CONTACTS
+		ssc = config->getSyncSourceConfig(CONTACT_);
+		sb = sapiServiceProfiling->getSources().get("card");
+		if (!sb.empty()) {
+			ssc->setIsAllowed(sb == "enabled");
+		}
+
+		// CALENDAR
+		ssc = getConfig()->getSyncSourceConfig(APPOINTMENT_);
+		sb = sapiServiceProfiling->getSources().get("event");
+		if (!sb.empty()) {
+			ssc->setIsAllowed(sb == "enabled");
+		}
+
+		// TASKS
+		ssc = getConfig()->getSyncSourceConfig(TASK_);
+		sb = sapiServiceProfiling->getSources().get("task");
+		if (!sb.empty()) {
+			ssc->setIsAllowed(sb == "enabled");
+		}
+
+		// NOTES
+		ssc = getConfig()->getSyncSourceConfig(NOTE_);
+		sb = sapiServiceProfiling->getSources().get("note");
+		if (!sb.empty()) {
+			ssc->setIsAllowed(sb == "enabled");
+		}
+
+		// PICTURES
+		ssc = getConfig()->getSyncSourceConfig(PICTURE_);
+		sb = sapiServiceProfiling->getSources().get("picture");
+		if (!sb.empty()) {
+			ssc->setIsAllowed(sb == "enabled");
+		}
+
+		// VIDEOS
+		ssc = getConfig()->getSyncSourceConfig(VIDEO_);
+		sb = sapiServiceProfiling->getSources().get("video");
+		if (!sb.empty()) {
+			ssc->setIsAllowed(sb == "enabled");
+		}
+
+		// FILES
+		ssc = getConfig()->getSyncSourceConfig(FILES_);
+		sb = sapiServiceProfiling->getSources().get("file");
+		if (!sb.empty()) {
+			ssc->setIsAllowed(sb == "enabled");
+		}
+	}
+	
+    return errorCode;
+}
+
+/**
+ ****************************************************************************
+ * Entry point to execute the SAPI payload for restore for freemium users
+ ****************************************************************************
+ *
+ * @return   0  OK, no errors.
+ *           1  generic error.
+ *           4  Thread terminated (hard termination).
+  */
+int doSAPIRestoreCharge() {
+
+    // check updates to see if the client has to exit immediately
+    if (checkForMandatoryUpdateBeforeStartingSync()) {
+        return 0;
+    }
+
+    int ret = 0;
+
+
+    // Open current configuration: call initialize(0) if not called yet!
+    // (reset abortSync flag)
+    OutlookConfig* config = getConfig();
+    config->setAbortSync(false);
+
+	URL url(config->getSyncURL());
+    StringBuffer host = url.getHostURL();
+
+    
+    // BEGIN LOG ROTATE
+    if (!LOG.rotateLogFile(
+        config->getWindowsDeviceConfig().getLogSize(),
+        config->getWindowsDeviceConfig().getLogNum()
+        )) {
+    }
+
+    // Update log level: could be changed from initialize().
+    LOG.setLevel(config->getClientConfig().getLogLevel());
+    LOG.debug("Making SAPI Restore charge process...");
+
+	// block all sync sources PANE and display message in status bar
+	HWND dd = HwndFunctions::getWindowHandle();
+    ::SendMessage(dd, ID_MYMSG_SAPI_RESTORE_CHARGE_BEGIN, 0, 0);
+
+	syncMutex = mutexAlloc(); // create the mutex
+
+    if(!syncMutex){
+        char* msg = readSystemErrorMsg();
+        setErrorF(getLastErrorCode(), ERR_MUTEX_CREATE, msg);
+        LOG.error(getLastErrorMsg());
+        delete [] msg;
+        ret = 1;
+        goto close_sapirestorecharge;
+    }
+    if(GetLastError() == ERROR_ALREADY_EXISTS) {
+        char* msg = readSystemErrorMsg();
+        setErrorF(getLastErrorCode(), ERR_MUTEX_ALREADY_EXISTS, msg);
+        LOG.error(getLastErrorMsg());
+        delete [] msg;
+        ret = 1;
+        goto close_sapirestorecharge;
+    }
+
+	// calling the SAPI for charge resource "pim"
+	// new sapi sync manager call
+	SapiRestoreCharge *sapiRestoreCharge = new SapiRestoreCharge(*config);
+    ret = sapiRestoreCharge->doCharge("pim");
+
+close_sapirestorecharge:
+	mutexRelease();
+
+    // set the last global error
+    config->setLastGlobalError(ret);
+    config->save();
+
+#ifdef MALLOC_DEBUG
+    printMemLeaks();
+#endif
+    return ret;
+}
+
+
+
+void resetAllSourcesTimestamps() { 
+
+    LOG.debug("Resetting timestamps for all sources");
+    
+    OutlookConfig* config = OutlookConfig::getInstance();
+    for (unsigned int i=0; i<config->getSyncSourceConfigsCount(); i++) 
+    {
+        WindowsSyncSourceConfig* ssc = config->getSyncSourceConfig(i);
+        if (!ssc) continue;
+        
+        ssc->setLast(0);
+        ssc->setEndSyncTime(0);
+        ssc->setLastSourceError(0);
+        
+        if (isMediaSource(ssc->getName())) {
+            ssc->setLongProperty(PROPERTY_DOWNLOAD_LAST_TIME_STAMP, 0);
+        }
+    }
+    config->save();
+}
+
+
+
+
+/*
+	thread for SAPI login pourpouses
+	returns the error code from ESapiMediaRequestStatus login()
+
+*/
+int doSapiLoginThread() { // thread
+	int ret           = 0;
+
+	// Open current configuration: call initialize(0) if not called yet!
+    // (reset abortSync flag)
+    OutlookConfig* config = getConfig();
+
+    // Update log level: could be changed from initialize().
+    LOG.setLevel(config->getClientConfig().getLogLevel());
+    LOG.debug("Starting SAPI login thread.");
+
+	syncMutex = mutexAlloc();
+
+    if(!syncMutex){
+        char* msg = readSystemErrorMsg();
+        setErrorF(getLastErrorCode(), ERR_MUTEX_CREATE, msg);
+        LOG.error(getLastErrorMsg());
+        delete [] msg;
+        ret = 1;
+        goto finally_login;
+    }
+    if(GetLastError() == ERROR_ALREADY_EXISTS) {
+        char* msg = readSystemErrorMsg();
+        setErrorF(getLastErrorCode(), ERR_MUTEX_ALREADY_EXISTS, msg);
+        LOG.error(getLastErrorMsg());
+        delete [] msg;
+        ret = 1;
+        goto finally_login;
+    }
+	ret = doSapiLogin(); // returns the error code ESapiMediaRequestStatus
+	
+finally_login:
+	// Release mutex  (use the same handle!)
+    mutexRelease();
+
+    // --------------------------------------------------
+    // set the last global error
+    config->setLastGlobalError(ret);
+    config->save();
+
+    return ret;
+}
+
+
+
+
 int synchronizeSapi(SapiSyncSource& sapiSource, SyncReport& report) {
 
     int ret = 0;
@@ -659,7 +984,6 @@ int synchronizeSapi(SapiSyncSource& sapiSource, SyncReport& report) {
     }
 
     SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SYNCSOURCE_BEGIN, NULL, (LPARAM)sourceID);
-
     // ---------------------------------------------
     SapiSyncManager sapiManager(sapiSource, *config);
     ret = sapiManager.beginSync();
@@ -707,12 +1031,10 @@ int synchronizeSapi(SapiSyncSource& sapiSource, SyncReport& report) {
         ret == ESSMAuthenticationError) {
         goto finally;
     }
-
     ret = sapiManager.endSync();
     // ---------------------------------------------
 
 finally:
-
     if (ret) {
         // filter SapiSyncManager errors at client level (for UI popups)
         ret = manageSapiError(ret);
@@ -795,7 +1117,6 @@ int synchronize(WindowsSyncClient& winClient, WindowsSyncSource& source) {
     LOG.debug("Saving configuration to winRegistry");
     config->save(report);
 
-
     // Fire the SOURCE_STATE message to the UI, to tell the state of sources synced
     LPARAM sourceState = ret;
     SyncSourceReport* ssReport = source.getReport();
@@ -825,11 +1146,51 @@ int synchronize(WindowsSyncClient& winClient, WindowsSyncSource& source) {
  */
 void endSync() {
 
-    // Close Outlook instance
-    closeOutlook();
+    
+    closeOutlook(); // Close Outlook instance
+   
+    mutexRelease(); // Release mutex on sync (use the same handle of startSync!)
 
-    // Release mutex on sync (use the same handle of startSync!)
-    if (syncMutex) {
+    // Unset Listeners
+    ManageListener::releaseAllListeners();
+}
+
+
+/* 
+ * creates a mutex for blocking sync sources and other exclusive operations
+ *
+*/
+HANDLE mutexAlloc() {
+	//
+    // Create the mutex for sync process.
+    // **********************************
+    //
+    // Refresh the 'beginSync' timestamp now, and save (only this value) to winreg.
+	OutlookConfig* config = getConfig();
+
+	string mutexName  = "";
+    char buf[21];
+    unsigned long timestamp = (unsigned long)time(NULL);
+    timestampToAnchor(timestamp, buf);
+    config->getAccessConfig().setBeginSync(timestamp);
+    config->saveBeginSync();
+
+    // - Use always a different mutex name, to avoid errors on pending mutexes (if sync drastically aborted).
+    // - We need to know the mutex name from different plugin instances, so use the 'BeginSync' value
+    //   that is re-written each time a sync process starts (write it here).
+    mutexName = getSyncMutexName();
+    LOG.debug("Creating the sync-mutex (\"%s\")", mutexName.c_str());
+    return CreateMutexA(NULL, TRUE, mutexName.c_str());
+}
+
+
+/**
+ * Common operations to end SAPI processes
+ * release mutex created with mutexAlloc()
+ * 
+ */
+void mutexRelease() {
+	if (syncMutex) {
         LOG.debug("Releasing sync-mutex...");
         if (!ReleaseMutex(syncMutex)) {
             char* msg = readSystemErrorMsg();
@@ -842,9 +1203,9 @@ void endSync() {
         syncMutex = NULL;
     }
 
-    // Unset Listeners
-    ManageListener::releaseAllListeners();
 }
+
+
 
 
 

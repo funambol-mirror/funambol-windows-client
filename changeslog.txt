@@ -1,10 +1,23 @@
+2011-07-20
+  - toccy: reintegrated branch US8294:
+           * added deviceConfig params: 
+             - autoSync (if false, the scheduler is disabled. Default = true)
+             - dataplanExpirationDate (the expiration date for current profile. Default = 0 = disabled)
+           * added sourceConfig param: allowed (boolean, default = true)
+           * set syncmode SLOW for PIM sync (SyncML code 201) if last tstamp is 0
+             (so it's the client to request a slow sync, instead of letting the server
+             decide because anchors = 0 are not valid)
+           * handling SyncML error code 402 (payment required)
+           * added SAPI service profiling (login with &details), disabled by default (see ...)                          <---------
+           * added SAPI restore charge (in case of code 402 = payment required), disabled by default (see ...)          <---------
+           * when account is changed: a SAPI login is done and all source tstamps are resetted
+           * removed 5,10,15 mins from scheduler settings (new default and minimum value is 30 min)
+           * UI: added method to be notified when user clicks on a disabled pane
+
 2011-07-14
   - toccy: merged from trunk at rev.828:
-      - toccy: fixed bug #11252: Tab index is not correct for fields selection in windows client settings
-      - toccy: applied patch for OW bug #315955: OutlookPlugin crashes trying to read recurring events
-               Specify _variant_t argument to be of type VT_I4 in MAPIUtils.GetIDsFromNames(), 
-               otherwise VT_BSTR is assumed leading to access violation.
-               
+           fixed bug #11252: Tab index is not correct for fields selection in windows client settings
+     
 2011-07-08
   - toccy: release 10.0.2
 
@@ -19,6 +32,10 @@
              and only media sync is possible (PIM sources are removed from SOURCE_ORDER_IN_REGISTRY).
 
 2011-05-16
+  - toccy: applied patch for OW bug #315955: OutlookPlugin crashes trying to read recurring events
+           Specify _variant_t argument to be of type VT_I4 in MAPIUtils.GetIDsFromNames(), 
+           otherwise VT_BSTR is assumed leading to access violation.
+           
   - toccy: created branch v10 - Release 10.0.1
            updated version to 10.0.1
 
