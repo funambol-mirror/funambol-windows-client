@@ -634,7 +634,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\bg_button_disabled.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\bg_button_disabled.bmp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\res\bg_button_light.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\bitmap5.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\bitmap7.bmp"
 				>
 			</File>
 			<File
@@ -662,11 +678,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\files.ico"
+				RelativePath=".\res\files.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\res\files.ico"
+				RelativePath="..\src\res\files.ico"
 				>
 			</File>
 			<File
@@ -798,11 +814,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\res\videos.ico"
+				RelativePath="..\src\res\videos.ico"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\videos.ico"
+				RelativePath=".\res\videos.ico"
 				>
 			</File>
 			<File

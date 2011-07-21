@@ -136,6 +136,32 @@
 #define VIDEO_SOURCE_ENABLED                true
 #define FILE_SOURCE_ENABLED                 true
 
+// set if the sources allowed enabled/disabled (meaning they can be enabled by settings)
+#define CONTACT_SOURCE_ALLOWED              true
+#define APPOINTMENT_SOURCE_ALLOWED          true
+#define TASK_SOURCE_ALLOWED                 true
+#define NOTE_SOURCE_ALLOWED                 true
+#define PICTURE_SOURCE_ALLOWED              true
+#define VIDEO_SOURCE_ALLOWED                true
+#define FILE_SOURCE_ALLOWED                 true
+
+
+/// If true, a SAPI login is done before every sync, to retrieve config settings for freemium/premium users.
+/// If false, the default settings are always used (DEFAULT_AUTO_SYNC, DEFAULT_<source>_ALLOWED)
+#define ENABLE_SERVICE_PROFILING            false
+#define DEFAULT_AUTO_SYNC                   true     /**< false means the scheduled service is not allowed by default */
+
+#define ENABLE_LOGIN_ON_ACCOUNT_CHANGE      false    /**< If true, executes a SAPI login on account change*/
+#define LOGIN_TIMEOUT                       30       /**< Timeout (in seconds) for the SAPI login */
+
+
+/// In case of SyncML status code 402 (payment required) a warning query is prompted to the user
+/// asking to continue charging the account, or to abort. If false, no warning popup/charge is executed.
+#define ENABLE_PAYMENT_REQUIRED_CHARGE      false
+#define RESTORE_CHARGE_TIMEOUT              30       /**< Timeout (in seconds) for restore charge sapi request. */
+#define DATA_PLAN_WEB_PAGE                  ""
+
+
 // List of available sync modes for each source (comma separated values).
 // These are the values available from the client's settings for each source.
 #define CONTACTS_SYNC_MODES                 SYNC_MODE_TWO_WAY
@@ -156,7 +182,7 @@
 #define DEFAULT_VIDEOS_SYNC_MODE            SYNC_MODE_TWO_WAY
 #define DEFAULT_FILES_SYNC_MODE             SYNC_MODE_TWO_WAY
 
-#define SCHEDULED_MINUTES_VALUES            "5,10,15(default),30,45"
+#define SCHEDULED_MINUTES_VALUES            "30(default),45"
 #define SCHEDULED_HOURS_VALUES              "1,2,4,6,8,12,24"
 
 #define ENABLE_COMPRESSION					true

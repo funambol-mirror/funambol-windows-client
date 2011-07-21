@@ -106,22 +106,25 @@ DateFilter::RelativeLowerDate getDateFilterValue(const int index) {
 /**
  * Error messages prompted to the user are managed only inside this function.
  * A message box will be displayed, based on the error code passed.
+ * if messagebox has question? returns the answer
  */
-void manageSyncErrorMsg(long code) {
+int manageSyncErrorMsg(long code) {
 
     CString s1("");
-
-    switch(code) {
+	UINT msgboxFlags = 0;
+	bool showMessage = true;
+	
+	switch(code) {
 
         case WIN_ERR_NONE: {                            // 0: No error
-            return;
+            return -1;
         }
         case WIN_ERR_GENERIC: {                         // 1: Generic error -> see log.
             s1.LoadString(IDS_ERROR_SYNC_NOT_COMPLETED);
             break;
         }
         case WIN_ERR_SYNC_CANCELED: {                   // 2: Aborted -> no msgbox
-            return;
+            return -1;
         }        
         case WIN_ERR_FATAL_OL_EXCEPTION:                // 3 -> force exit the plugin!
         case WIN_ERR_THREAD_TERMINATED:                 // 4 -> force exit the plugin!
@@ -131,7 +134,7 @@ void manageSyncErrorMsg(long code) {
             exit(1);
         }
         case WIN_ERR_FULL_SYNC_CANCELED: {              // 5 -> deprecated, no msgbox
-            return;
+            return -1;
         }
         case WIN_ERR_UNEXPECTED_EXCEPTION:              // 6
         case WIN_ERR_UNEXPECTED_STL_EXCEPTION:          // 7
@@ -165,7 +168,7 @@ void manageSyncErrorMsg(long code) {
             break;
         }
         case WIN_ERR_SAPI_NOT_SUPPORTED: {              // 13: Source (sapi) not supported
-            return;
+            return -1;
         }
         case WIN_ERR_INVALID_CREDENTIALS:               // 401
         case WIN_ERR_PROXY_AUTH_REQUIRED:               // 407
@@ -189,9 +192,17 @@ void manageSyncErrorMsg(long code) {
         //
         // following are obsolete?
         //
+
+
+		/*
+		// overlapping Alert charge on account for restore
         case 402:
             s1.LoadString(IDS_CODE_AUTH_EXPIRED_402); 
             break;
+		*/
+
+
+
         case 403:
             s1.LoadString(IDS_CODE_FORBIDDEN_403);    
             break;
@@ -211,6 +222,11 @@ void manageSyncErrorMsg(long code) {
             s1.LoadString(IDS_CODE_SERVER_ERROR_2052); 
             break;
 
+		case WIN_ERR_PAYMENT_REQUIRED: // special case: PAYMENT Required for sync, managed with an in teractive dialog box.Not here.
+			showMessage = false;
+			break;
+		
+
         default: 
             break;
     }
@@ -221,7 +237,11 @@ void manageSyncErrorMsg(long code) {
     if(s1 == "") {
         s1.LoadString(IDS_ERROR_SYNC_NOT_COMPLETED);
     }
-    wsafeMessageBox(s1.GetBuffer());
+
+	if ( showMessage ) 
+		return wsafeMessageBox(s1.GetBuffer(), 0, msgboxFlags);
+
+	return 0;
 
 }
 

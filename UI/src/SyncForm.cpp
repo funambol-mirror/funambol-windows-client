@@ -204,8 +204,8 @@ LRESULT CSyncForm::OnInitForm(WPARAM, LPARAM) {
     GetDlgItem(IDC_MAIN_STATIC_CALENDAR)->SetFont(&fontBold);
     GetDlgItem(IDC_MAIN_STATIC_TASKS)->SetFont(&fontBold);
     GetDlgItem(IDC_MAIN_STATIC_NOTES)->SetFont(&fontBold);
-    GetDlgItem(IDC_MAIN_STATIC_PICTURES)->SetFont(&fontBold);
-    GetDlgItem(IDC_MAIN_STATIC_VIDEOS)->SetFont(&fontBold);
+	GetDlgItem(IDC_MAIN_STATIC_PICTURES)->SetFont(&fontBold);
+	GetDlgItem(IDC_MAIN_STATIC_VIDEOS)->SetFont(&fontBold);
     GetDlgItem(IDC_MAIN_STATIC_FILES)->SetFont(&fontBold);
     GetDlgItem(IDC_MAIN_MSG_PRESS)->SetFont(&fontBold);
 
@@ -484,6 +484,51 @@ HBRUSH CSyncForm::OnCtlColor( CDC* pDC, CWnd* pWnd, UINT nCtlColor)
         int b = UICustomization::syncAllTextBlue;
         pDC->SetTextColor(RGB(r,g,b));
     }
+
+	// Colouring in gray if source is STATE_PANE_DISABLED @#@#
+	int idCtrl = pWnd->GetDlgCtrlID();
+    
+    // grayed color
+    int rgrayed = 180;
+	int ggrayed = 180;
+	int bgrayed = 195; // gray but a little blue ...
+
+    int ctrlID = pWnd->GetDlgCtrlID();
+    // PANE pictures
+	if( ( ctrlID == IDC_MAIN_STATIC_PICTURES )          || 
+		( ctrlID == IDC_MAIN_STATIC_STATUS_PICTURES )   
+        
+        ){
+		// set grayed color if pane picture is not allowed....
+		if (panePictures.state == STATE_PANE_DISABLED) {
+			pDC->SetTextColor(RGB(rgrayed,ggrayed,bgrayed));
+		} else {
+			pDC->SetTextColor(RGB(0,0,0));
+		}
+	}
+	// PANE videos
+	if( ( ctrlID == IDC_MAIN_STATIC_VIDEOS )            ||
+        ( ctrlID == IDC_MAIN_STATIC_STATUS_VIDEOS )     
+        ){
+		// set grayed color if pane picture is not allowed....
+		if (paneVideos.state == STATE_PANE_DISABLED) {
+			pDC->SetTextColor(RGB(rgrayed,ggrayed,bgrayed));
+		} else {
+			pDC->SetTextColor(RGB(0,0,0));
+		}
+	} 
+    // PANE files
+	if( (  ctrlID == IDC_MAIN_STATIC_FILES )             ||
+        ( ctrlID == IDC_MAIN_STATIC_STATUS_FILES )      
+       ){
+		// set grayed color if pane picture is not allowed....
+		if (paneFiles.state == STATE_PANE_DISABLED) {
+			pDC->SetTextColor(RGB(rgrayed,ggrayed,bgrayed));
+		} else {
+			pDC->SetTextColor(RGB(0,0,0));
+		}
+	} 
+
     if(pWnd->GetRuntimeClass() == RUNTIME_CLASS(CAnimatedIcon) ){
         return HBRUSH(brushHollow);
     }
@@ -661,7 +706,6 @@ void CSyncForm::OnStnClickedMainBkContacts()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
         getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(TASK_       )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(NOTE_       )->setIsEnabled(false);
@@ -690,8 +734,6 @@ void CSyncForm::OnStnClickedMainBkCalendar()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
-        // start a sync for calendar
         getConfig()->getSyncSourceConfig(CONTACT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(TASK_   )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(NOTE_   )->setIsEnabled(false);
@@ -720,7 +762,6 @@ void CSyncForm::OnStnClickedMainBkTasks()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
         getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(CONTACT_    )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(NOTE_       )->setIsEnabled(false);
@@ -738,8 +779,10 @@ void CSyncForm::OnStnClickedMainBkNotes()
         return;
     }
 
-    if ( (paneNotes.state == STATE_PANE_DISABLED) || (paneNotes.state == STATE_SYNC) )
+    if ( ( paneNotes.state == STATE_SYNC ) || (paneNotes.state == STATE_PANE_DISABLED ) ) {
         return;
+    }
+  
 
     if (checkSyncInProgress()) {
         // It's running a sync -> error msg.
@@ -749,7 +792,6 @@ void CSyncForm::OnStnClickedMainBkNotes()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
         getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(CONTACT_    )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(TASK_       )->setIsEnabled(false);
@@ -768,8 +810,19 @@ void CSyncForm::OnStnClickedMainBkPictures()
         return;
     }
 
-    if ( (panePictures.state == STATE_PANE_DISABLED) || (panePictures.state == STATE_SYNC) )
+    if ( panePictures.state == STATE_SYNC )
         return;
+
+    if ( panePictures.state == STATE_PANE_DISABLED ) {
+        // 
+        CString str;
+        CString sourceName;
+        sourceName.LoadString(IDS_MAIN_PICTURES);
+        str.FormatMessage(IDS_WARNING_PAYMENT_REQUIRED_FOR_SOURCE, sourceName, _T(DATA_PLAN_WEB_PAGE));
+
+        MessageBox((LPCTSTR)str, TEXT(PROGRAM_NAME), MB_OK | MB_ICONEXCLAMATION | MB_APPLMODAL | MB_SETFOREGROUND);
+        return;
+    }
 
     if (checkSyncInProgress()) {
         // It's running a sync -> error msg.
@@ -779,7 +832,6 @@ void CSyncForm::OnStnClickedMainBkPictures()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
         getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(CONTACT_    )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(TASK_       )->setIsEnabled(false);
@@ -798,8 +850,18 @@ void CSyncForm::OnStnClickedMainBkVideos()
         return;
     }
 
-    if ( (paneVideos.state == STATE_PANE_DISABLED) || (paneVideos.state == STATE_SYNC) )
+    if ( paneVideos.state == STATE_SYNC )
         return;
+
+    if ( paneVideos.state == STATE_PANE_DISABLED ) {
+        CString str;
+        CString sourceName;
+        sourceName.LoadString(IDS_MAIN_VIDEOS);
+        str.FormatMessage(IDS_WARNING_PAYMENT_REQUIRED_FOR_SOURCE, sourceName, _T(DATA_PLAN_WEB_PAGE));
+        MessageBox((LPCTSTR)str, TEXT(PROGRAM_NAME), MB_OK | MB_ICONEXCLAMATION | MB_APPLMODAL | MB_SETFOREGROUND);
+        return;
+    }
+
 
     if (checkSyncInProgress()) {
         // It's running a sync -> error msg.
@@ -809,7 +871,6 @@ void CSyncForm::OnStnClickedMainBkVideos()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
         getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(CONTACT_    )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(TASK_       )->setIsEnabled(false);
@@ -828,8 +889,18 @@ void CSyncForm::OnStnClickedMainBkFiles()
         return;
     }
 
-    if ( (paneFiles.state == STATE_PANE_DISABLED) || (paneFiles.state == STATE_SYNC) )
+    if ( paneFiles.state == STATE_SYNC )
         return;
+
+    if ( paneFiles.state == STATE_PANE_DISABLED ) {
+        CString str;
+        CString sourceName;
+        sourceName.LoadString(IDS_MAIN_FILES);
+        str.FormatMessage(IDS_WARNING_PAYMENT_REQUIRED_FOR_SOURCE, sourceName, _T(DATA_PLAN_WEB_PAGE));
+        MessageBox((LPCTSTR)str, TEXT(PROGRAM_NAME), MB_OK | MB_ICONEXCLAMATION | MB_APPLMODAL | MB_SETFOREGROUND);
+        return;
+    }
+
 
     if (checkSyncInProgress()) {
         // It's running a sync -> error msg.
@@ -839,7 +910,6 @@ void CSyncForm::OnStnClickedMainBkFiles()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
         getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(CONTACT_    )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(TASK_       )->setIsEnabled(false);
@@ -889,6 +959,9 @@ void CSyncForm::refreshSource( int sourceId )
         if (isSourceVisible(CONTACT)) {
             // source visible
             bool enabled = getConfig()->getSyncSourceConfig(CONTACT_)->isEnabled();
+			bool allowed = getConfig()->getSyncSourceConfig(CONTACT_)->isAllowed();
+			enabled = enabled & allowed; // allowed management
+
             GetDlgItem(IDC_MAIN_STATIC_CONTACTS)->EnableWindow(enabled);
             GetDlgItem(IDC_MAIN_STATIC_STATUS_CONTACTS)->EnableWindow(enabled);
             if(enabled) {
@@ -954,7 +1027,10 @@ void CSyncForm::refreshSource( int sourceId )
         if (isSourceVisible(APPOINTMENT)) {
             // source visible
             bool enabled = getConfig()->getSyncSourceConfig(APPOINTMENT_)->isEnabled();
-            iconStatusCalendar.EnableWindow(enabled);
+   			bool allowed = getConfig()->getSyncSourceConfig(APPOINTMENT_)->isAllowed();
+			enabled = enabled & allowed; // allowed management
+
+			iconStatusCalendar.EnableWindow(enabled);
             GetDlgItem(IDC_MAIN_STATIC_CALENDAR)->EnableWindow(enabled);
             GetDlgItem(IDC_MAIN_STATIC_STATUS_CALENDAR)->EnableWindow(enabled);
             if(enabled) {
@@ -1022,6 +1098,9 @@ void CSyncForm::refreshSource( int sourceId )
         if (isSourceVisible(TASK)) {
             // source visible
             bool enabled = getConfig()->getSyncSourceConfig(TASK_)->isEnabled();
+			bool allowed = getConfig()->getSyncSourceConfig(TASK_)->isAllowed();
+			enabled = enabled & allowed; // allowed management
+
             GetDlgItem(IDC_MAIN_STATIC_TASKS)->EnableWindow(enabled);
             GetDlgItem(IDC_MAIN_STATIC_STATUS_TASKS)->EnableWindow(enabled);
             if(enabled) {
@@ -1090,6 +1169,9 @@ void CSyncForm::refreshSource( int sourceId )
         if (isSourceVisible(NOTE)) {
             // source visible
             bool enabled = getConfig()->getSyncSourceConfig(NOTE_)->isEnabled();
+			bool allowed = getConfig()->getSyncSourceConfig(TASK_)->isAllowed();
+			enabled = enabled & allowed; // allowed management
+
             GetDlgItem(IDC_MAIN_STATIC_NOTES)->EnableWindow(enabled);
             GetDlgItem(IDC_MAIN_STATIC_STATUS_NOTES)->EnableWindow(enabled);
             if(enabled) {
@@ -1168,18 +1250,30 @@ void CSyncForm::refreshSource( int sourceId )
             }
 
             bool enabled = getConfig()->getSyncSourceConfig(PICTURE_)->isEnabled() || getConfig()->getSyncSourceConfig(PICTURE_)->getIsRefreshMode();
+			bool allowed = getConfig()->getSyncSourceConfig(PICTURE_)->isAllowed(); // @#@#
             if(enabled) {
                 panePictures.ShowWindow(SW_NORMAL);
-                panePictures.state = STATE_NORMAL;
-                iconPictures.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_PICTURES)));
-            }
-            else {
+				if ( allowed ) {
+					panePictures.state = STATE_NORMAL;
+					panePictures.SetBitmap(::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BK_LIGHT)));
+					iconPictures.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_PICTURES)));
+				} else {
+					panePictures.state = STATE_PANE_DISABLED; //@#@#
+					panePictures.SetBitmap(::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BK_DISABLED))); // @#@#@# load ghost background
+					iconPictures.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_PICTURES_GREY)));
+				}   
+            } else {
+                // not enabled, behaviour is like before
                 panePictures.ShowWindow(SW_HIDE);
+                panePictures.state = STATE_PANE_DISABLED; //@#@#
                 iconPictures.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_PICTURES_GREY)));
             }
-            iconPictures.EnableWindow(enabled);
+
+			
+            iconPictures.EnableWindow(allowed);
             GetDlgItem(IDC_MAIN_STATIC_PICTURES)->EnableWindow(enabled);
             GetDlgItem(IDC_MAIN_STATIC_STATUS_PICTURES)->EnableWindow(enabled);
+
         }
         else {
             // source not visible: hide the controls
@@ -1239,6 +1333,7 @@ void CSyncForm::refreshSource( int sourceId )
                 break;
         }
         changePicturesStatus(s1);
+
         SetDlgItemText(IDC_MAIN_STATIC_PICTURES, picturesLabel);    // Set directly here, pane could be disabled
         SetDlgItemText(IDC_MAIN_STATIC_STATUS_PICTURES, s1);
         panePictures.Invalidate();
@@ -1266,13 +1361,24 @@ void CSyncForm::refreshSource( int sourceId )
             }
 
             bool enabled = getConfig()->getSyncSourceConfig(VIDEO_)->isEnabled() || getConfig()->getSyncSourceConfig(VIDEO_)->getIsRefreshMode();
-            if(enabled) {
+			bool allowed = getConfig()->getSyncSourceConfig(VIDEO_)->isAllowed();
+			// enabled = enabled & allowed; // allowed management
+
+			if( enabled ) {
                 paneVideos.ShowWindow(SW_NORMAL);
-                paneVideos.state = STATE_NORMAL;
-                iconVideos.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_VIDEOS)));
-            }
-            else {
+                if ( allowed ) {
+                    paneVideos.state = STATE_NORMAL;
+                    paneVideos.SetBitmap(::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BK_LIGHT))); // @#@#
+                    iconVideos.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_VIDEOS)));
+                } else {
+                    paneVideos.state = STATE_PANE_DISABLED; // @#@#
+                    paneVideos.SetBitmap(::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BK_DISABLED)));  // @#@#
+                    iconVideos.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_VIDEOS_GREY)));
+                }
+            } else {
+                // standard mode, only not enabled
                 paneVideos.ShowWindow(SW_HIDE);
+    			paneVideos.state = STATE_PANE_DISABLED; // @#@#
                 iconVideos.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_VIDEOS_GREY)));
             }
             iconVideos.EnableWindow(enabled);
@@ -1357,13 +1463,21 @@ void CSyncForm::refreshSource( int sourceId )
             }
 
             bool enabled = getConfig()->getSyncSourceConfig(FILES_)->isEnabled() || getConfig()->getSyncSourceConfig(FILES_)->getIsRefreshMode();
+			bool allowed = getConfig()->getSyncSourceConfig(FILES_)->isAllowed();
             if(enabled) {
                 paneFiles.ShowWindow(SW_NORMAL);
-                paneFiles.state = STATE_NORMAL;
-                iconFiles.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_FILES)));
-            }
-            else {
+                if (allowed) {
+                    paneFiles.state = STATE_NORMAL;
+                    iconFiles.SetBitmap(::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BK_LIGHT))); // @#@#
+                    iconFiles.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_FILES)));
+                } else {
+                    paneFiles.state = STATE_PANE_DISABLED;
+                    iconFiles.SetBitmap(::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BK_DISABLED))); // @#@#
+                    iconFiles.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_FILES_GREY)));
+                }
+            } else {
                 paneFiles.ShowWindow(SW_HIDE);
+				paneFiles.state = STATE_PANE_DISABLED;
                 iconFiles.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_FILES_GREY)));
             }
             iconFiles.EnableWindow(enabled);

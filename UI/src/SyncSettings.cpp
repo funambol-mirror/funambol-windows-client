@@ -319,6 +319,7 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
     SetDlgItemText(IDC_SYNC_BUT_VIDEOS,   s1);
     SetDlgItemText(IDC_SYNC_BUT_FILES,    s1);
 
+
     s1.LoadString(IDS_SYNC_SYNCHRONIZE_EVERY); SetDlgItemText(IDC_SCHEDULER_CHECK_ENABLED, s1);
     s1.LoadString(IDS_SYNC_ENABLE_ENCRYPTION); SetDlgItemText(IDC_SYNC_CHECK_ENCRYPTION, s1);
     s1.LoadString(IDS_REQUIRE_OUTLOOK_OPEN); SetDlgItemText(IDC_SYNC_CHECK_OUTLOOK_OPEN, s1);
@@ -373,6 +374,12 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
         else{
             checkContacts.SetCheck(BST_CHECKED);
         }
+
+		// management of new 'allowed' config (V.10.5+)
+		// enable or disable the windows based on allowed state
+		GetDlgItem(IDC_SYNC_CHECK_CONTACTS)->EnableWindow(ssc->isAllowed());
+		GetDlgItem(IDC_SYNC_BUT_CONTACTS)->EnableWindow(ssc->isAllowed());
+
     }
     else {
         disableSource(checkContacts, butContacts, &saveSyncTypeContacts, IDC_SEPARATOR_1, 0);
@@ -396,6 +403,11 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
         else{
             checkCalendar.SetCheck(BST_CHECKED);
         }
+		// management of new 'allowed' config (V.10.5+)
+		// enable or disable the windows based on allowed state
+		GetDlgItem(IDC_SYNC_CHECK_CALENDAR)->EnableWindow(ssc->isAllowed());
+		GetDlgItem(IDC_SYNC_BUT_CALENDAR)->EnableWindow(ssc->isAllowed());
+
     }
     else {
         disableSource(checkCalendar, butCalendar, &saveSyncTypeCalendar, IDC_SEPARATOR_1, IDC_SEPARATOR_2);
@@ -420,6 +432,10 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
         else{
             checkTasks.SetCheck(BST_CHECKED);
         }
+		// management of new 'allowed' config (V.10.5+)
+		// enable or disable the windows based on allowed state
+		GetDlgItem(IDC_SYNC_CHECK_TASKS)->EnableWindow(ssc->isAllowed());
+		GetDlgItem(IDC_SYNC_BUT_TASKS)->EnableWindow(ssc->isAllowed());
     }
     else {
         disableSource(checkTasks, butTasks, &saveSyncTypeTasks, IDC_SEPARATOR_2, IDC_SEPARATOR_3);
@@ -444,6 +460,10 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
         else{
             checkNotes.SetCheck(BST_CHECKED);
         }
+		// management of new 'allowed' config (V.10.5+)
+		// enable or disable the windows based on allowed state
+		GetDlgItem(IDC_SYNC_CHECK_NOTES)->EnableWindow(ssc->isAllowed());
+		GetDlgItem(IDC_SYNC_BUT_NOTES)->EnableWindow(ssc->isAllowed());
     }
     else {
         disableSource(checkNotes, butNotes, &saveSyncTypeNotes, IDC_SEPARATOR_3, IDC_SEPARATOR_4);
@@ -468,6 +488,12 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
         else{
             checkPictures.SetCheck(BST_CHECKED);
         }
+		
+		// management of new 'allowed' config (V.10.5+)
+		// enable or disable the windows based on allowed state
+		GetDlgItem(IDC_SYNC_CHECK_PICTURES)->EnableWindow(ssc->isAllowed());
+		GetDlgItem(IDC_SYNC_BUT_PICTURES)->EnableWindow(ssc->isAllowed());
+
 
         // Fix the source groupbox height (TODO: should be calculated dinamically)
         //CRect sep3Rect, sep4Rect, sourceGroupBoxRect;
@@ -498,6 +524,11 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
             checkVideos.SetCheck(BST_CHECKED);
         }
 
+		// management of new 'allowed' config (V.10.5+)
+		// enable or disable the windows based on allowed state
+		GetDlgItem(IDC_SYNC_CHECK_VIDEOS)->EnableWindow(ssc->isAllowed());
+		GetDlgItem(IDC_SYNC_BUT_VIDEOS)->EnableWindow(ssc->isAllowed());
+
         // Fix the source groupbox height (TODO: should be calculated dinamically)
         //CRect sep4Rect, sep5Rect, sourceGroupBoxRect;
         //GetDlgItem(IDC_SEPARATOR_4)->GetWindowRect(&sep4Rect);
@@ -527,6 +558,12 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
             checkFiles.SetCheck(BST_CHECKED);
         }
 
+		// management of new 'allowed' config (V.10.5+)
+		// enable or disable the windows based on allowed state
+		GetDlgItem(IDC_SYNC_CHECK_FILES)->EnableWindow(ssc->isAllowed());
+		GetDlgItem(IDC_SYNC_BUT_FILES)->EnableWindow(ssc->isAllowed());
+
+
         // Fix the source groupbox height (TODO: should be calculated dinamically)
         //CRect sep5Rect, sep6Rect, sourceGroupBoxRect;
         //GetDlgItem(IDC_SEPARATOR_5)->GetWindowRect(&sep5Rect);
@@ -546,36 +583,43 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
 
     
     // Load scheduler settings
-    saveScheduler = false;
-    if (minutesA.size() == 0 && hoursA.size() == 0) {
-        checkEnabled.EnableWindow(FALSE);
-        checkEnabled.ShowWindow(SW_HIDE);
-        comboSchedulerValue.ShowWindow(SW_HIDE);
-        groupScheduler.ShowWindow(SW_HIDE);
+		saveScheduler = false;
+		if (minutesA.size() == 0 && hoursA.size() == 0) {
+			checkEnabled.EnableWindow(FALSE);
+			checkEnabled.ShowWindow(SW_HIDE);
+			comboSchedulerValue.ShowWindow(SW_HIDE);
+			groupScheduler.ShowWindow(SW_HIDE);
 
-    } else {
+		} else {
+			
+			if(! getScheduler(&minutes)){
+				checkEnabled.SetCheck(BST_UNCHECKED);
+				comboSchedulerValue.EnableWindow(FALSE);
+				int pos = defaultPosition; //getSchedulerPosition();
+				comboSchedulerValue.SetCurSel(pos);
+				checkAttach.EnableWindow(FALSE);
+			}
+			else{
+				checkEnabled.SetCheck(BST_CHECKED);
+				comboSchedulerValue.EnableWindow(TRUE);
+				int pos = getSchedulerPosition(minutes);
+				comboSchedulerValue.SetCurSel(pos);
+	    
+				if (getSchedulerMinutes(pos) != minutes) {
+					// Scheduler time was not exactly this one (manually modified?)
+					saveScheduler = true;
+				}
+				checkAttach.EnableWindow(TRUE);
+			}
 
-        if(! getScheduler(&minutes)){
-            checkEnabled.SetCheck(BST_UNCHECKED);
-            comboSchedulerValue.EnableWindow(FALSE);
-            int pos = defaultPosition; //getSchedulerPosition();
-            comboSchedulerValue.SetCurSel(pos);
-            checkAttach.EnableWindow(FALSE);
-        }
-        else{
-            checkEnabled.SetCheck(BST_CHECKED);
-            comboSchedulerValue.EnableWindow(TRUE);
-            int pos = getSchedulerPosition(minutes);
-            comboSchedulerValue.SetCurSel(pos);
-    
-            if (getSchedulerMinutes(pos) != minutes) {
-                // Scheduler time was not exactly this one (manually modified?)
-                saveScheduler = true;
-            }
-            checkAttach.EnableWindow(TRUE);
-        }
-    }
-
+		// disable scheduler components if autoSync is not allowed.
+		if ( ! getConfig()->getClientConfig().getAutoSync() ) {
+			checkEnabled.EnableWindow(FALSE);			// main checkbox enable/disable task
+			comboSchedulerValue.EnableWindow(FALSE);	// combobox with list of frequencies 
+			checkAttach.EnableWindow(FALSE);			// only when outlook is opened checkbox
+		}
+	}
+	
     // encryption is global
     if( (strcmp(getConfig()->getSyncSourceConfig(CONTACT_)->getEncryption(),"") != 0) ||
         (strcmp(getConfig()->getSyncSourceConfig(APPOINTMENT_)->getEncryption(),"") != 0) ||
@@ -585,15 +629,7 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
     else
         checkEncryption.SetCheck(BST_UNCHECKED);
 
-    //
-    // Enable/disable encryption check
-    //
-    if (!ENABLE_ENCRYPTION_SETTINGS) {
-        checkEncryption.SetCheck(BST_UNCHECKED);
-        checkEncryption.EnableWindow(FALSE);
-        checkEncryption.ShowWindow(FALSE);
-        groupSecurity.ShowWindow(FALSE);
-    }
+    
 
     // attach option
     if (UICustomization::attachOption) {
@@ -612,6 +648,17 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
         moveItem(this, &checkEncryption, 0, dy);
         resizeItem(GetDlgItem(IDC_SCHEDULER_GROUP), 0, dy);
     }
+
+	//
+    // Enable/disable encryption check
+    // (to do after the moveItem because, if not, the windows remains disabled only )
+    if (!ENABLE_ENCRYPTION_SETTINGS) {
+        checkEncryption.SetCheck(BST_UNCHECKED);
+        checkEncryption.EnableWindow(FALSE);
+        checkEncryption.ShowWindow(SW_HIDE);
+        groupSecurity.ShowWindow(SW_HIDE);
+    }
+
 
     // disable windows xp theme, otherwise any color setting for groupbox
     // will be overriden by the theme settings
