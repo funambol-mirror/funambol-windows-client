@@ -38,7 +38,7 @@
 #include "HwndFunctions.h"
 
 void OutlookSyncListener::syncBegin(SyncEvent &event) {
-    LOG.info("\n ************************** BEGIN of Synchronization session **************************");
+    LOG.info("\n\n************************** BEGIN of Synchronization session **************************");
     SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SYNC_BEGIN, NULL, NULL);
 }
 

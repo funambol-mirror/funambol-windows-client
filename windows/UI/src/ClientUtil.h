@@ -72,7 +72,7 @@ int getSyncModeCode(const char* syncMode);
 int getDateFilterIndex(const DateFilter::RelativeLowerDate value);
 DateFilter::RelativeLowerDate getDateFilterValue(const int index);
 
-void manageSyncErrorMsg(long code);
+int manageSyncErrorMsg(long code);
 
 /**
  * Transforms the WIN-x error code, returned by the DLL, into

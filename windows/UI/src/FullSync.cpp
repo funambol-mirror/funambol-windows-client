@@ -219,8 +219,6 @@ void CFullSync::OnBnClickedOk() {
     getConfig()->read();
     const char* fullSyncMode = getFullSyncTypeName(pos);
     
-    ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
-    
     // enable the checked sources, disable the unchecked ones
     if(checkContacts.GetCheck() == BST_CHECKED) {
         getConfig()->getSyncSourceConfig(CONTACT_)->setSync(fullSyncMode);
@@ -270,8 +268,6 @@ void CFullSync::OnBnClickedOk() {
     else {
         getConfig()->getSyncSourceConfig(FILES_)->setIsEnabled(false);
     }
-
-    //getConfig()->setFullSync(true);
 
     ((CSyncForm*)((CMainSyncFrame*)AfxGetMainWnd())->wndSplitter.GetPane(0,1))->refreshSources();
     ((CMainSyncFrame*)AfxGetMainWnd())->StartSync();

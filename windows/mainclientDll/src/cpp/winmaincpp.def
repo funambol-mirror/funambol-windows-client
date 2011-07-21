@@ -39,7 +39,13 @@ EXPORTS
 
 initializeClient
 closeClient
+getSourcesToSync
+resetAllSourcesTimestamps
 startSync
+doSapiLoginThread
+doSAPIRestoreCharge
+getRefreshSourcesListToSync
+setRefreshSourcesListToSync
 softTerminateSync
 hardTerminateSync
 checkSyncInProgress
@@ -47,7 +53,6 @@ safeMessageBox
 wsafeMessageBox
 getDefaultFolderPath
 pickOutlookFolder
-setFullSync
 setScheduler
 getScheduler
 findFunambolWindow

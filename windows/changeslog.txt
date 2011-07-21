@@ -1,3 +1,28 @@
+2011-07-21
+  - toccy: merged from branch v10 at rev.838
+      - toccy: fixed bug #11240: Scheduled refresh from client
+               - fixed the way the syncmodes are managed: never backup syncmodes (from UI and client)
+                 and after a PIM sync completed the original syncmodes are read from registry, before
+                 config save. This way we never set a "full-sync mode" in registry, but just in memory 
+                 for the time of the sync process.
+               - added a fixSyncModes method for PIM sources, to clean full-sync modes at client startup.
+               - some cleanup: removed fullSync flag from config and backup/restoreSyncModes from UI
+    
+      - toccy: reintegrated branch US8294:
+               * added deviceConfig params: 
+                 - autoSync (if false, the scheduler is disabled. Default = true)
+                 - dataplanExpirationDate (the expiration date for current profile. Default = 0 = disabled)
+               * added sourceConfig param: allowed (boolean, default = true)
+               * set syncmode SLOW for PIM sync (SyncML code 201) if last tstamp is 0
+                 (so it's the client to request a slow sync, instead of letting the server
+                 decide because anchors = 0 are not valid)
+               * handling SyncML error code 402 (payment required)
+               * added SAPI service profiling (login with &details), disabled by default (see ENABLE_PAYMENT_REQUIRED_CHARGE)
+               * added SAPI restore charge (in case of code 402 = payment required), disabled by default (see ENABLE_LOGIN_ON_ACCOUNT_CHANGE)
+               * when account is changed: a SAPI login is done and all source tstamps are resetted
+               * removed 5,10,15 mins from scheduler settings (new default and minimum value is 30 min)
+               * UI: added method to be notified when user clicks on a disabled pane
+
 2011-07-14
   - toccy: fixed bug #11252: Tab index is not correct for fields selection in windows client settings
 

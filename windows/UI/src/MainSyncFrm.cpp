@@ -55,6 +55,11 @@
 #include "MediaHubSetting.h"
 #include <Shlwapi.h>
 
+#include "sapi/SapiMediaRequestManager.h"
+
+
+
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -99,6 +104,23 @@ BEGIN_MESSAGE_MAP(CMainSyncFrame, CFrameWnd)
     ON_MESSAGE(ID_MYMSG_OK,                     &CMainSyncFrame::OnOKMsg)
 
     ON_MESSAGE(ID_MYMSG_CHECK_MEDIA_HUB_FOLDER, &CMainSyncFrame::OnCheckMediaHubFolder)
+	ON_MESSAGE(ID_MYMSG_SCHEDULER_DISABLED,     &CMainSyncFrame::OnMsgSchedulerDisabled)
+
+	ON_MESSAGE(ID_MYMSG_REFRESH_SOURCES,		&CMainSyncFrame::OnMsgRefreshSources)
+	
+	
+
+	// SAPI login msg
+	
+	ON_MESSAGE(ID_MYMSG_SAPILOGIN_BEGIN,		&CMainSyncFrame::OnMsgSapiLoginBegin)
+	ON_MESSAGE(ID_MYMSG_SAPILOGIN_ENDED,		&CMainSyncFrame::OnMsgSAPILoginEnded)
+
+	// SAPI Restore charge management
+	ON_MESSAGE(ID_MYMSG_SAPI_RESTORE_CHARGE_BEGIN,	 &CMainSyncFrame::OnMsgSapiRestoreChargeBegin)
+	ON_MESSAGE(ID_MYMSG_DOSAPI_RESTORE_CHARGE_ENDED, &CMainSyncFrame::OnMsgSapiRestoreChargeEnded)
+
+
+
 
 END_MESSAGE_MAP()
 
@@ -192,13 +214,6 @@ CMainSyncFrame::CMainSyncFrame() {
     configOpened = false;
     cancelingSync = false;
 
-    syncModeContacts = -1;
-    syncModeCalendar = -1;
-    syncModeTasks    = -1;
-    syncModeNotes    = -1;
-    syncModePictures = -1;
-    syncModeVideos   = -1;
-    syncModeFiles    = -1;
     dpiX = 0;
     dpiY = 0;
 
@@ -207,6 +222,7 @@ CMainSyncFrame::CMainSyncFrame() {
     hBmpBlue     = LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BK_BLUE));
     hBmpDark     = LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BK_DARK));
     hBmpLight    = LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BK_LIGHT));
+	hBmpDisabled = LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BK_DISABLED));
 
     itemTotalSize = 0;
     partialCompleted = 0;
@@ -222,6 +238,7 @@ CMainSyncFrame::~CMainSyncFrame() {
     DeleteObject(hBmpBlue);
     DeleteObject(hBmpDark);
     DeleteObject(hBmpLight);
+	DeleteObject(hBmpDisabled);
 }
 
 int CMainSyncFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -245,6 +262,9 @@ int CMainSyncFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     SetWindowText(WPROGRAM_NAME);
 
     bSyncStarted = false;
+	bSchedulerWasDisabledByLogin = false;
+
+    Invalidate();
 
 	return 0;
 }
@@ -437,14 +457,13 @@ DWORD WINAPI syncThread(LPVOID lpParam) {
     return 0;
 }
 
-
 /**
  * Thread used to kill the syncThread after a timeout.
  * @param lpParam : the syncThread HANDLE
  */
 DWORD WINAPI syncThreadKiller(LPVOID lpParam) {
 
-    // Wait on the sync thread (timeout = 5sec)
+    // Wait on the sync thread (timeout = 8sec)
     int ret = 0;
     HANDLE hSyncThread = lpParam;
     DWORD dwWaitResult = WaitForSingleObject(hSyncThread, TIME_OUT_ABORT * 1000);
@@ -473,6 +492,175 @@ DWORD WINAPI syncThreadKiller(LPVOID lpParam) {
     // To enable again the refresh of statusbar.
     cancelingSync = false;
 
+    return ret;
+}
+
+
+/**
+ * Thread to start the SAPI login process
+ */
+DWORD WINAPI loginThread(LPVOID lpParam) {
+
+    int ret = 0;
+
+	SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SAPILOGIN_BEGIN, NULL, NULL);
+
+    try {
+        ret = doSapiLoginThread(); // ret is a ESapiMediaRequestStatus from ESapiMediaRequest login()
+    }
+    catch (SyncException* e) {
+        // Catch SyncExceptions:
+        //   code 2 = aborted by user (soft termination)
+        //   code 3 = Outlook fatal exception
+        ret = e->getErrorCode();
+    }
+    catch (std::exception &e) {
+        // Catch STL exceptions: code 7
+        CStringA s1 = "Unexpected STL exception: ";
+        s1.Append(e.what());
+        printLog(s1.GetBuffer(), LOG_ERROR);
+        ret = WIN_ERR_UNEXPECTED_STL_EXCEPTION;        // code 7
+    }
+    catch(...) {
+        // Catch other unexpected exceptions.
+        CStringA s1;
+        s1.LoadString(IDS_UNEXPECTED_EXCEPTION);
+        printLog(s1.GetBuffer(), LOG_ERROR);
+        ret = WIN_ERR_UNEXPECTED_EXCEPTION;            // code 6
+    }
+	
+	// update UI
+	SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_REFRESH_SOURCES, NULL, NULL);
+
+	Sleep(200);     // Just to be sure that everything has been completed...
+
+	SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SAPILOGIN_ENDED, NULL, (LPARAM)ret);
+
+    if (ret) {
+        // **** Investigate on this ****
+        // In case of COM exceptions, the COM library could not be
+        // reused with 'CoInitialize()'. While terminating the thread like this seems
+        // working fine...
+        TerminateThread(GetCurrentThread(), ret);
+    }
+    return 0;
+}
+
+
+/**
+ * Thread used to call the sapi for restore charge.
+ * 
+ */
+DWORD WINAPI callSAPIRestoreChargeThread(LPVOID lpParam) {
+    int ret = 0;
+
+    try {
+        ret = doSAPIRestoreCharge(); // in winmain.cpp
+    }
+    catch (SyncException* e) {
+        // Catch SyncExceptions:
+        //   code 2 = aborted by user (soft termination)
+        //   code 3 = Outlook fatal exception
+        ret = e->getErrorCode();
+    }
+    catch (std::exception &e) {
+        // Catch STL exceptions: code 7
+        CStringA s1 = "Unexpected STL exception: ";
+        s1.Append(e.what());
+        printLog(s1.GetBuffer(), LOG_ERROR);
+        ret = WIN_ERR_UNEXPECTED_STL_EXCEPTION;        // code 7
+    }
+    catch(...) {
+        // Catch other unexpected exceptions.
+        CStringA s1;
+        s1.LoadString(IDS_UNEXPECTED_EXCEPTION);
+        printLog(s1.GetBuffer(), LOG_ERROR);
+        ret = WIN_ERR_UNEXPECTED_EXCEPTION;            // code 6
+    }
+
+
+    Sleep(200);     // Just to be sure that everything has been completed...
+
+    SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_DOSAPI_RESTORE_CHARGE_ENDED, NULL, (LPARAM)ret);
+	
+    if (ret) {
+        // **** Investigate on this ****
+        // In case of COM exceptions, the COM library could not be
+        // reused with 'CoInitialize()'. While terminating the thread like this seems
+        // working fine...
+        TerminateThread(GetCurrentThread(), ret);
+    }
+    return 0;
+}
+
+
+/**
+ * Thread used to kill the loginThread after a timeout.
+ * @param lpParam : the syncThread HANDLE
+ */
+DWORD WINAPI loginThreadKiller(LPVOID lpParam) {
+
+    // Wait on the target thread (timeout = custom)
+    int ret = 0;
+    HANDLE hTargetThread = lpParam;
+    DWORD dwWaitResult = WaitForSingleObject(hTargetThread, LOGIN_TIMEOUT * 1000);
+
+    switch (dwWaitResult) {
+        // Thread exited -> no need to kill it (should be the usual way).
+        case WAIT_ABANDONED:
+        case WAIT_OBJECT_0: {
+            ret = 0;
+            break;
+        }
+        // Target thread is still running after timeout -> kill it.
+        case WAIT_TIMEOUT: {
+            TerminateThread(hTargetThread, 0);
+	        SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_REFRESH_SOURCES, NULL, NULL);
+	        SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SAPILOGIN_ENDED, NULL, (LPARAM)ESMRRequestTimeout);
+            ret = 0;
+            break;
+        }
+        // Some error occurred (case WAIT_FAILED)
+        default: {
+            ret = 1;
+            break;
+        }
+    }
+    return ret;
+}
+
+
+/**
+ * Thread used to kill the callSAPIRestoreCall after a timeout.
+ * @param lpParam : the syncThread HANDLE
+ */
+DWORD WINAPI callSAPIRestoreKiller(LPVOID lpParam) {
+
+    // Wait on the target thread (timeout = custom)
+    int ret = 0;
+    HANDLE hTargetThread = lpParam;
+    DWORD dwWaitResult = WaitForSingleObject(hTargetThread, RESTORE_CHARGE_TIMEOUT * 1000);
+
+    switch (dwWaitResult) {
+        // Thread exited -> no need to kill it (should be the usual way).
+        case WAIT_ABANDONED:
+        case WAIT_OBJECT_0: {
+            ret = 0;
+            break;
+        }
+        // Target thread is still running after timeout -> kill it.
+        case WAIT_TIMEOUT: {
+            TerminateThread(hTargetThread, 0);
+            SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_DOSAPI_RESTORE_CHARGE_ENDED, NULL, (LPARAM)ret);
+            ret = 0;
+            break;
+        }
+        // Some error occurred (case WAIT_FAILED)
+        default: {
+            ret = 1;
+            break;
+        }
+    }
     return ret;
 }
 
@@ -517,6 +705,11 @@ void CMainSyncFrame::showSettingsWindow(const int paneToDisplay){
 
     // please... why?
     getConfig()->read();
+
+
+	lastSyncURL      = getConfig()->getAccessConfig().getSyncURL();
+	lastUserName     = getConfig()->getAccessConfig().getUsername();
+	lastUserPassword = getConfig()->getAccessConfig().getPassword();
 
     pDoc = docSettings->CreateNewDocument();
     if (pDoc != NULL)
@@ -572,6 +765,10 @@ void CMainSyncFrame::OnToolsSetloglevel()
 }
 
 
+
+
+
+
 LRESULT CMainSyncFrame::OnMsgSyncBegin( WPARAM , LPARAM lParam) {
 
     CString s1;
@@ -600,6 +797,7 @@ LRESULT CMainSyncFrame::OnMsgSyncBegin( WPARAM , LPARAM lParam) {
 
     bSyncStarted = true;
     progressStarted = false;
+	bSchedulerWasDisabledByLogin = false;
     Invalidate();
 
     return 0;
@@ -615,7 +813,14 @@ LRESULT CMainSyncFrame::OnMsgSyncEnd( WPARAM , LPARAM ) {
 
     bSyncStarted = false;
     progressStarted = false;
-    return 0;
+
+	// show a message that alert the user  (?)
+	if ( bSchedulerWasDisabledByLogin ) {
+		//s1.LoadString(IDS_TEXT_SCHEDULER_DISABLED);
+        //wsafeMessageBox(s1);	
+	}
+	bSchedulerWasDisabledByLogin = false;
+	return 0;
 }
 
 // UI received sync source begin message
@@ -1001,14 +1206,227 @@ void CMainSyncFrame::OnConfigClosed() {
     SetForegroundWindow();
     configOpened = false;
 
+
+	// checking if login settings was changed...
+	if ( ( lastUserName     != getConfig()->getAccessConfig().getUsername() ) ||
+		 ( lastUserPassword != getConfig()->getAccessConfig().getPassword() ) || 
+		 ( lastSyncURL      != getConfig()->getAccessConfig().getSyncURL()  ) ) {
+		
+        if (ENABLE_LOGIN_ON_ACCOUNT_CHANGE) {
+            //
+            // starts the login thread that calls SAPI login.
+            //
+            StartLogin();
+
+            // reset all sources timestamps and last errors
+            resetAllSourcesTimestamps();
+        }
+	}
+
     // TODO: move to class member?
     CSyncForm* mainForm = (CSyncForm*)wndSplitter.GetPane(0,1);
     mainForm->refreshSources();
-};
+}
+
 
 LRESULT CMainSyncFrame::OnMsgStartSyncBegin(WPARAM wParam, LPARAM lParam){
+	CSyncForm* mainForm = (CSyncForm*)wndSplitter.GetPane(0,1);
+	mainForm->refreshSources();
     return 0;
 }
+
+
+LRESULT CMainSyncFrame::OnMsgRefreshSources(WPARAM wParam, LPARAM lParam)
+{
+	// refresh sources panel
+	CSyncForm* mainForm = (CSyncForm*)wndSplitter.GetPane(0,1);
+	mainForm->refreshSources();
+
+	// Set state to panes
+    mainForm->paneContacts.state = STATE_SYNC;
+    mainForm->paneCalendar.state = STATE_SYNC;
+    mainForm->paneTasks.state    = STATE_SYNC;
+    mainForm->paneNotes.state    = STATE_SYNC;
+    mainForm->panePictures.state = STATE_SYNC;
+    mainForm->paneVideos.state   = STATE_SYNC;
+    mainForm->paneFiles.state    = STATE_SYNC;
+    return 0;
+}
+
+
+
+LRESULT CMainSyncFrame::OnMsgSapiRestoreChargeBegin(WPARAM wParam, LPARAM lParam)
+{
+	// refresh sources panel
+	CSyncForm* mainForm = (CSyncForm*)wndSplitter.GetPane(0,1);
+	mainForm->refreshSources();
+
+	// Set state to panes
+    mainForm->paneContacts.state = STATE_SYNC;
+    mainForm->paneCalendar.state = STATE_SYNC;
+    mainForm->paneTasks.state    = STATE_SYNC;
+    mainForm->paneNotes.state    = STATE_SYNC;
+    mainForm->panePictures.state = STATE_SYNC;
+    mainForm->paneVideos.state   = STATE_SYNC;
+    mainForm->paneFiles.state    = STATE_SYNC;
+    return 0;
+}
+
+
+
+LRESULT CMainSyncFrame::OnMsgSapiRestoreChargeEnded(WPARAM wParam, LPARAM lParam)
+{
+	// lparam contains the SAPI result from thread
+	int exitCode = lParam;
+
+	CSyncForm* mainForm = (CSyncForm*)wndSplitter.GetPane(0,1);
+	mainForm->refreshSources();
+
+
+	/*
+	//---------------------------------------------------------------------------------
+	// messagebox for testing pourpose!
+	
+	// starting new thread for restore contacts?
+	//---------------------------------------------------------------------------------
+	*/
+
+	if ( exitCode == 0) { // ESRCSuccess
+		setRefreshSourcesListToSync(false); // don't want to refresh the sources list to sync, mantain the old list.
+		StartSync();
+	} else {
+        StringBuffer msg;
+        msg.sprintf("SAPI restore charge failed, exit code = %d", exitCode);
+        printLog(msg.c_str(), LOG_ERROR);
+		
+        //CString s1 = "";
+		//s1.Format(_T("Sorry, server response code is: %d\nYou will not be able to use restore service."), exitCode);
+		//int msgboxFlags = MB_OK | MB_ICONASTERISK | MB_SETFOREGROUND | MB_APPLMODAL;
+		//int selected = wsafeMessageBox(s1.GetBuffer(), 0, msgboxFlags); 
+		//if (selected == IDYES ) { // managing YES / NO ?
+		//	// do something if yes
+		//}	
+	}
+    return 0;
+}
+
+
+
+
+LRESULT CMainSyncFrame::OnMsgSapiLoginBegin(WPARAM wParam, LPARAM lParam)
+{
+	CString s1;
+    s1.LoadString(IDS_LOGGING_IN);
+    wndStatusBar.SetPaneText(0,s1);
+
+
+	// refresh sources panel
+	CSyncForm* mainForm = (CSyncForm*)wndSplitter.GetPane(0,1);
+	mainForm->refreshSources();
+
+	// Set state to panes
+    mainForm->paneContacts.state = STATE_SYNC;
+    mainForm->paneCalendar.state = STATE_SYNC;
+    mainForm->paneTasks.state    = STATE_SYNC;
+    mainForm->paneNotes.state    = STATE_SYNC;
+    mainForm->panePictures.state = STATE_SYNC;
+    mainForm->paneVideos.state   = STATE_SYNC;
+    mainForm->paneFiles.state    = STATE_SYNC;
+
+	// disable the main button
+	mainForm->paneSync.EnableWindow(false);
+    return 0;
+}
+
+
+/**
+ * Message received when SAPI Login thread has exited.
+ * 'lParam' is the exitThread code (0 if no errors).
+ * Here errors of sync process are managed, and then UI refreshed.
+ */
+LRESULT CMainSyncFrame::OnMsgSAPILoginEnded(WPARAM wParam, LPARAM lParam) {
+
+    CString s1;
+    _bstr_t bst;
+    int exitCode = lParam;
+    StringBuffer msg;
+    
+    // Sync has finished: unlock buttons
+	cancelingSync = false; 
+
+    // TODO: move to class member?
+    CSyncForm* mainForm = (CSyncForm*)wndSplitter.GetPane(0,1);
+    mainForm->unlockButtons();
+
+    //
+    // Error occurred: display error message on status bar. @#@#
+    //
+	bool changeStatusBar=false;
+
+	switch (exitCode) {
+		// shows a message in the status bar
+		case ESMRSuccess:
+			s1.LoadString(IDS_LOGIN_SUCCESSFUL);
+			changeStatusBar = true;
+			break;
+		case ESMRAccessDenied:
+			s1.LoadString(IDS_LOGIN_AUTH_FAILED);
+			changeStatusBar = true;
+			break;
+
+		// no messages in status bar (back compatibility)
+		case ESMRGenericHttpError:
+            msg.sprintf("SAPI login: Generic HTTP error: %d", exitCode );
+            printLog(msg.c_str(), LOG_ERROR);
+			break;
+		case ESMRHTTPFunctionalityNotSupported:
+            msg.sprintf("SAPI login: functionality not supported: %d", exitCode );
+            printLog(msg.c_str(), LOG_ERROR);
+			break;
+        case ESMRRequestTimeout:
+            printLog("SAPI Login error, request timeout", LOG_ERROR);
+			break;
+		default:
+            msg.sprintf("SAPI login: generic error: %d", exitCode );
+            printLog(msg.c_str(), LOG_ERROR);
+			break;
+	}
+
+	if (!changeStatusBar) {
+		s1.LoadString(AFX_IDS_IDLEMESSAGE);
+	}
+	refreshStatusBar(s1);
+
+    mainForm->paneSync.SetBitmap(hBmpDark);
+    mainForm->iconStatusSync.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_SYNC_ALL_BLUE)));
+
+    s1.LoadString(IDS_MAIN_PRESS_TO_SYNC);
+    mainForm->SetDlgItemText(IDC_MAIN_MSG_PRESS, s1);
+
+    // show the menu
+    HMENU hMenu = ::GetMenu(GetSafeHwnd());
+    int nCount = GetMenuItemCount(hMenu);
+    for(int i = 0; i < nCount; i++){
+        EnableMenuItem(hMenu, i, MF_BYPOSITION | MF_ENABLED);
+    }
+    DrawMenuBar();
+    UpdateWindow();
+    
+	// Full sync: read original syncModes from winreg.
+    getConfig()->readSyncModes();
+
+    // Refresh sources.
+    mainForm->refreshSources();
+	mainForm->paneSync.EnableWindow(true);
+
+	SetForegroundWindow();
+    Invalidate(FALSE);
+    currentSource = 0;          // Invalidating the currentSource, here it's finished.
+    bSyncStarted = false;
+    progressStarted = false;
+    return 0;
+}
+
 
 
 /**
@@ -1026,7 +1444,7 @@ LRESULT CMainSyncFrame::OnMsgStartsyncEnded(WPARAM wParam, LPARAM lParam) {
     _bstr_t bst;
     int exitCode = lParam;
     const bool isScheduled = getConfig()->getScheduledSync();
-
+	
     // Sync has finished: unlock buttons
     cancelingSync = false;
 
@@ -1068,7 +1486,28 @@ LRESULT CMainSyncFrame::OnMsgStartsyncEnded(WPARAM wParam, LPARAM lParam) {
             showSettingsWindow(0);              // -> show Account settings
         }
 
+	}
+
+    // messagebox alerting payment required for restore
+	//-----------------------------------------------------------------------------------------
+    if (ENABLE_PAYMENT_REQUIRED_CHARGE) {
+	    UINT msgboxFlags = 0;
+	    int  selected = 0;
+
+	    setRefreshSourcesListToSync(true);
+	    if ( (!isScheduled) && ( exitCode == WIN_ERR_PAYMENT_REQUIRED ) ) {
+
+		    // interactive messagebox @#@#@#
+		    s1 = "Warning, a payment is required for performing restore!\r\nIf you continue a charge will be applied on you account.\r\n Do you want continue?";
+		    msgboxFlags = MB_YESNO | MB_ICONQUESTION | MB_SETFOREGROUND | MB_APPLMODAL;
+		    selected = wsafeMessageBox(s1.GetBuffer(), 0, msgboxFlags);
+		    if (selected == IDYES ) {
+			    RestoreCharge(); // SAPI call to charge and then restart restore.
+		    }
+	    }
     }
+	//-----------------------------------------------------------------------------------------
+
 
     s1.LoadString(IDS_TEXT_SYNC_ENDED);
     refreshStatusBar(s1);
@@ -1150,17 +1589,6 @@ LRESULT CMainSyncFrame::OnMsgStartsyncEnded(WPARAM wParam, LPARAM lParam) {
         // Scheduled sync: current config is out of date -> read ALL from winreg.
         getConfig()->read();
     }
-    else {
-        if (getConfig()->getFullSync()) {
-            // Full sync: read original syncModes from winreg.
-            getConfig()->readSyncModes();
-        }
-        else {
-            // Normal sync: restore original syncModes (a pane could be clicked).
-            // **** TODO: USE CONFIG IN MEMORY, LIKE IN FULL-SYNC! Don't keep'em in UI ****
-            restoreSyncModeSettings();
-        }
-    }
 
     // Refresh sources.
     mainForm->refreshSources();
@@ -1172,6 +1600,14 @@ LRESULT CMainSyncFrame::OnMsgStartsyncEnded(WPARAM wParam, LPARAM lParam) {
     progressStarted = false;
     return 0;
 }
+
+
+
+
+
+
+
+
 
 void CMainSyncFrame::StartSync(){
 
@@ -1395,6 +1831,189 @@ int CMainSyncFrame::CancelSync(bool confirm) {
     return ret;
 }
 
+
+
+void CMainSyncFrame::StartLogin(){
+
+	int ret = 1;
+    CString msg;
+    CString s1;
+
+    printLog("Start SAPI LOGIN", LOG_INFO);
+
+    // Check on sync in progress.
+    if (checkSyncInProgress()) {
+        s1.LoadString(IDS_TEXT_SYNC_ALREADY_RUNNING);
+        wsafeMessageBox(s1);
+        return;
+    }
+
+    // Check if connection settings are valid.
+    if(! checkConnectionSettings()) {
+        s1.LoadString(IDS_ERROR_SET_CONNECTION);
+        wsafeMessageBox(s1);
+        showSettingsWindow(0);          // 0 = 'Account Settings' pane.
+        return;
+    }
+
+    // TODO: move to class member?
+    CSyncForm* mainForm = (CSyncForm*)wndSplitter.GetPane(0,1);
+
+    // Lock the UI buttons. no, anymore!
+    //mainForm->lockButtons();
+
+    // Hide the menu.
+    printLog("Hide menu", LOG_DEBUG);
+
+    HMENU hMenu = ::GetMenu(GetSafeHwnd());
+    int nCount = GetMenuItemCount(hMenu);
+    for(int i = 0; i < nCount; i++){
+        EnableMenuItem(hMenu, i, MF_BYPOSITION | MF_GRAYED);
+    }
+    DrawMenuBar();
+
+
+    
+    //
+    // Start the login thread.
+    //
+    printLog("Starting SAPI Login thread...", LOG_DEBUG);
+    
+	hLoginThread = CreateThread(NULL, 0, loginThread, 0, 0, &dwThreadId);
+    if (hLoginThread == NULL) {
+        DWORD errorCode = GetLastError();
+        CString s1 = "Thread error: loginThread";
+        wsafeMessageBox(s1);
+        return;
+    }
+
+    // To handle login thread timeout (see LOGIN_TIMEOUT)
+    DWORD killerThreadId;
+    HANDLE h = CreateThread(NULL, 0, loginThreadKiller, hLoginThread, 0, &killerThreadId);
+}
+
+// starts the thread for SAPI restore charge
+void CMainSyncFrame::RestoreCharge(){
+
+    CString s1;
+    currentSource = 0;
+    currentClientItem = 0;
+    currentServerItem = 0;
+    totalClientItems = 0;
+    totalServerItems = 0;
+    printLog("Start SAPI Restore charge call", LOG_DEBUG);
+
+    // Check on sync in progress.
+    if (checkSyncInProgress()) {
+        s1.LoadString(IDS_TEXT_SYNC_ALREADY_RUNNING);
+        wsafeMessageBox(s1);
+        return;
+    }
+
+    // Check if connection settings are valid.
+    if(! checkConnectionSettings()) {
+        s1.LoadString(IDS_ERROR_SET_CONNECTION);
+        wsafeMessageBox(s1);
+        showSettingsWindow(0);          // 0 = 'Account Settings' pane.
+        return;
+    }
+
+    // TODO: move to class member?
+    CSyncForm* mainForm = (CSyncForm*)wndSplitter.GetPane(0,1);
+
+    // Lock the UI buttons. no, anymore!
+    //mainForm->lockButtons();
+
+    // Hide the menu.
+    printLog("Hide menu", LOG_DEBUG);
+
+    HMENU hMenu = ::GetMenu(GetSafeHwnd());
+    int nCount = GetMenuItemCount(hMenu);
+    for(int i = 0; i < nCount; i++){
+        EnableMenuItem(hMenu, i, MF_BYPOSITION | MF_GRAYED);
+    }
+    DrawMenuBar();
+
+
+    //
+    // Clear source state for sources to sync, clear status icons.
+    //
+    if (getConfig()->getSyncSourceConfig(CONTACT_)->isEnabled()) {
+        mainForm->syncSourceContactState = SYNCSOURCE_STATE_OK;
+        mainForm->iconStatusContacts.SetIcon(NULL);
+    }
+    if (getConfig()->getSyncSourceConfig(APPOINTMENT_)->isEnabled()) {
+        mainForm->syncSourceCalendarState = SYNCSOURCE_STATE_OK;
+        mainForm->iconStatusCalendar.SetIcon(NULL);
+    }
+    if (getConfig()->getSyncSourceConfig(TASK_)->isEnabled()) {
+        mainForm->syncSourceTaskState = SYNCSOURCE_STATE_OK;
+        mainForm->iconStatusTasks.SetIcon(NULL);
+    }
+    if (getConfig()->getSyncSourceConfig(NOTE_)->isEnabled()) {
+        mainForm->syncSourceNoteState = SYNCSOURCE_STATE_OK;
+        mainForm->iconStatusNotes.SetIcon(NULL);
+    }
+    if (getConfig()->getSyncSourceConfig(PICTURE_)->isEnabled()) {
+        mainForm->syncSourcePictureState = SYNCSOURCE_STATE_OK;
+        mainForm->iconStatusPictures.SetIcon(NULL);
+    }
+    if (getConfig()->getSyncSourceConfig(VIDEO_)->isEnabled()) {
+        mainForm->syncSourceVideoState = SYNCSOURCE_STATE_OK;
+        mainForm->iconStatusVideos.SetIcon(NULL);
+    }
+    if (getConfig()->getSyncSourceConfig(FILES_)->isEnabled()) {
+        mainForm->syncSourceFileState = SYNCSOURCE_STATE_OK;
+        mainForm->iconStatusFiles.SetIcon(NULL);
+    }
+
+    //
+    // Refresh of main UI.
+    //
+    mainForm->refreshSources();
+    mainForm->iconStatusSync.SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_CANCEL)));
+    s1.LoadString(IDS_MAIN_PRESS_TO_CANCEL);
+    mainForm->SetDlgItemText(IDC_MAIN_MSG_PRESS, s1);
+    mainForm->Invalidate();
+
+
+	if ( mainForm->paneSync.IsWindowEnabled() ) {
+		mainForm->paneSync.EnableWindow(false);
+	}
+
+
+
+    // Set state to panes
+    mainForm->paneContacts.state = STATE_SYNC;
+    mainForm->paneCalendar.state = STATE_SYNC;
+    mainForm->paneTasks.state    = STATE_SYNC;
+    mainForm->paneNotes.state    = STATE_SYNC;
+    mainForm->panePictures.state = STATE_SYNC;
+    mainForm->paneVideos.state   = STATE_SYNC;
+    mainForm->paneFiles.state    = STATE_SYNC;
+
+
+    //
+    // Start the SAPI Restore Charge Call thread.
+    //
+    printLog("Starting the thread for SAPI Charge...", LOG_DEBUG);
+    bSyncStarted = true;
+    cancelingSync = false;
+    hSyncThread = CreateThread(NULL, 0, callSAPIRestoreChargeThread, 0, 0, &dwThreadId);
+    if (hSyncThread == NULL) {
+        DWORD errorCode = GetLastError();
+        CString s1 = "Thread error: SAPI Restore Charge";
+        wsafeMessageBox(s1);
+        return;
+    }
+
+    // To handle SAPI Restore Charge thread timeout (see RESTORE_CHARGE_TIMEOUT)
+    DWORD killerThreadId;
+    HANDLE h = CreateThread(NULL, 0, callSAPIRestoreKiller, hSyncThread, 0, &killerThreadId);
+}
+
+
+
 // handling for minimizing/restoring the UI when the config is opened
 BOOL CMainSyncFrame::OnNcActivate(BOOL bActive) {
 
@@ -1432,83 +2051,6 @@ void CMainSyncFrame::OnClose(){
     CFrameWnd::OnClose();
 }
 
-
-void CMainSyncFrame::backupSyncModeSettings() {
-
-    syncModeContacts = getSyncModeCode(getConfig()->getSyncSourceConfig(CONTACT_)->getSync());
-    syncModeCalendar = getSyncModeCode(getConfig()->getSyncSourceConfig(APPOINTMENT_)->getSync());
-    syncModeTasks    = getSyncModeCode(getConfig()->getSyncSourceConfig(TASK_)->getSync());
-    syncModeNotes    = getSyncModeCode(getConfig()->getSyncSourceConfig(NOTE_)->getSync());
-    syncModePictures = getSyncModeCode(getConfig()->getSyncSourceConfig(PICTURE_)->getSync());
-    syncModeVideos   = getSyncModeCode(getConfig()->getSyncSourceConfig(VIDEO_)->getSync());
-    syncModeFiles    = getSyncModeCode(getConfig()->getSyncSourceConfig(FILES_)->getSync());
-
-    backupEnabledContacts = getConfig()->getSyncSourceConfig(CONTACT_)->isEnabled();
-    backupEnabledCalendar = getConfig()->getSyncSourceConfig(APPOINTMENT_)->isEnabled();
-    backupEnabledTasks    = getConfig()->getSyncSourceConfig(TASK_)->isEnabled();
-    backupEnabledNotes    = getConfig()->getSyncSourceConfig(NOTE_)->isEnabled();
-    backupEnabledPictures = getConfig()->getSyncSourceConfig(PICTURE_)->isEnabled();
-    backupEnabledVideos   = getConfig()->getSyncSourceConfig(VIDEO_)->isEnabled();
-    backupEnabledFiles    = getConfig()->getSyncSourceConfig(FILES_)->isEnabled();
-}
-
-void CMainSyncFrame::restoreSyncModeSettings(){
-
-    if (syncModeContacts != -1) {
-        getConfig()->getSyncSourceConfig(CONTACT_)->setSync(syncModeName((SyncMode)syncModeContacts));
-    }
-    if (syncModeCalendar != -1) {
-        getConfig()->getSyncSourceConfig(APPOINTMENT_)->setSync(syncModeName((SyncMode)syncModeCalendar));
-    }
-    if (syncModeTasks    != -1) {
-        getConfig()->getSyncSourceConfig(TASK_)->setSync(syncModeName((SyncMode)syncModeTasks));
-    }
-    if (syncModeNotes    != -1) {
-        getConfig()->getSyncSourceConfig(NOTE_)->setSync(syncModeName((SyncMode)syncModeNotes));
-    }
-    if (syncModePictures != -1) {
-        getConfig()->getSyncSourceConfig(PICTURE_)->setSync(syncModeName((SyncMode)syncModePictures));
-    }
-    if (syncModeVideos != -1) {
-        getConfig()->getSyncSourceConfig(VIDEO_)->setSync(syncModeName((SyncMode)syncModeVideos));
-    }
-    if (syncModeFiles != -1) {
-        getConfig()->getSyncSourceConfig(FILES_)->setSync(syncModeName((SyncMode)syncModeFiles));
-    }
-
-    // Save ONLY sync-modes of each source, if necessary.
-    // (this check is done to know if source modes/enabled have been backup or not)
-    if ( syncModeContacts != -1 ||
-         syncModeCalendar != -1 ||
-         syncModeTasks    != -1 ||
-         syncModeNotes    != -1 ||
-         syncModePictures != -1 ||
-         syncModeVideos   != -1 ||
-         syncModeFiles    != -1) {
-
-        // Restore the enabled flag
-        getConfig()->getSyncSourceConfig(CONTACT_    )->setIsEnabled(backupEnabledContacts);
-        getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(backupEnabledCalendar);
-        getConfig()->getSyncSourceConfig(TASK_       )->setIsEnabled(backupEnabledTasks);
-        getConfig()->getSyncSourceConfig(NOTE_       )->setIsEnabled(backupEnabledNotes);
-        getConfig()->getSyncSourceConfig(PICTURE_    )->setIsEnabled(backupEnabledPictures);
-        getConfig()->getSyncSourceConfig(VIDEO_      )->setIsEnabled(backupEnabledVideos);
-        getConfig()->getSyncSourceConfig(FILES_      )->setIsEnabled(backupEnabledFiles);
-
-        getConfig()->saveSyncModes();
-    }
-
-    syncModeContacts = -1;
-    syncModeCalendar = -1;
-    syncModeTasks    = -1;
-    syncModeNotes    = -1;
-    syncModePictures = -1;
-    syncModeVideos   = -1;
-    syncModeFiles    = -1;
-
-
-
-}
 
 
 bool CMainSyncFrame::checkConnectionSettings()
@@ -1584,7 +2126,10 @@ LRESULT CMainSyncFrame::OnMsgSyncSourceEnd(WPARAM wParam, LPARAM lParam) {
         mainForm->syncSourcePictureState = sourceState;
         mainForm->changePicturesStatus(s1);
         mainForm->iconStatusPictures.SetIcon(iconStatus);
-        mainForm->panePictures.SetBitmap(hBmpLight);
+        
+		if (! (mainForm->panePictures.state == STATE_PANE_DISABLED) ) 
+			mainForm->panePictures.SetBitmap(hBmpLight);
+
         //mainForm->panePictures.Invalidate();
     }
     else if (wParam == SYNCSOURCE_VIDEOS) {
@@ -1885,4 +2430,15 @@ BOOL CMainSyncFrame::createMediaHubDesktopIniFile(const char* folderPath, const 
     
     return ret;
     
+}
+
+LRESULT CMainSyncFrame::OnMsgSchedulerDisabled( WPARAM , LPARAM lParam) {
+    CString s1;
+    s1.LoadString(IDS_TEXT_SCHEDULER_DISABLED);
+    wndStatusBar.SetPaneText(0,s1);
+
+	bSchedulerWasDisabledByLogin = true;
+    Invalidate();
+
+    return 0;
 }

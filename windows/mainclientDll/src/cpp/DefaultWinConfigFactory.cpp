@@ -104,6 +104,10 @@ DeviceConfig* DefaultWinConfigFactory::getDeviceConfig() {
     dc->setMaxObjSize           (0);
     dc->setDevInfHash           ("");
 
+	dc->setAutoSync				  (DEFAULT_AUTO_SYNC);			        // auto-sync parameter from server (V.10+)
+	dc->setDataplanExpirationDate (0L);									// dataplan expiration date parameter from server (V.10+)
+	dc->setNetworkWarning         (false);		                        // network warning does not make sense on desktop clients
+
     return dc;
 }
 
@@ -154,6 +158,7 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         sc->setVersion          ("2.1");
         sc->setSupportedTypes   ("text/x-vcard:2.1,text/x-s4j-sifc:1.0");
         sc->setIsEnabled        (CONTACT_SOURCE_ENABLED);
+		sc->setIsAllowed		(CONTACT_SOURCE_ALLOWED); // allowed param (v.10+)
     }
     else if (wname == APPOINTMENT) {
         sc->setSync             (DEFAULT_APPOINTMENTS_SYNC_MODE);
@@ -163,6 +168,7 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         sc->setVersion          ("1.0");
         sc->setSupportedTypes   ("text/x-vcalendar:1.0,text/x-s4j-sife:1.0");
         sc->setIsEnabled        (APPOINTMENT_SOURCE_ENABLED);
+		sc->setIsAllowed		(APPOINTMENT_SOURCE_ALLOWED); // allowed param (v.10+)
     }
     else if (wname == TASK) {
         sc->setSync             (DEFAULT_TASKS_SYNC_MODE);
@@ -172,6 +178,7 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         sc->setVersion          ("1.0");
         sc->setSupportedTypes   ("text/x-vcalendar:1.0,text/x-s4j-sift:1.0");
         sc->setIsEnabled        (TASK_SOURCE_ENABLED);
+		sc->setIsAllowed		(TASK_SOURCE_ALLOWED); // allowed param (v.10+)
     }
     else if (wname == NOTE) {
         sc->setSync             (DEFAULT_NOTES_SYNC_MODE);
@@ -189,6 +196,7 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
             sc->setSupportedTypes   ("text/x-vnote:1.1");
         }
         sc->setIsEnabled        (NOTE_SOURCE_ENABLED);
+		sc->setIsAllowed		(NOTE_SOURCE_ALLOWED); // allowed param (v.10+)
     }
 
     // SAPI
@@ -201,6 +209,7 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         sc->setEncoding         ("bin");                                 // not really used, as it's detected from each item received
         sc->setSupportedTypes   ("application/*");
         sc->setIsEnabled        (PICTURE_SOURCE_ENABLED);
+		sc->setIsAllowed        (PICTURE_SOURCE_ALLOWED);				// allowed param (v.10+)
         sc->setProperty         (PROPERTY_DOWNLOAD_LAST_TIME_STAMP,     "0");
         sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_CLIENT, -1);
         sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_SERVER, -1);
@@ -218,6 +227,7 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         sc->setEncoding         ("bin");                                 // not really used, as it's detected from each item received
         sc->setSupportedTypes   ("application/*");
         sc->setIsEnabled        (VIDEO_SOURCE_ENABLED);
+		sc->setIsAllowed        (VIDEO_SOURCE_ALLOWED);
         sc->setProperty         (PROPERTY_DOWNLOAD_LAST_TIME_STAMP,     "0");
         sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_CLIENT, -1);
         sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_SERVER, -1);
@@ -235,6 +245,7 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         sc->setEncoding         ("bin");                                 // not really used, as it's detected from each item received
         sc->setSupportedTypes   ("application/*");
         sc->setIsEnabled        (FILE_SOURCE_ENABLED); 
+		sc->setIsAllowed        (FILE_SOURCE_ALLOWED); 
         sc->setProperty         (PROPERTY_DOWNLOAD_LAST_TIME_STAMP,     "0");
         sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_CLIENT, -1);
         sc->setIntProperty      (PROPERTY_SYNC_ITEM_NUMBER_FROM_SERVER, -1);

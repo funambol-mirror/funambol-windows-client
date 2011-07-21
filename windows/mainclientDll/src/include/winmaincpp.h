@@ -144,8 +144,14 @@
 #define WIN_ERR_INVALID_CREDENTIALS         401
 #define WIN_ERR_REMOTE_NAME_NOT_FOUND       404
 #define WIN_ERR_PROXY_AUTH_REQUIRED         407
+#define WIN_ERR_AUTOSYNC_DISABLED	        500				// auto-sync is false
 #define WIN_ERR_WRONG_HOST_NAME             2001
 #define WIN_ERR_NETWORK_ERROR               2050
+
+
+#define WIN_ERR_PAYMENT_REQUIRED            402 // SAPI respond in a "Alert" Status that the user must pay for that service 
+
+
 
 /** @endcond */
 
@@ -191,6 +197,7 @@
 #define ERR_ENCRYPT_DATA                    "Error occurred encrypting private data"
 #define ERR_DECRYPT_DATA                    "Error occurred decrypting private data"
 #define ERR_NO_SOURCES_TO_SYNC              "No sources to synchronize."
+#define ERR_AUTOSYNC_DISABLED               "Sorry, you cannot do automatic sync."
 
 #define ERR_BEGIN_SYNC                      "Error in begin sync of source '%ls'."
 #define ERR_CLOSE_OUTLOOK                   "Some error occurred closing Outlook session. Outlook may become unstable."
@@ -347,13 +354,30 @@
 int  initializeClient   (bool isScheduled, bool justRead = false);
 int  initLog            (bool isScheduled);
 int  startSync          ();
+int  doSAPIRestoreCharge();
+int  doSapiLoginThread  ();
+int  doSapiLogin        ();
+
+/**
+ * Resets timestamps for all sources.
+ * Note: this function saves the config.
+ */
+void resetAllSourcesTimestamps();
+
+ArrayList * getSourcesToSync(bool refreshSources, bool *syncingPIM);
+
+
+bool getRefreshSourcesListToSync ( void );
+void setRefreshSourcesListToSync (bool b);
 
 /**
  * Checks is MS Outlook and Redemption.dll are installed.
  * PIM sources will be shown/hidden accordingly.
  * If the Redemption lib needs to be installed and it's the free version,
  * a disclaimer popup will be shown to the user.
- / If necessary, config will be saved.
+ * Also fixes the syncmodes in registry for PIM sources (bug#11240 fixed 
+ * in v.10.0.3) if necessary.
+ * If necessary, config will be saved.
  */
 void initPIMSources();
 
@@ -369,6 +393,8 @@ void softTerminateSync  ();
 int  hardTerminateSync  (HANDLE hSyncThread);
 int  exitSyncThread     (int code);
 void endSync();
+HANDLE mutexAlloc();
+void mutexRelease();
 void upgradePlugin      (const int oldVersion, const int oldFunambolVersion);
 void upgradeScheduledTask();
 

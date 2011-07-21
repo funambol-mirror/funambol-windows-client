@@ -135,6 +135,7 @@ public:
     unsigned long getLast()           const     { return s->getLast()          ; }
     const char*   getEncryption()     const     { return s->getEncryption()    ; }
     const bool    isEnabled()         const     { return s->isEnabled()        ; }
+	const bool    isAllowed()         const     { return s->isAllowed()        ; }
 
     _declspec(dllexport) long getEndTimestamp() const { 
         bool err = false;
@@ -154,8 +155,13 @@ public:
     void setSupportedTypes(const char*   v)     { s->setSupportedTypes(v)      ; }
     //void setCtCap       (CTCap         v)     { s->setCtCap(v)               ; }
     void setLast          (unsigned long v)     { s->setLast(v)                ; }
+    void setEndSyncTime   (unsigned long v)     { s->setEndSyncTime(v)         ; }
+    void setLastSourceError(unsigned long v)    { s->setLastSourceError(v)     ; }
+    void setLongProperty(const char* p, long v) { s->setLongProperty(p, v)     ; }
+    
     void setEncryption    (const char*   v)     { s->setEncryption(v)          ; }
     void setIsEnabled     (const bool    v)     { s->setIsEnabled(v)           ; }
+	void setIsAllowed     (const bool    v)     { s->setIsAllowed(v)           ; }
 
     _declspec(dllexport)void setEndTimestamp (long  v) {
         s->setLongProperty(PROPERTY_SYNC_END, v);
