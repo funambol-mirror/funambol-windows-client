@@ -1,4 +1,6 @@
 2011-07-21
+  - toccy: release 10.0.3
+  
   - toccy: fixed bug #11240: Scheduled refresh from client
            - fixed the way the syncmodes are managed: never backup syncmodes (from UI and client)
              and after a PIM sync completed the original syncmodes are read from registry, before
