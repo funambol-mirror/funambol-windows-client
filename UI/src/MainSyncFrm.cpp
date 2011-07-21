@@ -214,13 +214,6 @@ CMainSyncFrame::CMainSyncFrame() {
     configOpened = false;
     cancelingSync = false;
 
-    syncModeContacts = -1;
-    syncModeCalendar = -1;
-    syncModeTasks    = -1;
-    syncModeNotes    = -1;
-    syncModePictures = -1;
-    syncModeVideos   = -1;
-    syncModeFiles    = -1;
     dpiX = 0;
     dpiY = 0;
 
@@ -1596,17 +1589,6 @@ LRESULT CMainSyncFrame::OnMsgStartsyncEnded(WPARAM wParam, LPARAM lParam) {
         // Scheduled sync: current config is out of date -> read ALL from winreg.
         getConfig()->read();
     }
-    else {
-        if (getConfig()->getFullSync()) {
-            // Full sync: read original syncModes from winreg.
-            getConfig()->readSyncModes();
-        }
-        else {
-            // Normal sync: restore original syncModes (a pane could be clicked).
-            // **** TODO: USE CONFIG IN MEMORY, LIKE IN FULL-SYNC! Don't keep'em in UI ****
-            restoreSyncModeSettings();
-        }
-    }
 
     // Refresh sources.
     mainForm->refreshSources();
@@ -2069,83 +2051,6 @@ void CMainSyncFrame::OnClose(){
     CFrameWnd::OnClose();
 }
 
-
-void CMainSyncFrame::backupSyncModeSettings() {
-
-    syncModeContacts = getSyncModeCode(getConfig()->getSyncSourceConfig(CONTACT_)->getSync());
-    syncModeCalendar = getSyncModeCode(getConfig()->getSyncSourceConfig(APPOINTMENT_)->getSync());
-    syncModeTasks    = getSyncModeCode(getConfig()->getSyncSourceConfig(TASK_)->getSync());
-    syncModeNotes    = getSyncModeCode(getConfig()->getSyncSourceConfig(NOTE_)->getSync());
-    syncModePictures = getSyncModeCode(getConfig()->getSyncSourceConfig(PICTURE_)->getSync());
-    syncModeVideos   = getSyncModeCode(getConfig()->getSyncSourceConfig(VIDEO_)->getSync());
-    syncModeFiles    = getSyncModeCode(getConfig()->getSyncSourceConfig(FILES_)->getSync());
-
-    backupEnabledContacts = getConfig()->getSyncSourceConfig(CONTACT_)->isEnabled();
-    backupEnabledCalendar = getConfig()->getSyncSourceConfig(APPOINTMENT_)->isEnabled();
-    backupEnabledTasks    = getConfig()->getSyncSourceConfig(TASK_)->isEnabled();
-    backupEnabledNotes    = getConfig()->getSyncSourceConfig(NOTE_)->isEnabled();
-    backupEnabledPictures = getConfig()->getSyncSourceConfig(PICTURE_)->isEnabled();
-    backupEnabledVideos   = getConfig()->getSyncSourceConfig(VIDEO_)->isEnabled();
-    backupEnabledFiles    = getConfig()->getSyncSourceConfig(FILES_)->isEnabled();
-}
-
-void CMainSyncFrame::restoreSyncModeSettings(){
-
-    if (syncModeContacts != -1) {
-        getConfig()->getSyncSourceConfig(CONTACT_)->setSync(syncModeName((SyncMode)syncModeContacts));
-    }
-    if (syncModeCalendar != -1) {
-        getConfig()->getSyncSourceConfig(APPOINTMENT_)->setSync(syncModeName((SyncMode)syncModeCalendar));
-    }
-    if (syncModeTasks    != -1) {
-        getConfig()->getSyncSourceConfig(TASK_)->setSync(syncModeName((SyncMode)syncModeTasks));
-    }
-    if (syncModeNotes    != -1) {
-        getConfig()->getSyncSourceConfig(NOTE_)->setSync(syncModeName((SyncMode)syncModeNotes));
-    }
-    if (syncModePictures != -1) {
-        getConfig()->getSyncSourceConfig(PICTURE_)->setSync(syncModeName((SyncMode)syncModePictures));
-    }
-    if (syncModeVideos != -1) {
-        getConfig()->getSyncSourceConfig(VIDEO_)->setSync(syncModeName((SyncMode)syncModeVideos));
-    }
-    if (syncModeFiles != -1) {
-        getConfig()->getSyncSourceConfig(FILES_)->setSync(syncModeName((SyncMode)syncModeFiles));
-    }
-
-    // Save ONLY sync-modes of each source, if necessary.
-    // (this check is done to know if source modes/enabled have been backup or not)
-    if ( syncModeContacts != -1 ||
-         syncModeCalendar != -1 ||
-         syncModeTasks    != -1 ||
-         syncModeNotes    != -1 ||
-         syncModePictures != -1 ||
-         syncModeVideos   != -1 ||
-         syncModeFiles    != -1) {
-
-        // Restore the enabled flag
-        getConfig()->getSyncSourceConfig(CONTACT_    )->setIsEnabled(backupEnabledContacts);
-        getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(backupEnabledCalendar);
-        getConfig()->getSyncSourceConfig(TASK_       )->setIsEnabled(backupEnabledTasks);
-        getConfig()->getSyncSourceConfig(NOTE_       )->setIsEnabled(backupEnabledNotes);
-        getConfig()->getSyncSourceConfig(PICTURE_    )->setIsEnabled(backupEnabledPictures);
-        getConfig()->getSyncSourceConfig(VIDEO_      )->setIsEnabled(backupEnabledVideos);
-        getConfig()->getSyncSourceConfig(FILES_      )->setIsEnabled(backupEnabledFiles);
-
-        getConfig()->saveSyncModes();
-    }
-
-    syncModeContacts = -1;
-    syncModeCalendar = -1;
-    syncModeTasks    = -1;
-    syncModeNotes    = -1;
-    syncModePictures = -1;
-    syncModeVideos   = -1;
-    syncModeFiles    = -1;
-
-
-
-}
 
 
 bool CMainSyncFrame::checkConnectionSettings()

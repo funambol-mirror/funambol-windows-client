@@ -706,7 +706,6 @@ void CSyncForm::OnStnClickedMainBkContacts()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
         getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(TASK_       )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(NOTE_       )->setIsEnabled(false);
@@ -735,8 +734,6 @@ void CSyncForm::OnStnClickedMainBkCalendar()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
-        // start a sync for calendar
         getConfig()->getSyncSourceConfig(CONTACT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(TASK_   )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(NOTE_   )->setIsEnabled(false);
@@ -765,7 +762,6 @@ void CSyncForm::OnStnClickedMainBkTasks()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
         getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(CONTACT_    )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(NOTE_       )->setIsEnabled(false);
@@ -796,7 +792,6 @@ void CSyncForm::OnStnClickedMainBkNotes()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
         getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(CONTACT_    )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(TASK_       )->setIsEnabled(false);
@@ -837,7 +832,6 @@ void CSyncForm::OnStnClickedMainBkPictures()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
         getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(CONTACT_    )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(TASK_       )->setIsEnabled(false);
@@ -877,7 +871,6 @@ void CSyncForm::OnStnClickedMainBkVideos()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
         getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(CONTACT_    )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(TASK_       )->setIsEnabled(false);
@@ -917,7 +910,6 @@ void CSyncForm::OnStnClickedMainBkFiles()
     }
     else {
         // Start Sync of a single source
-        ((CMainSyncFrame*)AfxGetMainWnd())->backupSyncModeSettings();
         getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(CONTACT_    )->setIsEnabled(false);
         getConfig()->getSyncSourceConfig(TASK_       )->setIsEnabled(false);

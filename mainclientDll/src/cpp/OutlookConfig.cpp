@@ -90,7 +90,6 @@ OutlookConfig::OutlookConfig() : updaterConfig(PLUGIN_ROOT_CONTEXT), oneWayRemov
     workingDir            = NULL;
     logDir                = NULL;
     winSourceConfigsCount = 0;
-    fullSync              = false;
     upgraded              = false;
     oldSwv                = 0;
 }
@@ -212,8 +211,7 @@ bool OutlookConfig::read() {
     setLogDir(logPath);
 
 
-    // Reset fullSync/abortSync flags
-    fullSync  = false;
+    // Reset abortSync flag
     setToAbort(false);
 
 
@@ -314,6 +312,41 @@ void OutlookConfig::readSyncModes() {
             delete [] tmp;
         }
     }
+}
+
+
+bool OutlookConfig::fixSyncModes() {
+
+    bool ret = false;
+    for (unsigned int i=0; i<sourceConfigsCount; i++) {
+
+        WindowsSyncSourceConfig* ssc = getSyncSourceConfig(i);
+        if (!ssc) continue;
+
+        const char* name = ssc->getName();
+        const char* sync = ssc->getSync();
+
+        SyncMode code = syncModeCode(sync);
+        if (isPIMSource(name) && isFullSyncMode(code)) {
+
+            LOG.debug("Restoring default syncmode for source %s (was %s)", name, sync);
+            ret = true;
+            
+            if (!strcmp(name, CONTACT_)) { 
+                ssc->setSync(DEFAULT_CONTACTS_SYNC_MODE); 
+            } 
+            else if (!strcmp(name, APPOINTMENT_)) { 
+                ssc->setSync(DEFAULT_APPOINTMENTS_SYNC_MODE); 
+            } 
+            else if (!strcmp(name, TASK_)) { 
+                ssc->setSync(DEFAULT_TASKS_SYNC_MODE); 
+            } 
+            else if (!strcmp(name, NOTE_)) { 
+                ssc->setSync(DEFAULT_NOTES_SYNC_MODE); 
+            }
+        }
+    }
+    return ret;
 }
 
 
@@ -629,13 +662,9 @@ void OutlookConfig::saveWinSourceConfig(unsigned int i) {
         // common source params
         DMTClientConfig::saveSourceConfig(i, *nodeUpper);
 
+        // TBD: not sure why it's necessary to set it again (it's a common property)
+        node->setPropertyValue(PROPERTY_SOURCE_SYNC, winSourceConfigs[i].getSync());
 
-
-        // If we are just after a sync and this is a full sync (slow/refresh), 
-        // DO NOT save the 'sync' property (so won't be a restore again next time).
-        if (fullSync == false) {
-            node->setPropertyValue(PROPERTY_SOURCE_SYNC,    winSourceConfigs[i].getSync          ());
-        }
 
         // Save filtering props
         if (!strcmp(winSourceConfigs[i].getName(), APPOINTMENT_)) {
@@ -946,13 +975,6 @@ const char* OutlookConfig::getLogDir() const {
     return logDir;
 }
 
-void OutlookConfig::setFullSync(const bool v) {
-    fullSync = v;
-}
-const bool OutlookConfig::getFullSync() const {
-    return fullSync;
-}
-
 void OutlookConfig::setFunambolSwv(const StringBuffer& v) {
     funambolSwv = v;
 }
@@ -1099,7 +1121,6 @@ void OutlookConfig::createDefaultConfig() {
 
     
     // Reset flags
-    fullSync  = false;
     setToAbort(false);
 
     // Read the sources visible list (if specified from HKLM keys: customers builds)

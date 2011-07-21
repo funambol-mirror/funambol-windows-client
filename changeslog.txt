@@ -1,3 +1,12 @@
+2011-07-21
+  - toccy: fixed bug #11240: Scheduled refresh from client
+           - fixed the way the syncmodes are managed: never backup syncmodes (from UI and client)
+             and after a PIM sync completed the original syncmodes are read from registry, before
+             config save. This way we never set a "full-sync mode" in registry, but just in memory 
+             for the time of the sync process.
+           - added a fixSyncModes method for PIM sources, to clean full-sync modes at client startup.
+           - some cleanup: removed fullSync flag from config and backup/restoreSyncModes from UI
+
 2011-07-20
   - toccy: reintegrated branch US8294:
            * added deviceConfig params: 

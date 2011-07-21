@@ -84,25 +84,6 @@ protected:
     bool configOpened;
     int dpiX, dpiY;
 
-    // info about sync modes for sources, used on full sync (TODO: remove me)
-    int syncModeCalendar; 
-    int syncModeContacts;
-    int syncModeTasks;
-    int syncModeNotes;
-    int syncModePictures;
-    int syncModeVideos;
-    int syncModeFiles;
-
-    // info about source enabled for sources, used on full sync (TODO: remove me)
-    bool backupEnabledContacts;
-    bool backupEnabledCalendar;
-    bool backupEnabledTasks;
-    bool backupEnabledNotes;
-    bool backupEnabledPictures;
-    bool backupEnabledVideos;
-    bool backupEnabledFiles;
-
-
     // info about the sync in progress
     int currentSource;
     int totalClientItems;
@@ -144,8 +125,6 @@ public:
 
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	virtual ~CMainSyncFrame();
-    void backupSyncModeSettings();
-    void restoreSyncModeSettings();
     void showSettingsWindow(const int paneToDisplay = 1);
     
     // check if the user has set the connection settings

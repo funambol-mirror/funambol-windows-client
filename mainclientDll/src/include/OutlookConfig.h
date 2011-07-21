@@ -115,7 +115,6 @@ private:
 
     char* workingDir;                           // The path of current working directory
     char* logDir;                               // The path of current log directory (under app data)
-    bool  fullSync;                             // true if we are running a full sync (slow/refresh)
     bool  upgraded;                             // Flag to specify that we have upgraded the config.
     int   oldSwv;                               // Value of old software version installed (used during upgrades).
     StringBuffer funambolSwv;                   // The Funambol product sw version (can be different in branded clients).
@@ -275,7 +274,6 @@ public:
     // get/set of internal members
     void setWorkingDir   (const char* v);
     void setLogDir       (const char* v);
-    void setFullSync     (const  bool v);
     void setScheduledSync(const  bool v);
     void setFunambolSwv  (const StringBuffer& v);
 
@@ -284,7 +282,6 @@ public:
     
     _declspec(dllexport) const char* getWorkingDir()    const;
     _declspec(dllexport) const char* getLogDir()        const;
-    _declspec(dllexport) const bool  getFullSync()      const;
     const StringBuffer& getFunambolSwv();
 
     _declspec(dllexport)
@@ -336,6 +333,15 @@ public:
 
     /// Reads only "sync" properties of each source, to win registry.
     _declspec(dllexport) void readSyncModes();
+
+    /**
+     * Fix all sources syncmodes: in case a source has a refresh/slow syncmode
+     * it is reverted to the default syncmode for that source.
+     * This is done at client's startup, in order to clean any wrong syncmode that
+     * may be stored in registry (bug #11240 fixed in v.10.0.3)
+     * @return true if something was fixed in the config, false if nothing done
+     */
+    bool fixSyncModes();
 
     BOOL readUpdaterConfig(bool refresh);
 

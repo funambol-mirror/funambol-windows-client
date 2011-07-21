@@ -174,10 +174,10 @@
 
 // Default sync mode for each source.
 // It MUST be one of the values specified in the list of available sync modes above.
-#define DEFAULT_CONTACTS_SYNC_MODE          SYNC_MODE_SLOW
-#define DEFAULT_APPOINTMENTS_SYNC_MODE      SYNC_MODE_SLOW
-#define DEFAULT_TASKS_SYNC_MODE             SYNC_MODE_SLOW
-#define DEFAULT_NOTES_SYNC_MODE             SYNC_MODE_SLOW
+#define DEFAULT_CONTACTS_SYNC_MODE          SYNC_MODE_TWO_WAY
+#define DEFAULT_APPOINTMENTS_SYNC_MODE      SYNC_MODE_TWO_WAY
+#define DEFAULT_TASKS_SYNC_MODE             SYNC_MODE_TWO_WAY
+#define DEFAULT_NOTES_SYNC_MODE             SYNC_MODE_TWO_WAY
 #define DEFAULT_PICTURES_SYNC_MODE          SYNC_MODE_TWO_WAY
 #define DEFAULT_VIDEOS_SYNC_MODE            SYNC_MODE_TWO_WAY
 #define DEFAULT_FILES_SYNC_MODE             SYNC_MODE_TWO_WAY

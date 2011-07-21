@@ -53,7 +53,6 @@ safeMessageBox
 wsafeMessageBox
 getDefaultFolderPath
 pickOutlookFolder
-setFullSync
 setScheduler
 getScheduler
 findFunambolWindow

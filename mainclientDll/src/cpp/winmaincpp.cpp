@@ -263,8 +263,15 @@ void initPIMSources() {
         configChanged |= config->removeSourceVisible(TASK_);
         configChanged |= config->removeSourceVisible(NOTE_);
     }
+
+    //
+    // Fix the PIM syncmodes: to clean any wrong syncmode that
+    // may be stored in registry (bug #11240 fixed in v.10.0.3)
+    //
+    configChanged |= config->fixSyncModes();
+
     if (configChanged) {
-        LOG.debug("UI sources visible changed: saving config");
+        LOG.debug("Config changed for PIM sources: saving config");
         config->sortSourceVisible();
         config->save();
     }
@@ -602,8 +609,6 @@ int startSync() {
     }
 
 
-    
-
 
     // --------------------------------------------------
     // Kick off the sync: one source at time
@@ -614,9 +619,12 @@ int startSync() {
 
         SyncSourceReport ssReport(name->c_str());
         WindowsSyncSourceConfig* wssconfig = config->getSyncSourceConfig(name->c_str());
-        SyncSourceConfig* ssconfig = wssconfig->getCommonConfig();
+        if (!wssconfig) continue;
 
-        StringBuffer lastSyncMode = config->getSyncSourceConfig(name->c_str())->getSync();
+        SyncSourceConfig* ssconfig = wssconfig->getCommonConfig();
+        if (!ssconfig) continue;
+        
+
         if (isMediaSource(name->c_str()))
         {
             // --- Media source ---
@@ -637,17 +645,11 @@ int startSync() {
             WindowsSyncSource source(wname.c_str(), wssconfig);
             WindowsSyncClient winClient(source);
             
-            if ( config->getSyncSourceConfig(name->c_str())->getLast() == 0L ) {
-                config->getSyncSourceConfig(name->c_str())->setSync(SYNC_MODE_SLOW); // set sync mode == "slow" if timestamp is 0L @#@#
-            }
             res = synchronize(winClient, source);
             
             report.addSyncSourceReport(*source.getReport());
         }
-        // came back to initial sync mode (it was possible that syncmode become "slow" due lasttimestamp == 0L)
-        if (! isMediaSource(name->c_str()) ) {
-            config->getSyncSourceConfig(name->c_str())->setSync(lastSyncMode.c_str()); // come back to previous value of sync mode @#@#
-        }
+
         if (res) {
             // Update the sync report (global error for all syncs!)
             SyncSourceReport* ssr = report.getSyncSourceReport(name->c_str());
@@ -1084,6 +1086,15 @@ int synchronize(WindowsSyncClient& winClient, WindowsSyncSource& source) {
         return -1;
     }
 
+    // set sync mode == "slow" if timestamp is 0
+    // (tstamp 0 means we're not in sync, i.e. it's the first time)
+    if (source.getConfig().getLast() == 0) {
+        LOG.debug("last tstamp is 0: force the syncmode to SLOW");
+        source.getConfig().setSync(SYNC_MODE_SLOW);
+        source.setSyncMode(SYNC_SLOW);
+    }
+    
+    LOG.info("Begin synchronization of %s source (%s)", name.c_str(), source.getConfig().getSync());
     SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SYNCSOURCE_BEGIN, NULL, (LPARAM)sourceID);
 
     // ----------------------------------------------
@@ -1114,6 +1125,14 @@ int synchronize(WindowsSyncClient& winClient, WindowsSyncSource& source) {
     //
     SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_REFRESH_STATUSBAR, NULL, (LPARAM)SBAR_ENDING_SYNC);
     SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_LOCK_BUTTONS,      NULL, NULL);
+    
+
+    // SyncModes and enabled flags MUST NEVER be changed by the sync process!
+    // Restore the original ones here, reading from registry, before the config save()
+    // Note: the syncmodes can be changed by the client before starting a sync, for example
+    //       to trigger a refresh sync. This way, the original syncmode is never touched in registry.
+    config->readSyncModes();
+    
     LOG.debug("Saving configuration to winRegistry");
     config->save(report);
 

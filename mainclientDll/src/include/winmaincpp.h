@@ -375,7 +375,9 @@ void setRefreshSourcesListToSync (bool b);
  * PIM sources will be shown/hidden accordingly.
  * If the Redemption lib needs to be installed and it's the free version,
  * a disclaimer popup will be shown to the user.
- / If necessary, config will be saved.
+ * Also fixes the syncmodes in registry for PIM sources (bug#11240 fixed 
+ * in v.10.0.3) if necessary.
+ * If necessary, config will be saved.
  */
 void initPIMSources();
 
