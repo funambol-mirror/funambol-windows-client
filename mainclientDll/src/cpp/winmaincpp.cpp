@@ -1045,6 +1045,13 @@ finally:
     // set the last error for this source
     sapiSource.getConfig().setLastSourceError(ret);
 
+
+    // SyncModes and enabled flags MUST NEVER be changed by the sync process!
+    // Restore the original ones here, reading from registry, before the config save()
+    // Note: the syncmodes can be changed by the client before starting a sync, for example
+    //       to trigger a refresh sync. This way, the original syncmode is never touched in registry.
+    config->readSyncModes();
+
     // SAVE CONFIG TO DISK.
     // Saves also the last sync time (now), used to refresh UI
     config->saveSyncSourceConfig(name.c_str());
