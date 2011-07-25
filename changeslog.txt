@@ -1,5 +1,6 @@
 2011-07-25
   - toccy: release 10.0.4
+  - toccy: enabled information label in account screen (SHOW_ACCOUNT_LOGIN_INFO = true)
   - toccy: fixed bug #11281: Sync of video failure
            SAPI SDKs: manage http status code 404 (not found) during downloads, skipping the item
            and moving to the next one (instead of stopping all downloads)
