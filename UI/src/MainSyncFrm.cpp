@@ -2434,7 +2434,8 @@ BOOL CMainSyncFrame::createMediaHubDesktopIniFile(const char* folderPath, const 
 
 LRESULT CMainSyncFrame::OnMsgSchedulerDisabled( WPARAM , LPARAM lParam) {
     CString s1;
-    s1.LoadString(IDS_TEXT_SCHEDULER_DISABLED);
+    //s1.LoadString(IDS_TEXT_SCHEDULER_DISABLED);
+    s1 = TEXT("");
     wndStatusBar.SetPaneText(0,s1);
 
 	bSchedulerWasDisabledByLogin = true;
