@@ -57,7 +57,7 @@
 #define DEFAULT_URL                         "http://my.funambol.com/sync"
 #define DEFAULT_USERNAME                    ""
 #define DEFAULT_PASSWORD                    ""
-#define SHOW_ACCOUNT_LOGIN_INFO             false                       /** If true, a label is displayed in the account screen with basic informations for the user */
+#define SHOW_ACCOUNT_LOGIN_INFO             true                       /** If true, a label is displayed in the account screen with basic informations for the user */
 
 // Addin customization
 // This macro is used into the Outlook menu. The & is the value used to create a shortcut to open the client
