@@ -833,10 +833,16 @@ Section "MainSection" SEC01
       ; Write registry keys
       Call writeRegistry
       
-      ; Create the MediaHub Folder previously set
-      Call createMediaHubFolder
-      ;MessageBox MB_ICONSTOP "$mediaHubFolder"
-      CreateShortCut  "$DESKTOP\${PROPERTY_MEDIAHUB}.lnk" "$mediaHubFolder" "" "$INSTDIR\images\MediaHubFolder.ico" "" "" "" "Open ${PRODUCT_PUBLISHER} ${PROPERTY_MEDIAHUB} Folder "
+      ; Create the MediaHub Folder only if previously set (skip during upgrades)
+      ${If} $mediaHubFolder != ""
+            ;MessageBox MB_ICONSTOP "$mediaHubFolder"
+            Call createMediaHubFolder
+            
+            ; This is to use the "$DESKTOP" shell var for current user, instead of the public one
+            SetShellVarContext current
+            CreateShortCut  "$DESKTOP\${PROPERTY_MEDIAHUB}.lnk" "$mediaHubFolder" "" "$INSTDIR\images\MediaHubFolder.ico" "" "" "" "Open ${PRODUCT_PUBLISHER} ${PROPERTY_MEDIAHUB} Folder "
+            SetShellVarContext all
+      ${EndIf}
 
       ; check if telephony location is correctly set
       Call checkTelephonyLocation
