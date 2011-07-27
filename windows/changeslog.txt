@@ -1,3 +1,7 @@
+2011-07-27
+  - magi: added languages: it, ru, zh (chinese simplified), tc (traditional chinese), ar, fr
+          commented resource (IDS_TEXT_SCHEDULER_DISABLED) and removed from resources
+
 2011-07-21
   - toccy: merged from branch v10 at rev.838
       - toccy: fixed bug #11240: Scheduled refresh from client
