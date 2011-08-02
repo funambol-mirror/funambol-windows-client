@@ -2372,7 +2372,9 @@ afx_msg LRESULT CMainSyncFrame::OnCheckMediaHubFolder(WPARAM wParam, LPARAM lPar
         }   else {
             unsigned int failFlags= MB_OK | MB_ICONASTERISK | MB_SETFOREGROUND | MB_APPLMODAL;
             CString s1;
-            s1.LoadString(IDS_MEDIA_HUB_ALERT_FOLDER_NOT_SET);
+            s1.FormatMessage(IDS_MEDIA_HUB_ALERT_FOLDER_NOT_SET, _T(MEDIA_HUB_DEFAULT_LABEL));
+    
+            //s1.LoadString(IDS_MEDIA_HUB_ALERT_FOLDER_NOT_SET);
             //MessageBox(s1, WPROGRAM_NAME, failFlags);                        
         }
     }
@@ -2405,7 +2407,9 @@ BOOL CMainSyncFrame::createMediaHubDesktopIniFile(const char* folderPath, const 
         icoName.append(MEDIA_HUB_DEFAULT_ICO);
 
         // populate the infoTip
-        CString s1; s1.LoadString(IDS_MEDIA_HUB_DESKTOPINI_TIP);
+        CString s1; 
+        s1.FormatMessage(IDS_MEDIA_HUB_DESKTOPINI_TIP, _T(MEDIA_HUB_DEFAULT_LABEL));    
+        // s1.LoadString(IDS_MEDIA_HUB_DESKTOPINI_TIP);
         StringBuffer tip = ConvertToChar(s1);
          
         FILE* f = fileOpen(file.c_str(), "w+");

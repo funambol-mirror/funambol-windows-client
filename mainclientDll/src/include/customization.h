@@ -117,6 +117,7 @@
 
 // MediaHub info.
 #define MEDIA_HUB_DEFAULT_FOLDER            "MediaHub"     // name of the default folder to store picture/video/files
+#define MEDIA_HUB_DEFAULT_LABEL             "MediaHub"      // label that is used in the resources
 #define MEDIA_HUB_DEFAULT_ICO               "MediaHubFolder.ico"     // name of the default ico to put in the Desktop.ini
 
 // If true, the client will integrate with Microsoft Outlook for PIM sync.
