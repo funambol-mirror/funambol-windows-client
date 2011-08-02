@@ -36,6 +36,7 @@
 ; customization params
 !include "customization.ini"
 
+
 !include UAC.nsh
 
 ; ------ defines ------
@@ -65,13 +66,14 @@
 ;
 ; MEDIAHUB properties
 ;
-!define PROPERTY_MEDIAHUB                       "MediaHub"
-!define PROPERTY_MEDIAHUB_TITLE                 "MediaHub Location"
-!define PROPERTY_MEDIAHUB_DESCRIPTION           "Select the MediaHub Folder Location."
-!define PROPERTY_MEDIAHUB_TEXT                  "Pictures, videos and files stored in the MediaHub folder will be kept in sync with your online account."
-!define PROPERTY_MEDIAHUB_FOLDER_ALERT          "NOTE: All pictures, videos, and files will now be downloaded to the designated folder above (instead of \Pictures or \MyPictures directory)."
-!define PROPERTY_MEDIAHUB_FOLDER                "MediaHub Folder"
-!define PROPERTY_MEDIAHUB_SELECT_FOLDER         "Choose a location for your MediaHub folder. A folder called 'MediaHub' will be created in the folder that you select."
+;!define PROPERTY_MEDIAHUB                       "MediaHub"
+;!define PROPERTY_MEDIAHUB_TITLE                 "MediaHub Location"
+;!define PROPERTY_MEDIAHUB_DESCRIPTION           "Select the MediaHub Folder Location."
+;!define PROPERTY_MEDIAHUB_TEXT                  "Pictures, videos and files stored in the MediaHub folder will be kept in sync with your online account."
+;!define PROPERTY_MEDIAHUB_FOLDER_ALERT          "NOTE: All pictures, videos, and files will now be downloaded to the designated folder above (instead of \Pictures or \MyPictures directory)."
+;!define PROPERTY_MEDIAHUB_FOLDER                "MediaHub Folder"
+;!define PROPERTY_MEDIAHUB_SELECT_FOLDER         "Choose a location for your MediaHub folder. A folder called 'MediaHub' will be created in the folder that you select."
+
 
 ; the mediaHubPath is created in the root context registry. At the start, the value is copied into
 ; the right spds\sources\picture, spds\sources\video and files and removed from the root context.
@@ -85,7 +87,7 @@
 !define OLD_PRODUCT_NAME                        "Funambol Outlook Sync Client"
 !define OLD_PRODUCT_NAME_EXE                    "OutlookPlugin.exe"
 !define OLD_PRODUCT_DIR_REGKEY                  "Software\Microsoft\Windows\CurrentVersion\App Paths\${OLD_PRODUCT_NAME_EXE}"
-!define OLD_PRODUCT_UNINST_KEY                 "Software\Microsoft\Windows\CurrentVersion\Uninstall\${OLD_PRODUCT_NAME}"
+!define OLD_PRODUCT_UNINST_KEY                  "Software\Microsoft\Windows\CurrentVersion\Uninstall\${OLD_PRODUCT_NAME}"
 !define OLD_STARTMENU_CONTEXT                   "Funambol\Outlook Sync Client"
 !define OLD_INSTALLDIR_CONTEXT                  "Funambol\Outlook Client"
 !define OLD_PLUGIN_UI_TITLE                     "Funambol Outlook Sync Client"
@@ -94,6 +96,17 @@
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
 !include "FileFunc.nsh"
+
+!include "MUI2.nsh"
+
+;--------------------------------
+;Language Selection Dialog Settings
+
+  ;Remember the installer language
+  !define MUI_LANGDLL_REGISTRY_ROOT "HKCU"
+  !define MUI_LANGDLL_REGISTRY_KEY "${PLUGIN_REGKEY_CONTEXT}"
+  !define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
+  
 
 BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 
@@ -147,14 +160,26 @@ var ICONS_GROUP
 
 ; Uninstaller pages
 !define MUI_UNABORTWARNING
-UninstPage custom un.RemoveUserData             ; Custom page, to ask if deleting users files/settings.
+UninstPage custom un.RemoveUserData un.nsDialogsPageLeaveCheckbox          ; Custom page, to ask if deleting users files/settings.
 !insertmacro MUI_UNPAGE_INSTFILES
 
 
 ; Language files
-!insertmacro MUI_LANGUAGE                       "English"
+  !define MUI_LANGDLL_ALLLANGUAGES  ; remove when build finally
+
+  !insertmacro MUI_LANGUAGE "English" ;first language is the default language
+  !insertmacro MUI_LANGUAGE "French"
+  !insertmacro MUI_LANGUAGE "German"
+  !insertmacro MUI_LANGUAGE "SimpChinese"
+  !insertmacro MUI_LANGUAGE "TradChinese"
+  !insertmacro MUI_LANGUAGE "Italian"
+  !insertmacro MUI_LANGUAGE "Russian"
+  !insertmacro MUI_LANGUAGE "Arabic"
+
 ; MUI end ------
 
+; add all the localized messages
+!include "localizedMessages.ini"
 
 Name              "${PRODUCT_NAME} ${PRODUCT_VERSION}"                       ; PRODUCT_VERSION passed as parameter by build.xml
 OutFile           "..\output\${FILE_NAME}-${PRODUCT_VERSION}.exe"
@@ -204,6 +229,7 @@ Function nsDialogsPage
         !insertmacro MUI_HEADER_TEXT "${PROPERTY_MEDIAHUB_TITLE}" "${PROPERTY_MEDIAHUB_DESCRIPTION}"
         
         ${NSD_CreateLabel} 0 0 100% 25u "${PROPERTY_MEDIAHUB_TEXT}"
+        ;${NSD_CreateLabel} 0 0 100% 25u "$(message1)"
 	Pop $Label
 	
 	; if MediaHub foder changed, let's append an alert text.
@@ -222,7 +248,7 @@ Function nsDialogsPage
 	Pop $DirRequest
 	${NSD_OnChange} $DirRequest nsDialogsPageTextChange
 
-	${NSD_CreateButton} 76% 43u 20% 15u "Browse..."
+	${NSD_CreateButton} 76% 43u 20% 15u "${PROPERTY_MEDIAHUB_BROWSE}"
 	Pop $Button
 	GetFunctionAddress $0 OnClick
 	nsDialogs::OnClick $Button $0
@@ -346,14 +372,14 @@ Function un.CheckMicrosoftApp
         ; First try to close Outlook automatically.
         FindWindow $0 "${MICROSOFT_OUTLOOK_CLASS_NAME}"
         IntCmp $0 0 checkProcess
-        MessageBox MB_OKCANCEL "I need to close ${MICROSOFT_OUTLOOK} to proceed with the uninstallation of $(^Name). Ok?" IDCANCEL Cancel
+        MessageBox MB_OKCANCEL "${CLOSE_UNINSTALL_OLK}" IDCANCEL Cancel
         SendMessage $0 16  0 0  $R1 /TIMEOUT=1000            ; WM_CLOSE = 16, timeout = 1000 ms
         Sleep 2500                                           ; wait 2500 ms for Outlook closing
 
         ; If Outlook still running, ask to close it manually.
         FindWindow $0 "${MICROSOFT_OUTLOOK_CLASS_NAME}"
         IntCmp $0 0 checkProcess
-        MessageBox MB_OKCANCEL "Could not close ${MICROSOFT_OUTLOOK}. Please close it manually to proceed with the uninstallation of $(^Name)." IDCANCEL Cancel
+        MessageBox MB_OKCANCEL "${CANNOT_CLOSE_UNINSTALL_OLK}" IDCANCEL Cancel
 
   checkProcess:
         ; Check if OUTLOOK.EXE is still running.
@@ -371,7 +397,7 @@ Function un.CheckMicrosoftApp
   done:
         Return
   Cancel:
-        MessageBox MB_OK "Uninstallation failed."
+        MessageBox MB_OK "${UNINSTALL_FAILED}"
         Abort
 FunctionEnd
 
@@ -382,19 +408,19 @@ Function CheckFunClientApp
         ; First try to close Windows client automatically.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${PLUGIN_UI_TITLE}"
         IntCmp $0 0 done
-        MessageBox MB_OKCANCEL "I need to close ${PRODUCT_NAME} to proceed with the installation of $(^Name). Ok?" IDCANCEL Cancel
+        MessageBox MB_OKCANCEL "${CLOSE_INSTALLATION}" IDCANCEL Cancel
         SendMessage $0 16  0 0  $R1 /TIMEOUT=1000            ; WM_CLOSE = 16, timeout = 1000 ms
         Sleep 500                                            ; wait 500 ms for plugin closing
   loop1:
         ; If client still running, ask to close it manually.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${PLUGIN_UI_TITLE}"
         IntCmp $0 0 done
-        MessageBox MB_OKCANCEL "Could not close ${PRODUCT_NAME}. Please close it manually to proceed with the installation of $(^Name)." IDCANCEL Cancel
+        MessageBox MB_OKCANCEL "${CANNOT_CLOSE_INSTALLATION}" IDCANCEL Cancel
         goto loop1
   done:
         Return
   Cancel:
-        MessageBox MB_OK "Installation aborted."
+        MessageBox MB_OK "${INSTALLATION_ABORTED}"
         Abort
 FunctionEnd
 
@@ -576,7 +602,7 @@ Function CheckAppInstalled
   ; 2. Reinstall the same version.
   sameVersion:
        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-                  "The same version of ${PRODUCT_NAME} is already installed. $\nPress OK to repair the plugin (all users settings will be preserved)." \
+                  "${PROPERTY_SAME_VERSION_INSTALLED}" \
                   IDCANCEL cancel
 
        StrCpy $R9 "uninstForUpgrade"     ; Cannot call now: user can cancel installation!
@@ -733,7 +759,10 @@ Function installDll
 FunctionEnd
 
 
-Function .onInit      
+Function .onInit
+
+!insertmacro MUI_LANGDLL_DISPLAY
+    
       Call CheckUserRights
       Call CheckAppInstalled
 !ifdef USE_OUTLOOK
@@ -959,12 +988,14 @@ SectionEnd
 
 Function un.onInit
 
+!insertmacro MUI_UNGETLANGUAGE
+
      Call un.CheckUserRights
      
-     !insertmacro MUI_INSTALLOPTIONS_EXTRACT "removeData.ini"
-     MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure to remove $(^Name) and all its components?" IDYES +2
-     Abort
-     
+     ;!insertmacro MUI_INSTALLOPTIONS_EXTRACT "removeData.ini"
+     ;MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure to remove $(^Name) and all its components?" IDYES +2
+     ;Abort
+
 !ifdef USE_OUTLOOK
      Call un.CheckMicrosoftApp
 !endif
@@ -979,33 +1010,82 @@ Function un.onUninstSuccess
      MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) has been removed from the computer."
 FunctionEnd
 
+Var Chbox
+Var Text
+Var Checkbox_State
+Function un.RemoveUserData
+
+        nsDialogs::Create 1018
+        Pop $Dialog
+
+        ${If} $Dialog == error
+		Abort
+	${EndIf}
+
+
+        !insertmacro MUI_HEADER_TEXT "Delete local settings" "Delete all local synchronization files and settings for all users."
+       ;!insertmacro MUI_HEADER_TEXT "${PROPERTY_MEDIAHUB_TITLE}" "${PROPERTY_MEDIAHUB_DESCRIPTION}"
+
+        ${NSD_CreateCheckBox} 0 0 100% 25u "Remove files and settings for all users."
+	Pop $Chbox
+
+        ${NSD_Check} $Chbox
+        
+	;${If} $Checkbox_State == ${BST_CHECKED}
+	;	${NSD_Check} $Chbox
+	;${EndIf}
+	
+        nsDialogs::Show
+
+
+FunctionEnd
+
+Function un.nsDialogsPageLeaveCheckbox
+
+	${NSD_GetState} $Chbox $Checkbox_State
+	${If} $Checkbox_State == ${BST_CHECKED}
+	
+	  Call un.deleteUsersMediaHubDesktopIni
+          Call un.deleteUsersFiles
+          Call un.deleteUsersRegistry
+
+          ; Delete scheduled task for all users.
+          ; Tasks have the name: "Funambol Windows Client - <Username>.job"
+          ; where 'Username' is the Windows current user that created it.
+          Delete "$WINDIR\Tasks\${PRODUCT_NAME}*.job"
+
+        ${EndIf}
+
+FunctionEnd
+
+
 
 
 ; Display a custom page during uninstaller, to ask the user if deleting files/settings.
-Function un.RemoveUserData
-
-     !insertmacro MUI_HEADER_TEXT "Delete local settings" "Delete all local synchronization files and settings for all users."
-     !insertmacro MUI_INSTALLOPTIONS_DISPLAY_RETURN "removeData.ini"
-     
-     Pop $R0      ; This is the return value: "success", "cancel", "back" or "error"
-     ;MessageBox MB_ICONINFORMATION|MB_OK "ret value = $R0"
-     StrCmp $R0 "success"  0 done
-     
-     ; Read the 'State' value of checkbox: 0 = not selected.
-     ReadINIStr $R2 "$PLUGINSDIR\removeData.ini" "Field 1" "State"
-     IntCmp $R2 0 done
-     
-     Call un.deleteUsersMediaHubDesktopIni
-     Call un.deleteUsersFiles
-     Call un.deleteUsersRegistry
-     
-     ; Delete scheduled task for all users.
-     ; Tasks have the name: "Funambol Windows Client - <Username>.job"
-     ; where 'Username' is the Windows current user that created it.
-     Delete "$WINDIR\Tasks\${PRODUCT_NAME}*.job"
-     
-  done:
-FunctionEnd
+;Function un.RemoveUserData
+;
+ ;    !insertmacro MUI_HEADER_TEXT "Delete local settings" "Delete all local synchronization files and settings for all users."
+ ;    !insertmacro MUI_INSTALLOPTIONS_DISPLAY_RETURN "removeData.ini"
+;
+;     Pop $R0      ; This is the return value: "success", "cancel", "back" or "error"
+;     ;MessageBox MB_ICONINFORMATION|MB_OK "ret value = $R0"
+;     StrCmp $R0 "success"  0 done
+;
+;     ; Read the 'State' value of checkbox: 0 = not selected.
+;     ReadINIStr $R2 "$PLUGINSDIR\removeData.ini" "Field 1" "State"
+;     IntCmp $R2 0 done
+;
+;     Call un.deleteUsersMediaHubDesktopIni
+;     Call un.deleteUsersFiles
+;     Call un.deleteUsersRegistry
+;
+;     ; Delete scheduled task for all users.
+;     ; Tasks have the name: "Funambol Windows Client - <Username>.job"
+;     ; where 'Username' is the Windows current user that created it.
+;     Delete "$WINDIR\Tasks\${PRODUCT_NAME}*.job"
+;
+;  done:
+;FunctionEnd
 
 
 
