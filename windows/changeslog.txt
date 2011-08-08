@@ -1,3 +1,13 @@
+2011-08-08
+  - magi: added multilanguage installer. en,it,de,fr,zh,tc,ru,ar
+          change usage of nsis program. Needed nsis unicode version.
+           (download nsis unicode: http://code.google.com/p/unsis/downloads/detail?name=nsis-2.46.1-Unicode-setup.exe&can=2&q=)
+          updated uninstall panel: now it is created by code (not using form)
+          changed build.xml to use nsis unicode
+          updated UAC.dll and UAC.nsh to use nsis unicode
+          added link to desktop of the client
+          
+
 2011-07-27
   - toccy: merged from branch v10 at rev.852
       - toccy: enabled information label in account screen (SHOW_ACCOUNT_LOGIN_INFO = true)
