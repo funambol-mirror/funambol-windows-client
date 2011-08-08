@@ -1,4 +1,5 @@
 2011-08-08
+  - toccy: updated trunk version to 10.1.0 (release 10.1.0)
   - magi: added multilanguage installer. en,it,de,fr,zh,tc,ru,ar
           change usage of nsis program. Needed nsis unicode version.
            (download nsis unicode: http://code.google.com/p/unsis/downloads/detail?name=nsis-2.46.1-Unicode-setup.exe&can=2&q=)
