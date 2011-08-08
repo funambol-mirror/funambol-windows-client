@@ -1,3 +1,17 @@
+2011-08-08
+  - toccy: release 10.0.5
+  - toccy: merged from trunk at rev.876:
+          - magi: added multilanguage installer. en,it,de,fr,zh,tc,ru,ar
+                  change usage of nsis program. Needed nsis unicode version.
+                   (download nsis unicode: http://code.google.com/p/unsis/downloads/detail?name=nsis-2.46.1-Unicode-setup.exe&can=2&q=)
+                  updated uninstall panel: now it is created by code (not using form)
+                  changed build.xml to use nsis unicode
+                  updated UAC.dll and UAC.nsh to use nsis unicode
+                  added link to desktop of the client
+
+          - magi: added languages: it, ru, zh (chinese simplified), tc (traditional chinese), ar, fr
+                  commented resource (IDS_TEXT_SCHEDULER_DISABLED) and removed from resources
+
 2011-07-25
   - toccy: release 10.0.4
   - toccy: enabled information label in account screen (SHOW_ACCOUNT_LOGIN_INFO = true)
@@ -9,29 +23,29 @@
 
 2011-07-21
   - toccy: release 10.0.3
-  - toccy: fixed bug #11240: Scheduled refresh from client
-           - fixed the way the syncmodes are managed: never backup syncmodes (from UI and client)
-             and after a PIM sync completed the original syncmodes are read from registry, before
-             config save. This way we never set a "full-sync mode" in registry, but just in memory 
-             for the time of the sync process.
-           - added a fixSyncModes method for PIM sources, to clean full-sync modes at client startup.
-           - some cleanup: removed fullSync flag from config and backup/restoreSyncModes from UI
-
+      - toccy: fixed bug #11240: Scheduled refresh from client
+               - fixed the way the syncmodes are managed: never backup syncmodes (from UI and client)
+                 and after a PIM sync completed the original syncmodes are read from registry, before
+                 config save. This way we never set a "full-sync mode" in registry, but just in memory 
+                 for the time of the sync process.
+               - added a fixSyncModes method for PIM sources, to clean full-sync modes at client startup.
+               - some cleanup: removed fullSync flag from config and backup/restoreSyncModes from UI
+    
 2011-07-20
-  - toccy: reintegrated branch US8294:
-           * added deviceConfig params: 
-             - autoSync (if false, the scheduler is disabled. Default = true)
-             - dataplanExpirationDate (the expiration date for current profile. Default = 0 = disabled)
-           * added sourceConfig param: allowed (boolean, default = true)
-           * set syncmode SLOW for PIM sync (SyncML code 201) if last tstamp is 0
-             (so it's the client to request a slow sync, instead of letting the server
-             decide because anchors = 0 are not valid)
-           * handling SyncML error code 402 (payment required)
-           * added SAPI service profiling (login with &details), disabled by default (see ENABLE_PAYMENT_REQUIRED_CHARGE)
-           * added SAPI restore charge (in case of code 402 = payment required), disabled by default (see ENABLE_LOGIN_ON_ACCOUNT_CHANGE)
-           * when account is changed: a SAPI login is done and all source tstamps are resetted
-           * removed 5,10,15 mins from scheduler settings (new default and minimum value is 30 min)
-           * UI: added method to be notified when user clicks on a disabled pane
+      - toccy: reintegrated branch US8294:
+               * added deviceConfig params: 
+                 - autoSync (if false, the scheduler is disabled. Default = true)
+                 - dataplanExpirationDate (the expiration date for current profile. Default = 0 = disabled)
+               * added sourceConfig param: allowed (boolean, default = true)
+               * set syncmode SLOW for PIM sync (SyncML code 201) if last tstamp is 0
+                 (so it's the client to request a slow sync, instead of letting the server
+                 decide because anchors = 0 are not valid)
+               * handling SyncML error code 402 (payment required)
+               * added SAPI service profiling (login with &details), disabled by default (see ENABLE_PAYMENT_REQUIRED_CHARGE)
+               * added SAPI restore charge (in case of code 402 = payment required), disabled by default (see ENABLE_LOGIN_ON_ACCOUNT_CHANGE)
+               * when account is changed: a SAPI login is done and all source tstamps are resetted
+               * removed 5,10,15 mins from scheduler settings (new default and minimum value is 30 min)
+               * UI: added method to be notified when user clicks on a disabled pane
 
 2011-07-14
   - toccy: merged from trunk at rev.828:

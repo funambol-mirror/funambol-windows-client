@@ -118,19 +118,27 @@ BOOL CMediaHubSetting::OnInitDialog() {
     bool showAdvanced = true;
     CString s1;
     s1.LoadString(IDS_MEDIA_HUB_TITLE);
+    s1.FormatMessage(IDS_MEDIA_HUB_TITLE, _T(MEDIA_HUB_DEFAULT_LABEL));
+    
     SetWindowText(s1);
     CDialog::OnInitDialog();
 
     editFolder.SetLimitText  (EDIT_TEXT_MAXLENGTH);    
   
     // load string resources
-    s1.LoadString(IDS_MEDIA_HUB_GROUP_FOLDER_LABEL);    SetDlgItemText(IDC_MEDIA_HUB_GROUP_FOLDER,       s1);    
+    s1.FormatMessage(IDS_MEDIA_HUB_GROUP_FOLDER_LABEL, _T(MEDIA_HUB_DEFAULT_LABEL));
+    SetDlgItemText(IDC_MEDIA_HUB_GROUP_FOLDER,       s1);    
+    // s1.LoadString(IDS_MEDIA_HUB_GROUP_FOLDER_LABEL);    SetDlgItemText(IDC_MEDIA_HUB_GROUP_FOLDER,       s1);    
     //s1.LoadString(IDS_CURRENT);             SetDlgItemText(IDC_MEDIA_HUB_STATIC_FOLDER,      s1);
     s1.LoadString(IDS_SELECT_FOLDER);       SetDlgItemText(IDC_MEDIA_HUB_BUT_SELECT,         s1);
     s1.LoadString(IDS_OK);                  SetDlgItemText(IDC_MEDIA_HUB_OK,                 s1);
     s1.LoadString(IDS_CANCEL);              SetDlgItemText(IDC_MEDIA_HUB_CANCEL,             s1);
     s1.LoadString(IDS_RESET_BUTTON);        SetDlgItemText(IDC_MEDIA_HUB_BUT_RESET,          s1);
-    s1.LoadString(IDS_MEDIA_HUB_EXPLAIN_LABEL);  SetDlgItemText(IDC_MEDIA_HUB_EXPLAIN_LABEL, s1);
+    
+    s1.FormatMessage(IDS_MEDIA_HUB_EXPLAIN_LABEL, _T(MEDIA_HUB_DEFAULT_LABEL));
+    SetDlgItemText(IDC_MEDIA_HUB_EXPLAIN_LABEL, s1);
+    
+    //s1.LoadString(IDS_MEDIA_HUB_EXPLAIN_LABEL);  SetDlgItemText(IDC_MEDIA_HUB_EXPLAIN_LABEL, s1);
     
    
     StringBuffer path = ssconf->getCommonConfig()->getProperty(PROPERTY_MEDIAHUB_PATH);
@@ -205,7 +213,10 @@ void CMediaHubSetting::OnBnClickedMediaHubButSelect() {
     }
 
     CString caption;
-    caption.LoadString(IDS_MEDIA_HUB_TITLE_PICKER);
+    caption.FormatMessage(IDS_MEDIA_HUB_TITLE_PICKER, 
+                    _T(MEDIA_HUB_DEFAULT_LABEL),
+                    _T(MEDIA_HUB_DEFAULT_LABEL));
+    
     
     // Open the browse for folder window (modal)
     wstring newPath;

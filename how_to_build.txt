@@ -38,8 +38,9 @@ How to build the Funambol Windows Sync Client
         http://www.java2s.com/Code/Jar/cocoon-2.1.10/Downloadantcontrib06jar.htm
       * Copy the jar file under the folder "<ant-installation-dir>\lib" 
 
-    - NSIS (Nullsoft Scriptable Install System), version 2.46 or higher
-      Can be downloaded from: http://nsis.sourceforge.net
+    - NSIS Unicode (Nullsoft Scriptable Install System, Unicode branch), version 2.46.1 or higher
+      Can be downloaded from: http://code.google.com/p/unsis/downloads/detail?name=nsis-2.46.1-Unicode-setup.exe&can=2&q=
+      (note: NSIS Unicode is needed instead of standard NSIS application, for correct languages support)
    
     - [optional] Doxygen (http://www.stack.nl/~dimitri/doxygen/download.html) 
     

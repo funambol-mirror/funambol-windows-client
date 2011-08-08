@@ -149,7 +149,7 @@ Forge file for Funambol Windows Sync Client
                 <!-- If running under cygwin -->
                 <property name="vs2005.devenv"       value = "${env.PROGRAMFILES}\Microsoft Visual Studio 9.0\Common7\IDE"/>
                 <property name="dir.VCpp2005Lib"     value = "${env.PROGRAMFILES}\Microsoft Visual Studio 9.0\VC\redist\x86"/>
-                <property name="install-builder.dir" value = "${env.PROGRAMFILES}\NSIS"/>
+                <property name="install-builder.dir" value = "${env.PROGRAMFILES}\NSIS\Unicode"/>
             </then>
         <elseif>
             <isset property="env.ProgramFiles"/>
@@ -157,7 +157,7 @@ Forge file for Funambol Windows Sync Client
                 <!-- If running from cmd.exe  -->
                 <property name="vs2005.devenv"       value = "${env.ProgramFiles}\Microsoft Visual Studio 9.0\Common7\IDE"/>
                 <property name="dir.VCpp2005Lib"     value = "${env.ProgramFiles}\Microsoft Visual Studio 9.0\VC\redist\x86"/>
-                <property name="install-builder.dir" value = "${env.ProgramFiles}\NSIS"/>
+                <property name="install-builder.dir" value = "${env.ProgramFiles}\NSIS\Unicode"/>
             </then>        
         </elseif>
         </if>

@@ -65,13 +65,14 @@
 ;
 ; MEDIAHUB properties
 ;
-!define PROPERTY_MEDIAHUB                       "MediaHub"
-!define PROPERTY_MEDIAHUB_TITLE                 "MediaHub Location"
-!define PROPERTY_MEDIAHUB_DESCRIPTION           "Select the MediaHub Folder Location."
-!define PROPERTY_MEDIAHUB_TEXT                  "Pictures, videos and files stored in the MediaHub folder will be kept in sync with your online account."
-!define PROPERTY_MEDIAHUB_FOLDER_ALERT          "NOTE: All pictures, videos, and files will now be downloaded to the designated folder above (instead of \Pictures or \MyPictures directory)."
-!define PROPERTY_MEDIAHUB_FOLDER                "MediaHub Folder"
-!define PROPERTY_MEDIAHUB_SELECT_FOLDER         "Choose a location for your MediaHub folder. A folder called 'MediaHub' will be created in the folder that you select."
+;!define PROPERTY_MEDIAHUB                       "MediaHub"
+;!define PROPERTY_MEDIAHUB_TITLE                 "MediaHub Location"
+;!define PROPERTY_MEDIAHUB_DESCRIPTION           "Select the MediaHub Folder Location."
+;!define PROPERTY_MEDIAHUB_TEXT                  "Pictures, videos and files stored in the MediaHub folder will be kept in sync with your online account."
+;!define PROPERTY_MEDIAHUB_FOLDER_ALERT          "NOTE: All pictures, videos, and files will now be downloaded to the designated folder above (instead of \Pictures or \MyPictures directory)."
+;!define PROPERTY_MEDIAHUB_FOLDER                "MediaHub Folder"
+;!define PROPERTY_MEDIAHUB_SELECT_FOLDER         "Choose a location for your MediaHub folder. A folder called 'MediaHub' will be created in the folder that you select."
+
 
 ; the mediaHubPath is created in the root context registry. At the start, the value is copied into
 ; the right spds\sources\picture, spds\sources\video and files and removed from the root context.
@@ -85,15 +86,27 @@
 !define OLD_PRODUCT_NAME                        "Funambol Outlook Sync Client"
 !define OLD_PRODUCT_NAME_EXE                    "OutlookPlugin.exe"
 !define OLD_PRODUCT_DIR_REGKEY                  "Software\Microsoft\Windows\CurrentVersion\App Paths\${OLD_PRODUCT_NAME_EXE}"
-!define OLD_PRODUCT_UNINST_KEY                 "Software\Microsoft\Windows\CurrentVersion\Uninstall\${OLD_PRODUCT_NAME}"
+!define OLD_PRODUCT_UNINST_KEY                  "Software\Microsoft\Windows\CurrentVersion\Uninstall\${OLD_PRODUCT_NAME}"
 !define OLD_STARTMENU_CONTEXT                   "Funambol\Outlook Sync Client"
 !define OLD_INSTALLDIR_CONTEXT                  "Funambol\Outlook Client"
 !define OLD_PLUGIN_UI_TITLE                     "Funambol Outlook Sync Client"
 
 
+
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
 !include "FileFunc.nsh"
+
+!include "MUI2.nsh"
+
+;--------------------------------
+;Language Selection Dialog Settings
+
+  ;Remember the installer language
+  !define MUI_LANGDLL_REGISTRY_ROOT "HKCU"
+  !define MUI_LANGDLL_REGISTRY_KEY "${PLUGIN_REGKEY_CONTEXT}"
+  !define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
+    
 
 BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 
@@ -135,26 +148,61 @@ var ICONS_GROUP
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 
+Function finishpageaction
+    SetShellVarContext all
+    CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\${PRODUCT_NAME_EXE}" 
+FunctionEnd
 
 ; Finish page
-!define MUI_FINISHPAGE_RUN
-!define MUI_FINISHPAGE_RUN_FUNCTION             ExecAppFile
-!ifdef FINISHPAGE_SHOW_README
-    !define MUI_FINISHPAGE_SHOWREADME               "$INSTDIR\Readme.txt"
-    !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
-!endif
+!define MUI_FINISHPAGE_RUN                     "$INSTDIR\${PRODUCT_NAME_EXE}"
+!define MUI_FINISHPAGE_TITLE_3LINES            ; extra space since the application name is quite long!define MUI_FINISHPAGE_RUN_FUNCTION             ExecAppFile
+!define MUI_FINISHPAGE_SHOWREADME ""
+!define MUI_FINISHPAGE_SHOWREADME_CHECKED
+!define MUI_FINISHPAGE_SHOWREADME_TEXT         $(CREATE_APP_DESKTOP_LINK_MM)
+!define MUI_FINISHPAGE_SHOWREADME_FUNCTION finishpageaction
+
+;!ifdef FINISHPAGE_SHOW_README
+;    !define MUI_FINISHPAGE_SHOWREADME               "$INSTDIR\Readme.txt"
+;    !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
+;!endif
+
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller pages
 !define MUI_UNABORTWARNING
-UninstPage custom un.RemoveUserData             ; Custom page, to ask if deleting users files/settings.
+UninstPage custom un.RemoveUserData un.nsDialogsPageLeaveCheckbox          ; Custom page, to ask if deleting users files/settings.
 !insertmacro MUI_UNPAGE_INSTFILES
 
-
 ; Language files
-!insertmacro MUI_LANGUAGE                       "English"
+
+  !insertmacro MUI_LANGUAGE "English" ;first language is the default language
+  !insertmacro MUI_LANGUAGE "French"
+  !insertmacro MUI_LANGUAGE "German"
+  !insertmacro MUI_LANGUAGE "SimpChinese"
+  !insertmacro MUI_LANGUAGE "TradChinese"
+  !insertmacro MUI_LANGUAGE "Italian"
+  !insertmacro MUI_LANGUAGE "Russian"
+  !insertmacro MUI_LANGUAGE "Arabic"
+
+
+;
+; Need to add these here otherwise cannot be read by the localizedMessages.ini
+;
+LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_ENGLISH} "Create shortcut on desktop"
+LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_ITALIAN} "Crea collegamento sul desktop"      
+LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_FRENCH}  "Créer un raccourci sur le bureau"        
+LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_GERMAN}  "Verknüpfung auf Desktop erstellen"      
+LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_SIMPCHINESE} "在桌面上创建快捷方式" 
+LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_TRADCHINESE} "在桌面上创建快捷方式" 
+LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_RUSSIAN} "Создать ярлык на рабочем столе"     
+LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_ARABIC} "إنشاء اختصار على سطح المكتب"      
+
 ; MUI end ------
 
+
+; add all the localized messages
+!include "localizedMessages.ini" 
+  
 
 Name              "${PRODUCT_NAME} ${PRODUCT_VERSION}"                       ; PRODUCT_VERSION passed as parameter by build.xml
 OutFile           "..\output\${FILE_NAME}-${PRODUCT_VERSION}.exe"
@@ -167,9 +215,9 @@ Icon              "${MUI_ICON}"
 
 RequestExecutionLevel user    /* RequestExecutionLevel REQUIRED! */
 
-
 Function .OnInstFailed
-    ${UAC.Unload} ;Must call unload!
+    ;${UAC.Unload} ;Must call unload!
+    
 FunctionEnd
 
 
@@ -184,61 +232,68 @@ Var Button
 Var mediaHubFolderChoosen
 Var mediaHubFolder
 Var showMediaHubPanel
+Var ttttt
 
 Function nsDialogsPage
 
-        ${If} $showMediaHubPanel == "NO"
+    ${If} $showMediaHubPanel == "NO"
 		Abort ; exit and don't show anything
 	${EndIf}
 
-        nsDialogs::Create 1018
-        Pop $Dialog
+    nsDialogs::Create 1018
+    Pop $Dialog
 
-        ${If} $Dialog == error
+    ${If} $Dialog == error
 		Abort
 	${EndIf}
 
-        GetFunctionAddress $0 OnBack
+    GetFunctionAddress $0 OnBack
 	nsDialogs::OnBack $0
 	
-        !insertmacro MUI_HEADER_TEXT "${PROPERTY_MEDIAHUB_TITLE}" "${PROPERTY_MEDIAHUB_DESCRIPTION}"
+    !insertmacro MUI_HEADER_TEXT "${PROPERTY_MEDIAHUB_TITLE}" "${PROPERTY_MEDIAHUB_DESCRIPTION}"
         
-        ${NSD_CreateLabel} 0 0 100% 25u "${PROPERTY_MEDIAHUB_TEXT}"
-	Pop $Label
+    ${NSD_CreateLabel} 0 0 100% 25u "${PROPERTY_MEDIAHUB_TEXT}"
+    Pop $Label
 	
 	; if MediaHub foder changed, let's append an alert text.
 	${If} $showMediaHubPanel == "FolderChanged"
-            ${NSD_CreateLabel} 0 85u 100% 25u "${PROPERTY_MEDIAHUB_FOLDER_ALERT}"
+        ${NSD_CreateLabel} 0 85u 100% 25u "${PROPERTY_MEDIAHUB_FOLDER_ALERT}"
 	    Pop $Label
-            CreateFont $1 "$(^Font)" 8 600
-            SendMessage $Label ${WM_SETFONT} $1 0
-        ${EndIf}
+        CreateFont $1 "$(^Font)" 8 600
+        SendMessage $Label ${WM_SETFONT} $1 0
+    ${EndIf}
 	
 	${If} $mediaHubFolderChoosen == ""
 	        StrCpy $mediaHubFolderChoosen "$DOCUMENTS"
 	${EndIf}
 	
-	${NSD_CreateText} 3% 43u 70% 15u "$mediaHubFolderChoosen\${PROPERTY_MEDIAHUB}"
+	${NSD_CreateLabel} 3% 46u 70% 15u "$mediaHubFolderChoosen\${PROPERTY_MEDIAHUB}"
 	Pop $DirRequest
 	${NSD_OnChange} $DirRequest nsDialogsPageTextChange
 
-	${NSD_CreateButton} 76% 43u 20% 15u "Browse..."
+	${NSD_CreateButton} 76% 43u 20% 15u "${PROPERTY_MEDIAHUB_BROWSE}"
 	Pop $Button
 	GetFunctionAddress $0 OnClick
 	nsDialogs::OnClick $Button $0
 	
-        ${NSD_CreateGroupBox} 0 29u 100% 40u "${PROPERTY_MEDIAHUB_FOLDER}"
+    ${NSD_CreateGroupBox} 0 29u 100% 40u "${PROPERTY_MEDIAHUB_FOLDER}"
 	Pop $GroupBox
  
-        nsDialogs::Show
+    nsDialogs::Show
 
 FunctionEnd
 
 Function nsDialogsPageTextChange
         ;basically avoid to edit the field manually
-        ${NSD_SetText} $DirRequest "$mediaHubFolderChoosen\${PROPERTY_MEDIAHUB}"
-
+        ;${NSD_SetText} $DirRequest "$mediaHubFolderChoosen\${PROPERTY_MEDIAHUB}"
+        ;StrCpy $ttttt "$mediaHubFolderChoosen\${PROPERTY_MEDIAHUB}"
+        ;${NSD_SetText} $ttttt "$mediaHubFolderChoosen\${PROPERTY_MEDIAHUB}"
+        ;MessageBox MB_ICONSTOP "$ttttt"
+        ;StrCpy $DirRequest $ttttt
+        ;MessageBox MB_ICONSTOP "$DirRequest"
+        ;${NSD_SetText} $DirRequest "$ttttt"
 FunctionEnd
+
 
 Function OnClick
 
@@ -249,9 +304,9 @@ Function OnClick
 	${If} $R1 == "error"
 	        Abort
 	${EndIf}
-	
+	;MessageBox MB_ICONSTOP "$mediaHubFolderChoosen"
 	StrCpy $mediaHubFolderChoosen $R1
-	
+	;MessageBox MB_ICONSTOP "$R1"
 	StrLen $R2 $mediaHubFolderChoosen             ; remove the \ at the end
 	;MessageBox MB_ICONSTOP "$R2"
 	IntOp  $R3  $R2 - 1
@@ -261,9 +316,8 @@ Function OnClick
         ${If} $R2 == "\"
               StrCpy $mediaHubFolderChoosen $R1  -1
 	${EndIf}
-
-	${NSD_SetText} $DirRequest "$mediaHubFolderChoosen\${PROPERTY_MEDIAHUB}"
-        
+    ${NSD_SetText} $DirRequest "$mediaHubFolderChoosen\${PROPERTY_MEDIAHUB}"
+    
 FunctionEnd
 
 Function OnBack
@@ -277,32 +331,34 @@ FunctionEnd
 
 Function createMediaHubFolder
 
-        ${DirState} "$mediaHubFolder" $R0
-        ${If} $R0 == -1
-		StrCpy $R1 $mediaHubFolder
-                CreateDirectory "$mediaHubFolder"
+    ${DirState} "$mediaHubFolder" $R0
+    ${If} $R0 == -1
+	    StrCpy $R1 $mediaHubFolder
+        CreateDirectory "$mediaHubFolder"
 
-                ${DirState} "$mediaHubFolder" $R1
-                ${If} $R1 == -1
-                   MessageBox MB_ICONSTOP "Error creating the MediaHub Folder. Please check it and try again."
-                   Abort
-                ${EndIf}
+        ${DirState} "$mediaHubFolder" $R1
+        ${If} $R1 == -1
+           MessageBox MB_ICONSTOP "Error creating the MediaHub Folder. Please check it and try again."
+           Abort
+        ${EndIf}
 
 	${EndIf}
 	
 	${If} $mediaHubFolder != ""
- 	      WriteRegStr    HKCU  "${PLUGIN_REGKEY_CONTEXT}"  "${PROPERTY_MEDIAHUB_REG_KEY}" "$mediaHubFolder"
+        WriteRegStr    HKCU  "${PLUGIN_REGKEY_CONTEXT}"  "${PROPERTY_MEDIAHUB_REG_KEY}" "$mediaHubFolder"
 	${EndIf}
 	
 FunctionEnd
 
 
 Function .OnInstSuccess
-    ${UAC.Unload} ;Must call unload!
+    ;${UAC.Unload} ;Must call unload!
+    
 FunctionEnd
 
 Function ExecAppFile
-    UAC::Exec '' '"$INSTDIR\${PRODUCT_NAME_EXE}"' '' ''
+    ;UAC::Exec '' '"$INSTDIR\${PRODUCT_NAME_EXE}"' '' '' 
+    !insertmacro UAC_AsUser_ExecShell '' '"$INSTDIR\${PRODUCT_NAME_EXE}"' '' '' ''
 FunctionEnd
 
 
@@ -336,7 +392,7 @@ Function CheckMicrosoftApp
   done:
         Return
   Cancel:
-        MessageBox MB_OK "Installation aborted."
+        MessageBox MB_OK "${INSTALLATION_ABORTED}"
         Abort
 FunctionEnd
 
@@ -346,14 +402,14 @@ Function un.CheckMicrosoftApp
         ; First try to close Outlook automatically.
         FindWindow $0 "${MICROSOFT_OUTLOOK_CLASS_NAME}"
         IntCmp $0 0 checkProcess
-        MessageBox MB_OKCANCEL "I need to close ${MICROSOFT_OUTLOOK} to proceed with the uninstallation of $(^Name). Ok?" IDCANCEL Cancel
+        MessageBox MB_OKCANCEL "${CLOSE_UNINSTALL_OLK}" IDCANCEL Cancel
         SendMessage $0 16  0 0  $R1 /TIMEOUT=1000            ; WM_CLOSE = 16, timeout = 1000 ms
         Sleep 2500                                           ; wait 2500 ms for Outlook closing
 
         ; If Outlook still running, ask to close it manually.
         FindWindow $0 "${MICROSOFT_OUTLOOK_CLASS_NAME}"
         IntCmp $0 0 checkProcess
-        MessageBox MB_OKCANCEL "Could not close ${MICROSOFT_OUTLOOK}. Please close it manually to proceed with the uninstallation of $(^Name)." IDCANCEL Cancel
+        MessageBox MB_OKCANCEL "${CANNOT_CLOSE_UNINSTALL_OLK}" IDCANCEL Cancel
 
   checkProcess:
         ; Check if OUTLOOK.EXE is still running.
@@ -371,7 +427,7 @@ Function un.CheckMicrosoftApp
   done:
         Return
   Cancel:
-        MessageBox MB_OK "Uninstallation failed."
+        MessageBox MB_OK "${UNINSTALL_FAILED}"
         Abort
 FunctionEnd
 
@@ -382,19 +438,19 @@ Function CheckFunClientApp
         ; First try to close Windows client automatically.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${PLUGIN_UI_TITLE}"
         IntCmp $0 0 done
-        MessageBox MB_OKCANCEL "I need to close ${PRODUCT_NAME} to proceed with the installation of $(^Name). Ok?" IDCANCEL Cancel
+        MessageBox MB_OKCANCEL "${CLOSE_INSTALLATION}" IDCANCEL Cancel
         SendMessage $0 16  0 0  $R1 /TIMEOUT=1000            ; WM_CLOSE = 16, timeout = 1000 ms
         Sleep 500                                            ; wait 500 ms for plugin closing
   loop1:
         ; If client still running, ask to close it manually.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${PLUGIN_UI_TITLE}"
         IntCmp $0 0 done
-        MessageBox MB_OKCANCEL "Could not close ${PRODUCT_NAME}. Please close it manually to proceed with the installation of $(^Name)." IDCANCEL Cancel
+        MessageBox MB_OKCANCEL "${CANNOT_CLOSE_INSTALLATION}" IDCANCEL Cancel
         goto loop1
   done:
         Return
   Cancel:
-        MessageBox MB_OK "Installation aborted."
+        MessageBox MB_OK "${INSTALLATION_ABORTED}"
         Abort
 FunctionEnd
 
@@ -404,19 +460,19 @@ Function CheckOldFunClientApp
         ; First try to close Outlook plugin automatically.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${OLD_PLUGIN_UI_TITLE}"
         IntCmp $0 0 done
-        MessageBox MB_OKCANCEL "I need to close ${OLD_PRODUCT_NAME} to proceed with the installation of $(^Name). Ok?" IDCANCEL Cancel
+        MessageBox MB_OKCANCEL "${CLOSE_INSTALLATION_OLD_PRODUCT}" IDCANCEL Cancel
         SendMessage $0 16  0 0  $R1 /TIMEOUT=1000            ; WM_CLOSE = 16, timeout = 1000 ms
         Sleep 500                                            ; wait 500 ms for plugin closing
   loop1:
         ; If plugin still running, ask to close it manually.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${OLD_PLUGIN_UI_TITLE}"
         IntCmp $0 0 done
-        MessageBox MB_OKCANCEL "Could not close ${OLD_PRODUCT_NAME}. Please close it manually to proceed with the installation of $(^Name)." IDCANCEL Cancel
+        MessageBox MB_OKCANCEL "${CANNOT_CLOSE_INSTALLATION_OLD_PRODUCT}" IDCANCEL Cancel
         goto loop1
   done:
         Return
   Cancel:
-        MessageBox MB_OK "Installation aborted."
+        MessageBox MB_OK "${INSTALLATION_ABORTED}"
         Abort
 FunctionEnd
 
@@ -426,19 +482,19 @@ Function un.CheckFunClientApp
         ; First try to close Windows client automatically.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${PLUGIN_UI_TITLE}"
         IntCmp $0 0 done
-        MessageBox MB_OKCANCEL "I need to close ${PRODUCT_NAME} to proceed with the uninstallation of $(^Name). Ok?" IDCANCEL Cancel
+        MessageBox MB_OKCANCEL "${CLOSE_UNINSTALL_PRODUCT}" IDCANCEL Cancel
         SendMessage $0 16  0 0  $R1 /TIMEOUT=1000            ; WM_CLOSE = 16, timeout = 1000 ms
         Sleep 500                                            ; wait 500 ms for plugin closing
   loop1:
         ; If client still running, ask to close it manually.
         FindWindow $0 "${PLUGIN_UI_CLASS_NAME}" "${PLUGIN_UI_TITLE}"
         IntCmp $0 0 done
-        MessageBox MB_OKCANCEL "Could not close ${PRODUCT_NAME}. Please close it manually to proceed with the uninstallation of $(^Name)." IDCANCEL Cancel
+        MessageBox MB_OKCANCEL "${CANNOT_CLOSE_UNINSTALL_PRODUCT}" IDCANCEL Cancel
         goto loop1
   done:
         Return
   Cancel:
-        MessageBox MB_OK "Uninstallation failed."
+        MessageBox MB_OK "${UNINSTALL_FAILED}"
         Abort
 FunctionEnd
 
@@ -447,15 +503,37 @@ FunctionEnd
 ; Check if current user have Administrator rights to run the installer.
 ; If not, the installer will be aborted.
 Function CheckUserRights
+    uac_tryagain:
+    !insertmacro UAC_RunElevated
+    #MessageBox mb_TopMost "0=$0 1=$1 2=$2 3=$3"
+    ${Switch} $0
+    ${Case} 0
+    	${IfThen} $1 = 1 ${|} Quit ${|} ;we are the outer process, the inner process has done its work, we are done
+    	${IfThen} $3 <> 0 ${|} ${Break} ${|} ;we are admin, let the show go on
+    	${If} $1 = 3 ;RunAs completed successfully, but with a non-admin user
+    		MessageBox mb_IconExclamation|mb_TopMost|mb_SetForeground "This installer requires admin access, try again" /SD IDNO IDOK uac_tryagain IDNO 0
+    	${EndIf}
+    	;fall-through and die
+    ${Case} 1223
+    	MessageBox mb_IconStop|mb_TopMost|mb_SetForeground "${ADMIN_PRIVILIGES}"
+    	Quit
+    ${Case} 1062
+    	MessageBox mb_IconStop|mb_TopMost|mb_SetForeground "Logon service not running, aborting!"
+    	Quit
+    ${Default}
+    	MessageBox mb_IconStop|mb_TopMost|mb_SetForeground "Unable to elevate , error $0"
+    	Quit
+    ${EndSwitch}
 
-      ${UAC.I.Elevate.AdminOnly}
-
-      ; If user can write this, it's an Admin ;)
-      ; NOTE that this registry is not being used for any logic, so we can dirty it.
-      WriteRegStr  HKLM   "${PLUGIN_REGKEY_CONTEXT}"   "${PROPERTY_DESCRIPTION}" "${PRODUCT_NAME}"
-      IfErrors 0 +3
-      MessageBox MB_OK "You need Administrator rights to install ${PRODUCT_NAME}."
-      Abort
+    ;${UAC.I.Elevate.AdminOnly}
+    ;!insertmacro UAC_RunElevated
+    
+    ; If user can write this, it's an Admin ;)
+    ; NOTE that this registry is not being used for any logic, so we can dirty it.
+    WriteRegStr  HKLM   "${PLUGIN_REGKEY_CONTEXT}"   "${PROPERTY_DESCRIPTION}" "${PRODUCT_NAME}"
+    IfErrors 0 +3
+    MessageBox MB_OK "You need Administrator rights to install ${PRODUCT_NAME}."
+    Abort
       
 FunctionEnd
 
@@ -464,14 +542,39 @@ FunctionEnd
 ; If not, the uninstaller will be aborted.
 Function un.CheckUserRights
 
-      ${UAC.I.Elevate.AdminOnly}
-      
-      ; If user can write this, it's an Admin ;)
-      ; NOTE that this registry is not being used for any logic, so we can dirty it.
-      WriteRegStr  HKLM   "${PLUGIN_REGKEY_CONTEXT}"   "${PROPERTY_DESCRIPTION}" "${PRODUCT_NAME} v.${PRODUCT_VERSION}"
-      IfErrors 0 +3
-      MessageBox MB_OK "You need Administrator rights to uninstall ${PRODUCT_NAME}."
-      Abort
+    uac_tryagain:
+    !insertmacro UAC_RunElevated
+    #MessageBox mb_TopMost "0=$0 1=$1 2=$2 3=$3"
+    ${Switch} $0
+    ${Case} 0
+    	${IfThen} $1 = 1 ${|} Quit ${|} ;we are the outer process, the inner process has done its work, we are done
+    	${IfThen} $3 <> 0 ${|} ${Break} ${|} ;we are admin, let the show go on
+    	${If} $1 = 3 ;RunAs completed successfully, but with a non-admin user
+    		MessageBox mb_IconExclamation|mb_TopMost|mb_SetForeground "This installer requires admin access, try again" /SD IDNO IDOK uac_tryagain IDNO 0
+    	${EndIf}
+    	;fall-through and die
+    ${Case} 1223
+    	MessageBox mb_IconStop|mb_TopMost|mb_SetForeground "This installer requires admin privileges, aborting!"
+    	Quit
+    ${Case} 1062
+    	MessageBox mb_IconStop|mb_TopMost|mb_SetForeground "Logon service not running, aborting!"
+    	Quit
+    ${Default}
+    	MessageBox mb_IconStop|mb_TopMost|mb_SetForeground "Unable to elevate , error $0"
+    	Quit
+    ${EndSwitch}
+
+
+    ;${UAC.I.Elevate.AdminOnly}
+    ;!insertmacro UAC_RunElevated
+    
+    
+    ; If user can write this, it's an Admin ;)
+    ; NOTE that this registry is not being used for any logic, so we can dirty it.
+    WriteRegStr  HKLM   "${PLUGIN_REGKEY_CONTEXT}"   "${PROPERTY_DESCRIPTION}" "${PRODUCT_NAME} v.${PRODUCT_VERSION}"
+    IfErrors 0 +3
+    MessageBox MB_OK "You need Administrator rights to uninstall ${PRODUCT_NAME}."
+    Abort
 
 FunctionEnd
 
@@ -546,7 +649,7 @@ Function CheckAppInstalled
        IntCmp $R1 8   0  tooOldVersion  0
 
        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-                  "A previous version is already installed (version $R1). $\nPress OK to proceed with the upgrade." \
+                  "${PREVIOUS_VERSION_INSTALLED_UPGRADE}" \
                   IDCANCEL cancel
 
        StrCpy $R9 "uninstForUpgrade"     ; Cannot call now: user can cancel installation!
@@ -576,7 +679,7 @@ Function CheckAppInstalled
   ; 2. Reinstall the same version.
   sameVersion:
        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-                  "The same version of ${PRODUCT_NAME} is already installed. $\nPress OK to repair the plugin (all users settings will be preserved)." \
+                  "${PROPERTY_SAME_VERSION_INSTALLED}" \
                   IDCANCEL cancel
 
        StrCpy $R9 "uninstForUpgrade"     ; Cannot call now: user can cancel installation!
@@ -587,20 +690,20 @@ Function CheckAppInstalled
   ; 3. Downgrade to an older version -> avoid.
   olderVersion:
        MessageBox MB_OK|MB_ICONEXCLAMATION \
-                  "A more recent version of ${PRODUCT_NAME} is already installed (version $R1). $\nPlease uninstall it first."
+                  "${MORE_RECENT_VERSION_INSTALLED}"
        Abort
 
 
   ; 4. Upgrade from a version < v8 -> avoid.
   tooOldVersion:
        MessageBox MB_OK|MB_ICONEXCLAMATION \
-                  "A previous version of ${PRODUCT_NAME} is already installed (version $R1). $\nPlease uninstall it first."
+                  "${PREVIOUS_VERSION_INSTALLED}"
        Abort
 
   ; 5 Customer abort
   customerAbort:
        MessageBox MB_OK \
-                  "A different version of this client is present on this machine. Please unistall it first."
+                  "${DIFFERENT_VERSION_INSTALLED}"
        Abort
   done:
        Return
@@ -733,8 +836,11 @@ Function installDll
 FunctionEnd
 
 
-Function .onInit      
+Function .onInit
+
       Call CheckUserRights
+!insertmacro MUI_LANGDLL_DISPLAY
+
       Call CheckAppInstalled
 !ifdef USE_OUTLOOK
       Call CheckMicrosoftApp
@@ -840,7 +946,7 @@ Section "MainSection" SEC01
             
             ; This is to use the "$DESKTOP" shell var for current user, instead of the public one
             SetShellVarContext current
-            CreateShortCut  "$DESKTOP\${PROPERTY_MEDIAHUB}.lnk" "$mediaHubFolder" "" "$INSTDIR\images\MediaHubFolder.ico" "" "" "" "Open ${PRODUCT_PUBLISHER} ${PROPERTY_MEDIAHUB} Folder "
+            CreateShortCut  "$DESKTOP\${PROPERTY_MEDIAHUB}.lnk" "$mediaHubFolder" "" "$INSTDIR\images\MediaHubFolder.ico" "" "" "" ""
             SetShellVarContext all
       ${EndIf}
 
@@ -904,9 +1010,12 @@ Section Uninstall
      SetShellVarContext all
      !insertmacro MUI_STARTMENU_GETFOLDER "Application" $ICONS_GROUP
      Delete "$SMPROGRAMS\$ICONS_GROUP\*.*"
-
+     Delete  "$DESKTOP\${PRODUCT_NAME}.lnk"
+     
+     SetShellVarContext current
      Delete  "$DESKTOP\${PROPERTY_MEDIAHUB}.lnk"
-
+     SetShellVarContext all
+     
      ; Delete recursively empty folders created on install.
      StrCpy $R4 "$INSTDIR"
      ;MessageBox MB_OK|MB_ICONEXCLAMATION "Removing dir: $R4"
@@ -959,12 +1068,15 @@ SectionEnd
 
 Function un.onInit
 
+
+!insertmacro MUI_UNGETLANGUAGE
+
      Call un.CheckUserRights
      
-     !insertmacro MUI_INSTALLOPTIONS_EXTRACT "removeData.ini"
-     MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure to remove $(^Name) and all its components?" IDYES +2
-     Abort
-     
+     ;!insertmacro MUI_INSTALLOPTIONS_EXTRACT "removeData.ini"
+     ;MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure to remove $(^Name) and all its components?" IDYES +2
+     ;Abort
+
 !ifdef USE_OUTLOOK
      Call un.CheckMicrosoftApp
 !endif
@@ -976,36 +1088,85 @@ FunctionEnd
 
 Function un.onUninstSuccess
      HideWindow
-     MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) has been removed from the computer."
+     MessageBox MB_ICONINFORMATION|MB_OK "${PROGRAM_REMOVED}"
 FunctionEnd
+
+Var Chbox
+Var Text
+Var Checkbox_State
+Function un.RemoveUserData
+
+        nsDialogs::Create 1018
+        Pop $Dialog
+
+        ${If} $Dialog == error
+		Abort
+	${EndIf}
+
+
+        ;!insertmacro MUI_HEADER_TEXT "Delete local settings" "Delete all local synchronization files and settings for all users."
+        !insertmacro MUI_HEADER_TEXT "${DELETE_LOCAL_SETTINGS_TITLE}" "${DELETE_LOCAL_SETTINGS_BODY}"
+
+        ${NSD_CreateCheckBox} 0 0 100% 25u "${CHECKBOX_REMOVE_SETTINGS}"
+	Pop $Chbox
+
+        ${NSD_Check} $Chbox
+        
+	;${If} $Checkbox_State == ${BST_CHECKED}
+	;	${NSD_Check} $Chbox
+	;${EndIf}
+	
+        nsDialogs::Show
+
+
+FunctionEnd
+
+Function un.nsDialogsPageLeaveCheckbox
+
+	${NSD_GetState} $Chbox $Checkbox_State
+	${If} $Checkbox_State == ${BST_CHECKED}
+	
+	  Call un.deleteUsersMediaHubDesktopIni
+          Call un.deleteUsersFiles
+          Call un.deleteUsersRegistry
+
+          ; Delete scheduled task for all users.
+          ; Tasks have the name: "Funambol Windows Client - <Username>.job"
+          ; where 'Username' is the Windows current user that created it.
+          Delete "$WINDIR\Tasks\${PRODUCT_NAME}*.job"
+
+        ${EndIf}
+
+FunctionEnd
+
 
 
 
 ; Display a custom page during uninstaller, to ask the user if deleting files/settings.
-Function un.RemoveUserData
-
-     !insertmacro MUI_HEADER_TEXT "Delete local settings" "Delete all local synchronization files and settings for all users."
-     !insertmacro MUI_INSTALLOPTIONS_DISPLAY_RETURN "removeData.ini"
-     
-     Pop $R0      ; This is the return value: "success", "cancel", "back" or "error"
-     ;MessageBox MB_ICONINFORMATION|MB_OK "ret value = $R0"
-     StrCmp $R0 "success"  0 done
-     
-     ; Read the 'State' value of checkbox: 0 = not selected.
-     ReadINIStr $R2 "$PLUGINSDIR\removeData.ini" "Field 1" "State"
-     IntCmp $R2 0 done
-     
-     Call un.deleteUsersMediaHubDesktopIni
-     Call un.deleteUsersFiles
-     Call un.deleteUsersRegistry
-     
-     ; Delete scheduled task for all users.
-     ; Tasks have the name: "Funambol Windows Client - <Username>.job"
-     ; where 'Username' is the Windows current user that created it.
-     Delete "$WINDIR\Tasks\${PRODUCT_NAME}*.job"
-     
-  done:
-FunctionEnd
+;Function un.RemoveUserData
+;
+ ;    !insertmacro MUI_HEADER_TEXT "Delete local settings" "Delete all local synchronization files and settings for all users."
+ ;    !insertmacro MUI_INSTALLOPTIONS_DISPLAY_RETURN "removeData.ini"
+;
+;     Pop $R0      ; This is the return value: "success", "cancel", "back" or "error"
+;     ;MessageBox MB_ICONINFORMATION|MB_OK "ret value = $R0"
+;     StrCmp $R0 "success"  0 done
+;
+;     ; Read the 'State' value of checkbox: 0 = not selected.
+;     ReadINIStr $R2 "$PLUGINSDIR\removeData.ini" "Field 1" "State"
+;     IntCmp $R2 0 done
+;
+;     Call un.deleteUsersMediaHubDesktopIni
+;     Call un.deleteUsersFiles
+;     Call un.deleteUsersRegistry
+;
+;     ; Delete scheduled task for all users.
+;     ; Tasks have the name: "Funambol Windows Client - <Username>.job"
+;     ; where 'Username' is the Windows current user that created it.
+;     Delete "$WINDIR\Tasks\${PRODUCT_NAME}*.job"
+;
+;  done:
+;FunctionEnd
 
 
 
