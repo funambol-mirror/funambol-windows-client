@@ -946,7 +946,7 @@ Section "MainSection" SEC01
             
             ; This is to use the "$DESKTOP" shell var for current user, instead of the public one
             SetShellVarContext current
-            CreateShortCut  "$DESKTOP\${PROPERTY_MEDIAHUB}.lnk" "$mediaHubFolder" "" "$INSTDIR\images\MediaHubFolder.ico" "" "" "" ""
+            CreateShortCut  "$DESKTOP\${MEDIAHUB_DESKTOP_LINK}.lnk" "$mediaHubFolder" "" "$INSTDIR\images\MediaHubFolder.ico" "" "" "" ""
             SetShellVarContext all
       ${EndIf}
 
@@ -1013,7 +1013,8 @@ Section Uninstall
      Delete  "$DESKTOP\${PRODUCT_NAME}.lnk"
      
      SetShellVarContext current
-     Delete  "$DESKTOP\${PROPERTY_MEDIAHUB}.lnk"
+     Delete  "$DESKTOP\${PROPERTY_MEDIAHUB}.lnk"        ; old link name
+     Delete  "$DESKTOP\${MEDIAHUB_DESKTOP_LINK}.lnk"          
      SetShellVarContext all
      
      ; Delete recursively empty folders created on install.
