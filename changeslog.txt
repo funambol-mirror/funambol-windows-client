@@ -1,5 +1,9 @@
-2011-08-08
+2011-08-09
   - toccy: release 10.0.5
+  - toccy: merged from trunk at rev.891:
+          - magi: updated nsis and languages to create the shortcut on desktop named "MediaHub Folder" in each language
+
+2011-08-08
   - toccy: merged from trunk at rev.876:
           - magi: added multilanguage installer. en,it,de,fr,zh,tc,ru,ar
                   change usage of nsis program. Needed nsis unicode version.
