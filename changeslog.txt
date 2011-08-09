@@ -1,4 +1,7 @@
 2011-08-09
+  - toccy: added TEST_POPUPS customization param (false)
+           if true, a new menu entry is created "Test popups" to test all popups 
+           and localized status messages
   - magi : deleted traditional chinese from the windows client (rev 895)
   - toccy: reintegrated brach US2289 (UI refactoring):
            * main screen (SyncForm) refactored: dynamically create UI objects

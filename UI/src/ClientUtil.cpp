@@ -126,12 +126,11 @@ int manageSyncErrorMsg(long code) {
         case WIN_ERR_SYNC_CANCELED: {                   // 2: Aborted -> no msgbox
             return -1;
         }        
-        case WIN_ERR_FATAL_OL_EXCEPTION:                // 3 -> force exit the plugin!
         case WIN_ERR_THREAD_TERMINATED:                 // 4 -> force exit the plugin!
         {
             s1.LoadString(IDS_ERROR_SYNC_TERMINATED);
             wsafeMessageBox(s1.GetBuffer());
-            exit(1);
+            return -1;
         }
         case WIN_ERR_FULL_SYNC_CANCELED: {              // 5 -> deprecated, no msgbox
             return -1;
@@ -192,10 +191,15 @@ int manageSyncErrorMsg(long code) {
 			showMessage = false;
 			break;
 
-
         //
-        // following are obsolete?
+        // DEPRECATED
         //
+        case WIN_ERR_FATAL_OL_EXCEPTION:                // 3 -> force exit the plugin!
+        {
+            s1.LoadString(IDS_ERROR_SYNC_TERMINATED);
+            wsafeMessageBox(s1.GetBuffer());
+            return -1;
+        }
         case 403:
             s1.LoadString(IDS_CODE_FORBIDDEN_403);    
             break;
@@ -394,4 +398,17 @@ StringBuffer ConvertToChar(CString &s)
     }
     delete [] buf;
     return ret;
+}
+
+
+int getSourceVisibleID(const int position)
+{
+    int sourceId = 0;
+
+    const ArrayList& sources = getConfig()->getSourcesVisible();
+    StringBuffer* sourceName = (StringBuffer*)sources.get(position);
+    if (sourceName) {
+        sourceId = syncSourceNameToIndex(*sourceName);
+    }
+    return sourceId;
 }

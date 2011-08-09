@@ -258,6 +258,15 @@ void CSyncForm::refreshSourceStatus(const CString& msg, const int sourceID) {
     }
 }
 
+void CSyncForm::refreshSourceStatus(const int resourceID, const int sourceID) {
+
+    if (!resourceID) return;
+
+    CString msg;
+    msg.LoadString(resourceID);
+    refreshSourceStatus(msg, sourceID);
+}
+
 CString CSyncForm::getSourceStatus(const int sourceID) {
 
     CCustomPane* sourcePane = getSourcePane(sourceID);
