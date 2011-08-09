@@ -1,3 +1,5 @@
+2011-08-09
+  - magi: updated nsis and languages to create the shortcut on desktop named "MediaHub Folder" in each language
 2011-08-08
   - toccy: updated trunk version to 10.1.0 (release 10.1.0)
   - magi: added multilanguage installer. en,it,de,fr,zh,tc,ru,ar
