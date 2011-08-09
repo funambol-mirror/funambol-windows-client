@@ -175,12 +175,6 @@ int WindowsSyncClient::continueAfterPrepareSync() {
         }
     }
 	
-
-    //
-	// Send a msg to UI: now re-enable the UI buttons!
-    //
-    SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_UNLOCK_BUTTONS, NULL, NULL);
-
     return ret;
 }
 

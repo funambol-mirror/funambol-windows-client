@@ -155,13 +155,13 @@ BOOL CVideosSettings::OnInitDialog() {
     SetDlgItemText(IDC_VIDEOS_EDIT_SYNCTYPE, s1);
 
     // Videos folder path
-    StringBuffer path = ssconf->getCommonConfig()->getProperty(PROPERTY_MEDIAHUB_PATH);
+    StringBuffer path = ssconf->getProperty(PROPERTY_MEDIAHUB_PATH);
     if (path.empty()) {
         // If empty, set the default path for videos (shell folder)
         path = getDefaultMyDocumentsPath();
         path.append("\\");
         path.append(MEDIA_HUB_DEFAULT_FOLDER);        
-        ssconf->getCommonConfig()->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
+        ssconf->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
     }
     WCHAR* wpath = toWideChar(path.c_str());
     s1 = wpath;
@@ -216,7 +216,7 @@ bool CVideosSettings::saveSettings(bool saveToDisk) {
     //       (when writing to winreg, toWideChar is then called)
     char* path = toMultibyte(videosPath.GetBuffer());
     if (path) {
-        ssconf->getCommonConfig()->setProperty(PROPERTY_MEDIAHUB_PATH, path);
+        ssconf->setProperty(PROPERTY_MEDIAHUB_PATH, path);
         delete [] path;
     }    
 
@@ -236,7 +236,7 @@ void CVideosSettings::OnBnClickedVideosButSelect() {
     if (!ssconf) return;
 
     // Get the default browse folder to the current path of videos
-    StringBuffer path = ssconf->getCommonConfig()->getProperty(PROPERTY_MEDIAHUB_PATH);
+    StringBuffer path = ssconf->getProperty(PROPERTY_MEDIAHUB_PATH);
     WCHAR* defaultPath = toWideChar(path.c_str());
 
     CString caption;
@@ -248,7 +248,7 @@ void CVideosSettings::OnBnClickedVideosButSelect() {
         // Update the UI label and save the new path
         SetDlgItemText(IDC_VIDEOS_EDIT_FOLDER, newPath.c_str());
         path.convert(newPath.c_str());
-        ssconf->getCommonConfig()->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
+        ssconf->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
     }
 
     delete [] defaultPath;
@@ -307,7 +307,7 @@ bool CVideosSettings::browseFolder(wstring& folderpath, const WCHAR* defaultFold
 void CVideosSettings::loadSyncModesBox(const char* sourceName)
 {
     OutlookConfig* config = getConfig();
-    WindowsSyncSourceConfig* ssconf = config->getSyncSourceConfig(sourceName);
+    SyncSourceConfig* ssconf = config->getSyncSourceConfig(sourceName);
     if (!ssconf) return;
 
     // TODO: use a switch on sourceName when refactoring
@@ -367,12 +367,12 @@ void CVideosSettings::OnCbnSelchangeVideosComboSynctype()
     and.append(" ");
        
     
-    StringBuffer data = ssconf->getCommonConfig()->getProperty(PROPERTY_EXTENSION);    
+    StringBuffer data = ssconf->getProperty(PROPERTY_EXTENSION);    
     if (data.empty() == false) {
        
         supportedData = ConvertToChar(ss);
         
-        StringBuffer data = ssconf->getCommonConfig()->getProperty(PROPERTY_EXTENSION);    
+        StringBuffer data = ssconf->getProperty(PROPERTY_EXTENSION);    
         data.upperCase();
         supportedData.append(data);
         

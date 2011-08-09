@@ -43,10 +43,7 @@
 #include "ClientUtil.h"
 
 #include "LeftView.h"
-#include "ContactSettings.h"
-#include "CalendarSettings.h"
-#include "NotesSettings.h"
-#include "TaskSettings.h"
+#include "PIMSettings.h"
 #include "PicturesSettings.h"
 #include "VideosSettings.h"
 #include "FilesSettings.h"
@@ -137,9 +134,8 @@ void populateArrays() {
                     defaultPosition = i;
                 }
             }
+        }
     }
-}
-
 }
 
 int getSchedulerPosition(int minutes) {
@@ -167,9 +163,8 @@ int getSchedulerPosition(int minutes) {
                 break;
             }    
         }
-}
+    }
     return position;
-
 }
 
 int getSchedulerMinutes(int position) {
@@ -187,68 +182,75 @@ int getSchedulerMinutes(int position) {
     return res;
 }
 
+bool isMediaHubSet() {
+
+    CMainSyncFrame syncFrame;
+    int res = syncFrame.OnCheckMediaHubFolder(0,0);
+    
+    if (res != IDOK) {
+        return false;
+    }
+    return true;
+}
+
+
 // CSyncSettings
 IMPLEMENT_DYNCREATE(CSyncSettings, CFormView)
 
-CSyncSettings::CSyncSettings()
-	: CFormView(CSyncSettings::IDD)
-{
-}
+CSyncSettings::CSyncSettings() : CFormView(CSyncSettings::IDD) {}
 
-CSyncSettings::~CSyncSettings()
-{
-}
+CSyncSettings::~CSyncSettings() {}
 
 void CSyncSettings::DoDataExchange(CDataExchange* pDX)
 {
     CFormView::DoDataExchange(pDX);
     DDX_Control(pDX, IDC_SYNC_CHECK_CONTACTS, checkContacts);
     DDX_Control(pDX, IDC_SYNC_CHECK_CALENDAR, checkCalendar);
-    DDX_Control(pDX, IDC_SYNC_CHECK_TASKS, checkTasks);
-    DDX_Control(pDX, IDC_SYNC_CHECK_NOTES, checkNotes);
+    DDX_Control(pDX, IDC_SYNC_CHECK_TASKS,    checkTasks);
+    DDX_Control(pDX, IDC_SYNC_CHECK_NOTES,    checkNotes);
     DDX_Control(pDX, IDC_SYNC_CHECK_PICTURES, checkPictures);
     DDX_Control(pDX, IDC_SYNC_CHECK_VIDEOS,   checkVideos);
     DDX_Control(pDX, IDC_SYNC_CHECK_FILES,    checkFiles);
 
     DDX_Control(pDX, IDC_SYNC_BUT_CONTACTS, butContacts);
     DDX_Control(pDX, IDC_SYNC_BUT_CALENDAR, butCalendar);
-    DDX_Control(pDX, IDC_SYNC_BUT_TASKS, butTasks);
-    DDX_Control(pDX, IDC_SYNC_BUT_NOTES, butNotes);
+    DDX_Control(pDX, IDC_SYNC_BUT_TASKS,    butTasks);
+    DDX_Control(pDX, IDC_SYNC_BUT_NOTES,    butNotes);
     DDX_Control(pDX, IDC_SYNC_BUT_PICTURES, butPictures);
     DDX_Control(pDX, IDC_SYNC_BUT_VIDEOS,   butVideos);
     DDX_Control(pDX, IDC_SYNC_BUT_FILES,    butFiles);
 
     DDX_Control(pDX, IDC_SCHEDULER_CHECK_ENABLED, checkEnabled);
-    DDX_Control(pDX, IDC_SCHEDULER_COMBO_VALUE, comboSchedulerValue);
-    DDX_Control(pDX, IDC_SYNC_CHECK_ENCRYPTION, checkEncryption);
+    DDX_Control(pDX, IDC_SCHEDULER_COMBO_VALUE,   comboSchedulerValue);
+    DDX_Control(pDX, IDC_SYNC_CHECK_ENCRYPTION,   checkEncryption);
     DDX_Control(pDX, IDC_SYNC_CHECK_OUTLOOK_OPEN, checkAttach);
-    DDX_Control(pDX, IDC_SYNC_GROUP_ITEMS, groupItems);
-    DDX_Control(pDX, IDC_SCHEDULER_GROUP, groupScheduler);
-    DDX_Control(pDX, IDC_SECURITY_GROUP, groupSecurity);
+    DDX_Control(pDX, IDC_SYNC_GROUP_ITEMS,        groupItems);
+    DDX_Control(pDX, IDC_SCHEDULER_GROUP,         groupScheduler);
+    DDX_Control(pDX, IDC_SECURITY_GROUP,          groupSecurity);
 }
 
 BEGIN_MESSAGE_MAP(CSyncSettings, CFormView)
     ON_MESSAGE( WM_INITDIALOG, OnInitForm ) 
     ON_BN_CLICKED(IDC_SYNC_CHECK_CONTACTS, &CSyncSettings::OnBnClickedSyncCheckContacts)
     ON_BN_CLICKED(IDC_SYNC_CHECK_CALENDAR, &CSyncSettings::OnBnClickedSyncCheckCalendar)
-    ON_BN_CLICKED(IDC_SYNC_CHECK_TASKS, &CSyncSettings::OnBnClickedSyncCheckTasks)
-    ON_BN_CLICKED(IDC_SYNC_CHECK_NOTES, &CSyncSettings::OnBnClickedSyncCheckNotes)
-    ON_BN_CLICKED(IDC_SYNC_CHECK_PICTURES,  &CSyncSettings::OnBnClickedSyncCheckPictures)
-    ON_BN_CLICKED(IDC_SYNC_CHECK_VIDEOS,    &CSyncSettings::OnBnClickedSyncCheckVideos)
-    ON_BN_CLICKED(IDC_SYNC_CHECK_FILES,     &CSyncSettings::OnBnClickedSyncCheckFiles)
-    ON_BN_CLICKED(IDC_SYNC_OK, &CSyncSettings::OnBnClickedSyncOk)
-    ON_BN_CLICKED(IDC_SYNC_CANCEL, &CSyncSettings::OnBnClickedSyncCancel)
-    ON_BN_CLICKED(IDC_SYNC_BUT_CONTACTS, &CSyncSettings::OnBnClickedSyncButContacts)
-    ON_BN_CLICKED(IDC_SYNC_BUT_CALENDAR, &CSyncSettings::OnBnClickedSyncButCalendar)
-    ON_BN_CLICKED(IDC_SYNC_BUT_TASKS, &CSyncSettings::OnBnClickedSyncButTasks)
-    ON_BN_CLICKED(IDC_SYNC_BUT_NOTES, &CSyncSettings::OnBnClickedSyncButNotes)
-    ON_BN_CLICKED(IDC_SYNC_BUT_PICTURES,    &CSyncSettings::OnBnClickedSyncButPictures)
-    ON_BN_CLICKED(IDC_SYNC_BUT_VIDEOS,      &CSyncSettings::OnBnClickedSyncButVideos)
-    ON_BN_CLICKED(IDC_SYNC_BUT_FILES,       &CSyncSettings::OnBnClickedSyncButFiles)
+    ON_BN_CLICKED(IDC_SYNC_CHECK_TASKS,    &CSyncSettings::OnBnClickedSyncCheckTasks)
+    ON_BN_CLICKED(IDC_SYNC_CHECK_NOTES,    &CSyncSettings::OnBnClickedSyncCheckNotes)
+    ON_BN_CLICKED(IDC_SYNC_CHECK_PICTURES, &CSyncSettings::OnBnClickedSyncCheckPictures)
+    ON_BN_CLICKED(IDC_SYNC_CHECK_VIDEOS,   &CSyncSettings::OnBnClickedSyncCheckVideos)
+    ON_BN_CLICKED(IDC_SYNC_CHECK_FILES,    &CSyncSettings::OnBnClickedSyncCheckFiles)
+    ON_BN_CLICKED(IDC_SYNC_OK,             &CSyncSettings::OnBnClickedSyncOk)
+    ON_BN_CLICKED(IDC_SYNC_CANCEL,         &CSyncSettings::OnBnClickedSyncCancel)
+    ON_BN_CLICKED(IDC_SYNC_BUT_CONTACTS,   &CSyncSettings::OnBnClickedSyncButContacts)
+    ON_BN_CLICKED(IDC_SYNC_BUT_CALENDAR,   &CSyncSettings::OnBnClickedSyncButCalendar)
+    ON_BN_CLICKED(IDC_SYNC_BUT_TASKS,      &CSyncSettings::OnBnClickedSyncButTasks)
+    ON_BN_CLICKED(IDC_SYNC_BUT_NOTES,      &CSyncSettings::OnBnClickedSyncButNotes)
+    ON_BN_CLICKED(IDC_SYNC_BUT_PICTURES,   &CSyncSettings::OnBnClickedSyncButPictures)
+    ON_BN_CLICKED(IDC_SYNC_BUT_VIDEOS,     &CSyncSettings::OnBnClickedSyncButVideos)
+    ON_BN_CLICKED(IDC_SYNC_BUT_FILES,      &CSyncSettings::OnBnClickedSyncButFiles)
     ON_WM_NCPAINT()
-    ON_BN_CLICKED(IDC_SCHEDULER_CHECK_ENABLED, &CSyncSettings::OnBnClickedSchedulerCheckEnabled)
+    ON_BN_CLICKED(IDC_SCHEDULER_CHECK_ENABLED,  &CSyncSettings::OnBnClickedSchedulerCheckEnabled)
     ON_CBN_SELCHANGE(IDC_SCHEDULER_COMBO_VALUE, &CSyncSettings::OnCbnSelchangeSchedulerComboValue)
-    ON_BN_CLICKED(IDC_SYNC_CHECK_OUTLOOK_OPEN, &CSyncSettings::OnBnClickedSyncCheckOutlookOpen)
+    ON_BN_CLICKED(IDC_SYNC_CHECK_OUTLOOK_OPEN,  &CSyncSettings::OnBnClickedSyncCheckOutlookOpen)
 END_MESSAGE_MAP()
 
 
@@ -270,394 +272,198 @@ void CSyncSettings::Dump(CDumpContext& dc) const
 
 
 
-void CSyncSettings::disableSource(CButton& button1, CButton& button2, bool* synctype, int sep1, int sep2) {
-    
-    button1.EnableWindow(FALSE);
-    button2.EnableWindow(FALSE);
-    *synctype = false;
-    GetDlgItem(sep1)->EnableWindow(FALSE);
-    if (sep2 > 0) {
-        GetDlgItem(sep2)->EnableWindow(FALSE);
-    }
-
-}
-void CSyncSettings::hideSource(CButton& button1, CButton& button2, bool* synctype, int sep1, int sep2) {
-    
-        button1.ShowWindow(SW_HIDE);
-        button2.ShowWindow(SW_HIDE);
-        *synctype = false;
-        GetDlgItem(sep1)->ShowWindow(SW_HIDE);
-        if (sep2 > 0) {
-            GetDlgItem(sep2)->ShowWindow(SW_HIDE);
-        }
-}
-
-
 // CSyncSettings message handlers
-LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
+LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM) {
+
     CFormView::OnInitialUpdate();
     CString s1;
-    int minutes = 0;
     
-    s1.LoadString(IDS_ITEMS);       SetDlgItemText(IDC_SYNC_GROUP_ITEMS,    s1);
-    s1.LoadString(IDS_SCHEDULER);   SetDlgItemText(IDC_SCHEDULER_GROUP,     s1);
-
-    s1 = composeCheckboxText(CONTACT_);      SetDlgItemText(IDC_SYNC_CHECK_CONTACTS, s1);
-    s1 = composeCheckboxText(APPOINTMENT_);  SetDlgItemText(IDC_SYNC_CHECK_CALENDAR, s1);
-    s1 = composeCheckboxText(TASK_);         SetDlgItemText(IDC_SYNC_CHECK_TASKS,    s1);
-    s1 = composeCheckboxText(NOTE_);         SetDlgItemText(IDC_SYNC_CHECK_NOTES,    s1);
-    s1 = composeCheckboxText(PICTURE_);      SetDlgItemText(IDC_SYNC_CHECK_PICTURES, s1);
-    s1 = composeCheckboxText(VIDEO_);        SetDlgItemText(IDC_SYNC_CHECK_VIDEOS,   s1);
-    s1 = composeCheckboxText(FILES_);        SetDlgItemText(IDC_SYNC_CHECK_FILES,    s1);
-
-    s1.LoadString(IDS_DETAILS);
-    SetDlgItemText(IDC_SYNC_BUT_CONTACTS, s1);
-    SetDlgItemText(IDC_SYNC_BUT_CALENDAR, s1);
-    SetDlgItemText(IDC_SYNC_BUT_TASKS,    s1);
-    SetDlgItemText(IDC_SYNC_BUT_NOTES,    s1);
-    SetDlgItemText(IDC_SYNC_BUT_PICTURES, s1);
-    SetDlgItemText(IDC_SYNC_BUT_VIDEOS,   s1);
-    SetDlgItemText(IDC_SYNC_BUT_FILES,    s1);
+    // Load static objects labels
+    s1.LoadString(IDS_ITEMS);                   SetDlgItemText(IDC_SYNC_GROUP_ITEMS,        s1);
+    s1.LoadString(IDS_SCHEDULER);               SetDlgItemText(IDC_SCHEDULER_GROUP,         s1);
+    s1.LoadString(IDS_SYNC_SYNCHRONIZE_EVERY);  SetDlgItemText(IDC_SCHEDULER_CHECK_ENABLED, s1);
+    s1.LoadString(IDS_SYNC_ENABLE_ENCRYPTION);  SetDlgItemText(IDC_SYNC_CHECK_ENCRYPTION,   s1);
+    s1.LoadString(IDS_REQUIRE_OUTLOOK_OPEN);    SetDlgItemText(IDC_SYNC_CHECK_OUTLOOK_OPEN, s1);
+    s1.LoadString(IDS_OK);                      SetDlgItemText(IDC_SYNC_OK,                 s1);
+    s1.LoadString(IDS_CANCEL);                  SetDlgItemText(IDC_SYNC_CANCEL,             s1);
+    s1.LoadString(IDS_SECURITY);                SetDlgItemText(IDC_SYNC_GROUP_SECURITY,     s1);
+    s1.LoadString(IDS_SYNC_ENABLE_ENCRYPTION);  SetDlgItemText(IDC_SYNC_CHECK_ENCRYPTION,   s1);
 
 
-    s1.LoadString(IDS_SYNC_SYNCHRONIZE_EVERY); SetDlgItemText(IDC_SCHEDULER_CHECK_ENABLED, s1);
-    s1.LoadString(IDS_SYNC_ENABLE_ENCRYPTION); SetDlgItemText(IDC_SYNC_CHECK_ENCRYPTION, s1);
-    s1.LoadString(IDS_REQUIRE_OUTLOOK_OPEN); SetDlgItemText(IDC_SYNC_CHECK_OUTLOOK_OPEN, s1);
 
-    s1.LoadString(IDS_OK); SetDlgItemText(IDC_SYNC_OK, s1);
-    s1.LoadString(IDS_CANCEL); SetDlgItemText(IDC_SYNC_CANCEL, s1);
+    CRect formRect, groupRect;
+    GetClientRect(&formRect);
+    CPoint posGroup = getRelativePosition(&groupItems, this);
+    groupItems.GetClientRect(&groupRect);
 
-    // Scheduler: add strings to the comboBox
+    int x_space_left    = (int)(groupRect.Width()  * 0.05);
+    int y_space         = (int)(groupRect.Height() * 0.07);
+    int y_space_top     = (int)(groupRect.Height() * 0.04);
+    int y_space_bottom  = (int)(groupRect.Height() * 0.08);
+    int y_space_groups  = (int)(groupRect.Height() * 0.04);
+    int x_checkbox      = posGroup.x + x_space_left;
+    int y               = posGroup.y + y_space_top;     // <-- this is the y position of each item, topdown
+
+    int checkbox_width  = (int)(groupRect.Width() * 0.70) - x_space_left;
+    int x_button        = x_checkbox + checkbox_width + 1;
+    int button_width    = (int)(groupRect.Width() * 0.98) - x_button;
+
+    CWnd* lastWnd = NULL;   // for TAB order: this is the last Window drawed
+
+    //
+    // Sources group
+    // ------------- 
+    hideAllSources();
+    const ArrayList& sources = getConfig()->getSourcesVisible();
+    for (int i=0; i<sources.size(); i++) 
+    {
+        y += y_space;
+
+        StringBuffer* sourceName = (StringBuffer*)sources.get(i);
+        if (!sourceName) continue;
+
+        SyncSourceConfig* ssc = getConfig()->getSyncSourceConfig(sourceName->c_str());
+        if (!ssc) continue;
+
+        // add a separator (not the first one)
+        if (i > 0) {
+            CWnd* sep = getSeparator(i);
+            if (!sep) continue;
+
+            CRect sepRect;
+            sep->GetClientRect(&sepRect);
+            int x_sep = posGroup.x + (groupRect.Width() - sepRect.Width()) / 2;  // center on x axis
+            sep->SetWindowPos(&CWnd::wndTop, x_sep, y, NULL, NULL, SWP_SHOWWINDOW | SWP_NOSIZE);
+            y += y_space;
+        }
+
+        // CHECKBOX & BUTTON
+        CButton* checkbox = getCheckbox(*sourceName);   if (!checkbox) continue;
+        CButton* button    = getButton (*sourceName);   if (!button)   continue;
+
+        CRect boxRect, butRect;
+        checkbox->GetClientRect(&boxRect);
+        button->GetClientRect(&butRect);
+
+        // to center on y axis
+        int y_checkbox = y - boxRect.Height() / 2;
+        int y_button   = y - butRect.Height() / 2;
+
+        checkbox->SetWindowPos(lastWnd,  x_checkbox, y_checkbox, checkbox_width, boxRect.Height(), SWP_SHOWWINDOW);
+        button->SetWindowPos  (checkbox, x_button,   y_button,   button_width,   butRect.Height(), SWP_SHOWWINDOW);
+        lastWnd = button;
+
+        s1 = composeCheckboxText(sourceName->c_str());   checkbox->SetWindowText(s1);
+        s1.LoadString(IDS_DETAILS);                        button->SetWindowText(s1);
+
+        // enable/disable
+        if (ssc->isAllowed()) {
+            if (ssc->isEnabled()) {
+                checkbox->SetCheck(BST_CHECKED);
+            } else {
+                button->EnableWindow(FALSE);
+            }
+        }
+        else {
+            checkbox->EnableWindow(FALSE);
+            button->EnableWindow(FALSE);
+        }
+    }
+
+    // resize the sources groupbox dinamically
+    y += y_space_bottom;
+    int group_heigth = y - posGroup.y;
+    groupItems.SetWindowPos(&CWnd::wndTop, NULL, NULL, groupRect.Width(), group_heigth, SWP_SHOWWINDOW | SWP_NOMOVE);
+
+
+    //
+    // Scheduler group
+    // ---------------
+    saveScheduler = false;
     if (initialized == false) {
         populateArrays();
         initialized = true;
     }
-    s1.LoadString(IDS_SYNC_SYNCHRONIZE_EVERY); 
-    SetDlgItemText(IDC_SCHEDULER_CHECK_ENABLED, s1);
-    CString sched;
-    s1.LoadString(IDS_MINUTES);
-    
-    StringBuffer val;
-    for (int i = 0; i < minutesA.size(); i++) {
-        val = ((StringBuffer*)(minutesA.get(i)))->c_str();
-        sched = val.c_str();     sched += " ";     sched += s1;
-        comboSchedulerValue.AddString(sched);
-    }
-    s1.LoadString(IDS_HOUR);
-    for (int i = 0; i < hoursA.size(); i++) {
-        val = ((StringBuffer*)(hoursA.get(i)))->c_str();
-        if (val == "1") {
-            s1.LoadString(IDS_HOUR);
-        } else {
-    s1.LoadString(IDS_HOURS);
-        }
-        sched = val.c_str();     sched += " ";     sched += s1;
-        comboSchedulerValue.AddString(sched);
-    }
-
-    s1.LoadString(IDS_SECURITY);                 SetDlgItemText(IDC_SYNC_GROUP_SECURITY, s1);
-    s1.LoadString(IDS_SYNC_ENABLE_ENCRYPTION);   SetDlgItemText(IDC_SYNC_CHECK_ENCRYPTION, s1);
-
-
-    //
-    // enable/disable controls, depending of what sources are set to none
-    //
-    WindowsSyncSourceConfig* ssc = NULL;
-    // CONTACTS
-    if (isSourceVisible(CONTACT)) {
-        saveSyncTypeContacts = true;
-        ssc = getConfig()->getSyncSourceConfig(CONTACT_);
-        if (!ssc->isEnabled()) {
-            checkContacts.SetCheck(BST_UNCHECKED);
-            butContacts.EnableWindow(FALSE);
-        }
-        else{
-            checkContacts.SetCheck(BST_CHECKED);
-        }
-
-		// management of new 'allowed' config (V.10.5+)
-		// enable or disable the windows based on allowed state
-		GetDlgItem(IDC_SYNC_CHECK_CONTACTS)->EnableWindow(ssc->isAllowed());
-		GetDlgItem(IDC_SYNC_BUT_CONTACTS)->EnableWindow(ssc->isAllowed());
-
-    }
-    else {
-        disableSource(checkContacts, butContacts, &saveSyncTypeContacts, IDC_SEPARATOR_1, 0);
-        hideSource(checkContacts, butContacts, &saveSyncTypeContacts, IDC_SEPARATOR_1, 0);
-        /*
-        checkContacts.ShowWindow(SW_HIDE);
-        butContacts.ShowWindow(SW_HIDE);
-        saveSyncTypeContacts = false;
-        GetDlgItem(IDC_SEPARATOR_1)->ShowWindow(SW_HIDE);
-        */
-    }
-
-    // CALENDAR
-    if (isSourceVisible(APPOINTMENT)) {
-        saveSyncTypeCalendar = true;
-        ssc = getConfig()->getSyncSourceConfig(APPOINTMENT_);
-        if (!ssc->isEnabled()) {
-            checkCalendar.SetCheck(BST_UNCHECKED);
-            butCalendar.EnableWindow(FALSE);
-        }
-        else{
-            checkCalendar.SetCheck(BST_CHECKED);
-        }
-		// management of new 'allowed' config (V.10.5+)
-		// enable or disable the windows based on allowed state
-		GetDlgItem(IDC_SYNC_CHECK_CALENDAR)->EnableWindow(ssc->isAllowed());
-		GetDlgItem(IDC_SYNC_BUT_CALENDAR)->EnableWindow(ssc->isAllowed());
-
-    }
-    else {
-        disableSource(checkCalendar, butCalendar, &saveSyncTypeCalendar, IDC_SEPARATOR_1, IDC_SEPARATOR_2);
-        hideSource(checkCalendar, butCalendar, &saveSyncTypeCalendar, IDC_SEPARATOR_1, IDC_SEPARATOR_2);
-        /*
-        checkCalendar.ShowWindow(SW_HIDE);
-        butCalendar.ShowWindow(SW_HIDE);
-        saveSyncTypeCalendar = false;
-        GetDlgItem(IDC_SEPARATOR_1)->ShowWindow(SW_HIDE);
-        GetDlgItem(IDC_SEPARATOR_2)->ShowWindow(SW_HIDE);
-        */
-    }
-
-    // TASKS
-    if (isSourceVisible(TASK)) {
-        saveSyncTypeTasks = true;
-        ssc = getConfig()->getSyncSourceConfig(TASK_);
-        if (!ssc->isEnabled()) {
-            checkTasks.SetCheck(BST_UNCHECKED);
-            butTasks.EnableWindow(FALSE);
-        }
-        else{
-            checkTasks.SetCheck(BST_CHECKED);
-        }
-		// management of new 'allowed' config (V.10.5+)
-		// enable or disable the windows based on allowed state
-		GetDlgItem(IDC_SYNC_CHECK_TASKS)->EnableWindow(ssc->isAllowed());
-		GetDlgItem(IDC_SYNC_BUT_TASKS)->EnableWindow(ssc->isAllowed());
-    }
-    else {
-        disableSource(checkTasks, butTasks, &saveSyncTypeTasks, IDC_SEPARATOR_2, IDC_SEPARATOR_3);
-        hideSource(checkTasks, butTasks, &saveSyncTypeTasks, IDC_SEPARATOR_2, IDC_SEPARATOR_3);
-        /*
-        checkTasks.ShowWindow(SW_HIDE);
-        butTasks.ShowWindow(SW_HIDE);
-        saveSyncTypeTasks = false;
-        GetDlgItem(IDC_SEPARATOR_2)->ShowWindow(SW_HIDE);
-        GetDlgItem(IDC_SEPARATOR_3)->ShowWindow(SW_HIDE);
-        */
-    }
-
-    // NOTES
-    if (isSourceVisible(NOTE)) {
-        saveSyncTypeNotes = true;
-        ssc = getConfig()->getSyncSourceConfig(NOTE_);
-        if (!ssc->isEnabled()) {
-            checkNotes.SetCheck(BST_UNCHECKED);
-            butNotes.EnableWindow(FALSE);
-        }
-        else{
-            checkNotes.SetCheck(BST_CHECKED);
-        }
-		// management of new 'allowed' config (V.10.5+)
-		// enable or disable the windows based on allowed state
-		GetDlgItem(IDC_SYNC_CHECK_NOTES)->EnableWindow(ssc->isAllowed());
-		GetDlgItem(IDC_SYNC_BUT_NOTES)->EnableWindow(ssc->isAllowed());
-    }
-    else {
-        disableSource(checkNotes, butNotes, &saveSyncTypeNotes, IDC_SEPARATOR_3, IDC_SEPARATOR_4);
-        hideSource(checkNotes, butNotes, &saveSyncTypeNotes, IDC_SEPARATOR_3, IDC_SEPARATOR_4);
-        /*
-        checkNotes.ShowWindow(SW_HIDE);
-        butNotes.ShowWindow(SW_HIDE);
-        saveSyncTypeNotes = false;
-        GetDlgItem(IDC_SEPARATOR_3)->ShowWindow(SW_HIDE);
-        GetDlgItem(IDC_SEPARATOR_4)->ShowWindow(SW_HIDE);
-        */
-    }
-
-    // PICTURES
-    if (isSourceVisible(PICTURE)) {
-        saveSyncTypePictures = true;
-        ssc = getConfig()->getSyncSourceConfig(PICTURE_);
-        if (!ssc->isEnabled()) {
-            checkPictures.SetCheck(BST_UNCHECKED);
-            butPictures.EnableWindow(FALSE);
-        }
-        else{
-            checkPictures.SetCheck(BST_CHECKED);
-        }
-		
-		// management of new 'allowed' config (V.10.5+)
-		// enable or disable the windows based on allowed state
-		GetDlgItem(IDC_SYNC_CHECK_PICTURES)->EnableWindow(ssc->isAllowed());
-		GetDlgItem(IDC_SYNC_BUT_PICTURES)->EnableWindow(ssc->isAllowed());
-
-
-        // Fix the source groupbox height (TODO: should be calculated dinamically)
-        //CRect sep3Rect, sep4Rect, sourceGroupBoxRect;
-        //GetDlgItem(IDC_SEPARATOR_3)->GetWindowRect(&sep3Rect);
-        //GetDlgItem(IDC_SEPARATOR_4)->GetWindowRect(&sep4Rect);
-        //int offset = sep4Rect.BottomRight().y - sep3Rect.BottomRight().y;
-        //
-        //CWnd* sourceGroupBox = GetDlgItem(IDC_SYNC_GROUP_ITEMS);
-        //GetDlgItem(IDC_SYNC_GROUP_ITEMS)->GetWindowRect(&sourceGroupBoxRect);
-        //sourceGroupBox->SetWindowPos(&CWnd::wndTop, 0, 0, 
-        //                             sourceGroupBoxRect.Width(), sourceGroupBoxRect.Height() + offset, 
-        //                             SWP_SHOWWINDOW | SWP_NOMOVE);
-    }
-    else {
-        // hideSource() to really hide it
-        disableSource(checkPictures, butPictures, &saveSyncTypePictures, IDC_SEPARATOR_4, IDC_SEPARATOR_5);
-    }
-
-    // VIDEOS
-    if (isSourceVisible(VIDEO)) {
-        saveSyncTypeVideos = true;
-        ssc = getConfig()->getSyncSourceConfig(VIDEO_);
-        if (!ssc->isEnabled()) {
-            checkVideos.SetCheck(BST_UNCHECKED);
-            butVideos.EnableWindow(FALSE);
-        }
-        else{
-            checkVideos.SetCheck(BST_CHECKED);
-        }
-
-		// management of new 'allowed' config (V.10.5+)
-		// enable or disable the windows based on allowed state
-		GetDlgItem(IDC_SYNC_CHECK_VIDEOS)->EnableWindow(ssc->isAllowed());
-		GetDlgItem(IDC_SYNC_BUT_VIDEOS)->EnableWindow(ssc->isAllowed());
-
-        // Fix the source groupbox height (TODO: should be calculated dinamically)
-        //CRect sep4Rect, sep5Rect, sourceGroupBoxRect;
-        //GetDlgItem(IDC_SEPARATOR_4)->GetWindowRect(&sep4Rect);
-        //GetDlgItem(IDC_SEPARATOR_5)->GetWindowRect(&sep5Rect);
-        //int offset = sep5Rect.BottomRight().y - sep4Rect.BottomRight().y;
-        //
-        //CWnd* sourceGroupBox = GetDlgItem(IDC_SYNC_GROUP_ITEMS);
-        //GetDlgItem(IDC_SYNC_GROUP_ITEMS)->GetWindowRect(&sourceGroupBoxRect);
-        //sourceGroupBox->SetWindowPos(&CWnd::wndTop, 0, 0, 
-        //                             sourceGroupBoxRect.Width(), sourceGroupBoxRect.Height() + offset, 
-        //                             SWP_SHOWWINDOW | SWP_NOMOVE);
-    }
-    else {
-        // hideSource() to really hide it
-        disableSource(checkVideos, butVideos, &saveSyncTypeVideos, IDC_SEPARATOR_5, IDC_SEPARATOR_6);
-    }
-
-    // FILES
-    if (isSourceVisible(FILES)) {
-        saveSyncTypeFiles = true;
-        ssc = getConfig()->getSyncSourceConfig(FILES_);
-        if (!ssc->isEnabled()) {
-            checkFiles.SetCheck(BST_UNCHECKED);
-            butFiles.EnableWindow(FALSE);
-        }
-        else{
-            checkFiles.SetCheck(BST_CHECKED);
-        }
-
-		// management of new 'allowed' config (V.10.5+)
-		// enable or disable the windows based on allowed state
-		GetDlgItem(IDC_SYNC_CHECK_FILES)->EnableWindow(ssc->isAllowed());
-		GetDlgItem(IDC_SYNC_BUT_FILES)->EnableWindow(ssc->isAllowed());
-
-
-        // Fix the source groupbox height (TODO: should be calculated dinamically)
-        //CRect sep5Rect, sep6Rect, sourceGroupBoxRect;
-        //GetDlgItem(IDC_SEPARATOR_5)->GetWindowRect(&sep5Rect);
-        //GetDlgItem(IDC_SEPARATOR_6)->GetWindowRect(&sep6Rect);
-        //int offset = sep6Rect.BottomRight().y - sep5Rect.BottomRight().y;
-        //
-        //CWnd* sourceGroupBox = GetDlgItem(IDC_SYNC_GROUP_ITEMS);
-        //GetDlgItem(IDC_SYNC_GROUP_ITEMS)->GetWindowRect(&sourceGroupBoxRect);
-        //sourceGroupBox->SetWindowPos(&CWnd::wndTop, 0, 0, 
-        //                             sourceGroupBoxRect.Width(), sourceGroupBoxRect.Height() + offset, 
-        //                             SWP_SHOWWINDOW | SWP_NOMOVE);
-    }
-    else {
-        // hideSource() to really hide it
-        disableSource(checkFiles, butFiles, &saveSyncTypeFiles, IDC_SEPARATOR_6, 0);
-    }
-
-    
-    // Load scheduler settings
-		saveScheduler = false;
-		if (minutesA.size() == 0 && hoursA.size() == 0) {
-			checkEnabled.EnableWindow(FALSE);
-			checkEnabled.ShowWindow(SW_HIDE);
-			comboSchedulerValue.ShowWindow(SW_HIDE);
-			groupScheduler.ShowWindow(SW_HIDE);
-
-		} else {
-			
-			if(! getScheduler(&minutes)){
-				checkEnabled.SetCheck(BST_UNCHECKED);
-				comboSchedulerValue.EnableWindow(FALSE);
-				int pos = defaultPosition; //getSchedulerPosition();
-				comboSchedulerValue.SetCurSel(pos);
-				checkAttach.EnableWindow(FALSE);
-			}
-			else{
-				checkEnabled.SetCheck(BST_CHECKED);
-				comboSchedulerValue.EnableWindow(TRUE);
-				int pos = getSchedulerPosition(minutes);
-				comboSchedulerValue.SetCurSel(pos);
-	    
-				if (getSchedulerMinutes(pos) != minutes) {
-					// Scheduler time was not exactly this one (manually modified?)
-					saveScheduler = true;
-				}
-				checkAttach.EnableWindow(TRUE);
-			}
-
-		// disable scheduler components if autoSync is not allowed.
-		if ( ! getConfig()->getClientConfig().getAutoSync() ) {
-			checkEnabled.EnableWindow(FALSE);			// main checkbox enable/disable task
-			comboSchedulerValue.EnableWindow(FALSE);	// combobox with list of frequencies 
-			checkAttach.EnableWindow(FALSE);			// only when outlook is opened checkbox
-		}
-	}
-	
-    // encryption is global
-    if( (strcmp(getConfig()->getSyncSourceConfig(CONTACT_)->getEncryption(),"") != 0) ||
-        (strcmp(getConfig()->getSyncSourceConfig(APPOINTMENT_)->getEncryption(),"") != 0) ||
-        (strcmp(getConfig()->getSyncSourceConfig(TASK_)->getEncryption(),"") != 0) ||
-        (strcmp(getConfig()->getSyncSourceConfig(NOTE_)->getEncryption(),"") != 0) )
-        checkEncryption.SetCheck(BST_CHECKED);
-    else
-        checkEncryption.SetCheck(BST_UNCHECKED);
-
-    
-
-    // attach option
-    if (UICustomization::attachOption) {
-        if (getConfig()->getWindowsDeviceConfig().getAttach()) {
-            checkAttach.SetCheck(BST_CHECKED);
-        } else {
-            checkAttach.SetCheck(BST_UNCHECKED);
-        }
-    } else {
-        checkAttach.SetCheck(BST_UNCHECKED);
+    if (minutesA.size() == 0 && hoursA.size() == 0) {
+        // scheduler is NOT visible (hide all)
+        checkEnabled.EnableWindow(FALSE);
+        checkEnabled.ShowWindow(SW_HIDE);
+        comboSchedulerValue.ShowWindow(SW_HIDE);
+        groupScheduler.ShowWindow(SW_HIDE);
         checkAttach.ShowWindow(SW_HIDE);
-        int dy = -17;
-        moveItem(this, GetDlgItem(IDC_SECURITY_GROUP), 0, dy);
-        moveItem(this, GetDlgItem(IDC_SYNC_CANCEL), 0, 0);
-        moveItem(this, GetDlgItem(IDC_SYNC_OK), 0, 0);
-        moveItem(this, &checkEncryption, 0, dy);
-        resizeItem(GetDlgItem(IDC_SCHEDULER_GROUP), 0, dy);
+    } 
+    else {
+        // scheduler is visible
+        loadSchedulerData();
+
+        // move items
+        y += y_space_groups;
+        CPoint schedPos = getRelativePosition(&groupScheduler, this);
+        int dy = -(schedPos.y - y);
+        moveItem(this, &groupScheduler,      0, dy);
+        moveItem(this, &checkEnabled,        0, dy, lastWnd);
+        moveItem(this, &comboSchedulerValue, 0, dy, &checkEnabled);
+        lastWnd = &comboSchedulerValue;
+
+        // attach option
+        if (UICustomization::attachOption) {
+            // attach option is visible
+            if (getConfig()->getWindowsDeviceConfig().getAttach()) {
+                checkAttach.SetCheck(BST_CHECKED);
+            } else {
+                checkAttach.SetCheck(BST_UNCHECKED);
+            }
+            moveItem(this, &checkAttach, 0, dy, lastWnd);
+            lastWnd = &checkAttach;
+        } 
+        else {
+            // attach option is NOT visible
+            checkAttach.SetCheck(BST_UNCHECKED);
+            checkAttach.ShowWindow(SW_HIDE);
+            resizeItem(&groupScheduler, 0, -17);
+        }
+
+        CRect schedRect;
+        groupScheduler.GetClientRect(&schedRect);
+        y += schedRect.Height();
     }
 
-	//
-    // Enable/disable encryption check
-    // (to do after the moveItem because, if not, the windows remains disabled only )
+    
+    //
+    // Security group
+    // --------------
     if (!ENABLE_ENCRYPTION_SETTINGS) {
+        // Encryption check is NOT visible
         checkEncryption.SetCheck(BST_UNCHECKED);
         checkEncryption.EnableWindow(FALSE);
-        checkEncryption.ShowWindow(SW_HIDE);
-        groupSecurity.ShowWindow(SW_HIDE);
+        checkEncryption.ShowWindow(FALSE);
+        groupSecurity.ShowWindow(FALSE);
     }
+    else {
+        // Encryption check is visible
+        if( (strcmp(getConfig()->getSyncSourceConfig(CONTACT_)->getEncryption(),"") != 0) ||
+            (strcmp(getConfig()->getSyncSourceConfig(APPOINTMENT_)->getEncryption(),"") != 0) ||
+            (strcmp(getConfig()->getSyncSourceConfig(TASK_)->getEncryption(),"") != 0) ||
+            (strcmp(getConfig()->getSyncSourceConfig(NOTE_)->getEncryption(),"") != 0) ) {
+            checkEncryption.SetCheck(BST_CHECKED);
+        }
+        else {
+            checkEncryption.SetCheck(BST_UNCHECKED);
+        }
+
+        // move items
+        y += y_space_groups;
+        CPoint secPos = getRelativePosition(&groupSecurity, this);
+        int dy = -(secPos.y - y);
+        moveItem(this, &groupSecurity,   0, dy);
+        moveItem(this, &checkEncryption, 0, dy, lastWnd);
+        lastWnd = &checkEncryption;
+
+        CRect secRect;
+        groupSecurity.GetClientRect(&secRect);
+        y += secRect.Height();
+    }
+
 
 
     // disable windows xp theme, otherwise any color setting for groupbox
@@ -668,68 +474,149 @@ LRESULT CSyncSettings::OnInitForm(WPARAM, LPARAM){
         pfnSetWindowTheme (groupItems.m_hWnd,L" ",L" ");
         pfnSetWindowTheme (groupScheduler.m_hWnd,L" ",L" ");
         pfnSetWindowTheme (groupSecurity.m_hWnd,L" ",L" ");
-    };
-
-    if (!arePIMSourcesVisible() ) {
-        resizeForMediaOnly();
     }
 
     return 0;
 }
 
+void CSyncSettings::loadSchedulerData() {
 
-void CSyncSettings::moveResource(int res, int offset) {
+    CString s1, sched;
+    s1.LoadString(IDS_MINUTES);
+    StringBuffer val;
+    int minutes = 0;
+
+    for (int i = 0; i < minutesA.size(); i++) {
+        val = ((StringBuffer*)(minutesA.get(i)))->c_str();
+        sched = val.c_str();     sched += " ";     sched += s1;
+        comboSchedulerValue.AddString(sched);
+    }
     
-    CRect rect;
-    GetDlgItem(res)->GetWindowRect(&rect);
-    ScreenToClient(&rect);    
-    GetDlgItem(res)->SetWindowPos(&CWnd::wndTop,(int)(rect.TopLeft().x), rect.TopLeft().y - offset, rect.Width(), rect.Height(), SWP_SHOWWINDOW);
+    s1.LoadString(IDS_HOUR);
+    for (int i = 0; i < hoursA.size(); i++) {
+        val = ((StringBuffer*)(hoursA.get(i)))->c_str();
+        if (val == "1") s1.LoadString(IDS_HOUR);
+        else            s1.LoadString(IDS_HOURS);
+        sched = val.c_str();     sched += " ";     sched += s1;
+        comboSchedulerValue.AddString(sched);
+    }
 
+    if(!getScheduler(&minutes)){
+        // schedule job NOT active
+        checkEnabled.SetCheck(BST_UNCHECKED);
+        comboSchedulerValue.EnableWindow(FALSE);
+        int pos = defaultPosition;
+        comboSchedulerValue.SetCurSel(pos);
+    }
+    else{
+        // schedule job is active
+        checkEnabled.SetCheck(BST_CHECKED);
+        comboSchedulerValue.EnableWindow(TRUE);
+        int pos = getSchedulerPosition(minutes);
+        comboSchedulerValue.SetCurSel(pos);
+        if (getSchedulerMinutes(pos) != minutes) {
+            // Scheduler time was not exactly this one (manually modified?)
+            saveScheduler = true;
+        }
+    }
 }
 
-void CSyncSettings::resizeForMediaOnly() {
-    
-    CRect rect1, rect2, rect;
-    // calculate the y offset
-    GetDlgItem(IDC_SYNC_CHECK_CONTACTS)->GetWindowRect(&rect1);
-    ScreenToClient(&rect1);
-    GetDlgItem(IDC_SYNC_CHECK_PICTURES)->GetWindowRect(&rect2);
-    ScreenToClient(&rect2);        
-    int offset = rect2.TopLeft().y - rect1.TopLeft().y;
 
-    // (reverse order to keep tab order)
+bool CSyncSettings::saveSettings(bool saveToDisk)
+{    
+    //
+    // Set enabled/disabled flag for all sources
+    //
+    const ArrayList& sources = getConfig()->getSourcesVisible();
+    for (int i=0; i<sources.size(); i++) {
+        StringBuffer* sourceName = (StringBuffer*)sources.get(i);
+        if (!sourceName) continue;
+        
+        saveEnabledCheck(*sourceName);
+    }
 
-    // move encryption and hide
-    moveResource(IDC_SYNC_CHECK_ENCRYPTION, offset);
-    moveResource(IDC_SECURITY_GROUP, offset);   
-    GetDlgItem(IDC_SECURITY_GROUP)->ShowWindow(SW_HIDE);
-    GetDlgItem(IDC_SYNC_CHECK_ENCRYPTION)->ShowWindow(SW_HIDE);
 
-    // move schedule box
-    moveResource(IDC_SYNC_CHECK_OUTLOOK_OPEN, offset);
-    moveResource(IDC_SCHEDULER_COMBO_VALUE, offset);
-    moveResource(IDC_SCHEDULER_CHECK_ENABLED, offset);
-    moveResource(IDC_SCHEDULER_GROUP, offset);
-    GetDlgItem(IDC_SYNC_CHECK_OUTLOOK_OPEN)->ShowWindow(SW_HIDE);
+    //
+    // Save scheduler settings
+    //
+    CString msg;
+    int minutes=0;
 
-    // move element with offset
-    moveResource(IDC_SYNC_BUT_FILES, offset);
-    moveResource(IDC_SYNC_CHECK_FILES, offset);
-    moveResource(IDC_SEPARATOR_6, offset);
-    moveResource(IDC_SYNC_BUT_VIDEOS, offset);
-    moveResource(IDC_SYNC_CHECK_VIDEOS, offset);
-    moveResource(IDC_SEPARATOR_5, offset);
-    moveResource(IDC_SYNC_BUT_PICTURES, offset);
-    moveResource(IDC_SYNC_CHECK_PICTURES, offset);
+    // if scheduler values haven't changed, do not save it again
+    if (saveScheduler) {
+        // check scheduler values
+        if (checkEnabled.GetCheck() == BST_UNCHECKED) {
+            setScheduler(false, 0);
+        }
+        else {
+            // scheduler enabled
+            int pos = comboSchedulerValue.GetCurSel();
+            minutes = getSchedulerMinutes(pos);
 
-    // resize the group items
-    GetDlgItem(IDC_SYNC_GROUP_ITEMS)->GetWindowRect(&rect);
-    ScreenToClient(&rect);    
-    GetDlgItem(IDC_SYNC_GROUP_ITEMS)->SetWindowPos(&CWnd::wndTop,(int)(rect.TopLeft().x), rect.TopLeft().y, rect.Width(), rect.Height() - offset, SWP_SHOWWINDOW);
-    
-    // move buttons OK/Cancel
-    //moveResource(IDC_SYNC_OK, offset);
-    //moveResource(IDC_SYNC_CANCEL, offset);      
+            // save scheduler settings
+            if (setScheduler(true, minutes) != 0) {
+                msg.LoadString(IDS_SCHEDULER_CANNOT_SCHEDULE);
+                wsafeMessageBox(msg);
+            }
+        }
+    }
+    saveScheduler = false;
+
+    //
+    // Save encryption, global property 
+    //
+    for (unsigned int i=0; i<getConfig()->getSyncSourceConfigsCount(); i++) {
+        SyncSourceConfig* ssc = getConfig()->getSyncSourceConfig(i);
+        if (!ssc) continue;
+
+        // Only PIM sources!
+        // (cannot DES a largeObject read chunk by chunk via input stream)
+        if ( !isPIMSource(ssc->getName()) ) {
+            continue;
+        }
+
+        if (checkEncryption.GetCheck()) {
+            ssc->setEncryption("des");
+            ssc->setEncoding("");
+        } 
+        else {
+            ssc->setEncryption("");
+            
+            // For SIF types: the encoding is always b64
+            StringBuffer type(ssc->getType());
+            if (type.ifind("sif") == StringBuffer::npos) {
+                ssc->setEncoding("b64");
+            } else {
+                ssc->setEncoding("bin");
+            }
+        }
+    }
+
+    if (saveAttach) {
+        bool attach = (checkAttach.GetCheck() == BST_CHECKED);
+        getConfig()->getWindowsDeviceConfig().setAttach(attach);
+    }
+
+    //
+    // SAVE TO DISK!
+    //
+    if (saveToDisk) {
+        getConfig()->save();
+    }
+    return true;
+}
+
+
+void CSyncSettings::saveEnabledCheck(const StringBuffer& sourceName) {
+
+    SyncSourceConfig* ssc = getConfig()->getSyncSourceConfig(sourceName.c_str());
+    if (!ssc) return;
+
+    CButton* checkbox = getCheckbox(sourceName);
+    if (!checkbox) return;
+
+    bool enabled = (checkbox->GetCheck() == BST_CHECKED);
+    ssc->setIsEnabled(enabled);
 }
 
 
@@ -742,7 +629,6 @@ void CSyncSettings::OnBnClickedSyncCheckContacts()
     else{
         butContacts.EnableWindow(TRUE);
     }
-    saveSyncTypeContacts = true;
 }
 
 void CSyncSettings::OnBnClickedSyncCheckCalendar()
@@ -753,7 +639,6 @@ void CSyncSettings::OnBnClickedSyncCheckCalendar()
     else{
         butCalendar.EnableWindow(TRUE);
     }
-    saveSyncTypeCalendar = true;
 }
 
 void CSyncSettings::OnBnClickedSyncCheckTasks()
@@ -764,7 +649,6 @@ void CSyncSettings::OnBnClickedSyncCheckTasks()
     else{
         butTasks.EnableWindow(TRUE);
     }
-    saveSyncTypeTasks = true;
 }
 
 void CSyncSettings::OnBnClickedSyncCheckNotes()
@@ -773,8 +657,6 @@ void CSyncSettings::OnBnClickedSyncCheckNotes()
         butNotes.EnableWindow(FALSE);
     else
         butNotes.EnableWindow(TRUE);
-
-    saveSyncTypeNotes = true;
 }
 
 void CSyncSettings::OnBnClickedSyncCheckPictures()
@@ -783,8 +665,6 @@ void CSyncSettings::OnBnClickedSyncCheckPictures()
         butPictures.EnableWindow(FALSE);
     else
         butPictures.EnableWindow(TRUE);
-
-    saveSyncTypePictures = true;
 }
 
 void CSyncSettings::OnBnClickedSyncCheckVideos()
@@ -793,8 +673,6 @@ void CSyncSettings::OnBnClickedSyncCheckVideos()
         butVideos.EnableWindow(FALSE);
     else
         butVideos.EnableWindow(TRUE);
-
-    saveSyncTypeVideos = true;
 }
 
 void CSyncSettings::OnBnClickedSyncCheckFiles()
@@ -803,83 +681,66 @@ void CSyncSettings::OnBnClickedSyncCheckFiles()
         butFiles.EnableWindow(FALSE);
     else
         butFiles.EnableWindow(TRUE);
-
-    saveSyncTypeFiles = true;
 }
 
 void CSyncSettings::OnBnClickedSyncOk()
 {
-    // OK Button
-    if(saveSettings(true)){
-        ((CMainSyncFrame*)AfxGetMainWnd())->pConfigFrame->DoCancel();
-    }
+    // OK Button: save settings to disk
+    saveSettings();
+
+    // return to main screen
+    ((CMainSyncFrame*)AfxGetMainWnd())->pConfigFrame->DoCancel();
 }
 
 void CSyncSettings::OnBnClickedSyncCancel()
 {
-    // CANCEL button
+    // CANCEL button: restore original settings
     getConfig()->read();
+
+    // return to main screen
     ((CMainSyncFrame*)AfxGetMainWnd())->pConfigFrame->DoCancel();
 }
 
 void CSyncSettings::OnBnClickedSyncButContacts()
 {
-    CContactSettings wndContacts;
+    CPIMSettings wndContacts(SYNCSOURCE_CONTACTS);
     INT_PTR result = wndContacts.DoModal();
 
     // Update the UI checkbox
     CString s1 = composeCheckboxText(CONTACT_);
     SetDlgItemText(IDC_SYNC_CHECK_CONTACTS, s1);
-
-    saveSyncTypeContacts = true;
 }
 
 void CSyncSettings::OnBnClickedSyncButCalendar()
 {
-    CCalendarSettings wndCalendar;
+    CPIMSettings wndCalendar(SYNCSOURCE_CALENDAR);
     INT_PTR result = wndCalendar.DoModal();
 
     // Update the UI checkbox
     CString s1 = composeCheckboxText(APPOINTMENT_);
     SetDlgItemText(IDC_SYNC_CHECK_CALENDAR, s1);
-
-    saveSyncTypeCalendar = true;
 }
 
 void CSyncSettings::OnBnClickedSyncButTasks()
 {
-    CTaskSettings wndTasks;
+    CPIMSettings wndTasks(SYNCSOURCE_TASKS);
     INT_PTR result = wndTasks.DoModal();
 
     // Update the UI checkbox
     CString s1 = composeCheckboxText(TASK_);
     SetDlgItemText(IDC_SYNC_CHECK_TASKS, s1);
-
-    saveSyncTypeTasks = true;
 }
 
 void CSyncSettings::OnBnClickedSyncButNotes()
 {
-    CNotesSettings wndNotes;
+    CPIMSettings wndNotes(SYNCSOURCE_NOTES);
     INT_PTR result = wndNotes.DoModal();
 
     // Update the UI checkbox
     CString s1 = composeCheckboxText(NOTE_);
     SetDlgItemText(IDC_SYNC_CHECK_NOTES, s1);
-
-    saveSyncTypeNotes = true;
 }
 
-bool isMediaHubSet() {
-
-    CMainSyncFrame syncFrame;
-    int res = syncFrame.OnCheckMediaHubFolder(0,0);
-    
-    if (res != IDOK) {
-        return false;
-    }
-    return true;
-}
 
 void CSyncSettings::OnBnClickedSyncButPictures()
 {
@@ -892,8 +753,6 @@ void CSyncSettings::OnBnClickedSyncButPictures()
     // Update the UI checkbox
     CString s1 = composeCheckboxText(PICTURE_);
     SetDlgItemText(IDC_SYNC_CHECK_PICTURES, s1);
-
-    saveSyncTypePictures = true;
 }
 
 void CSyncSettings::OnBnClickedSyncButVideos()
@@ -907,8 +766,6 @@ void CSyncSettings::OnBnClickedSyncButVideos()
     // Update the UI checkbox
     CString s1 = composeCheckboxText(VIDEO_);
     SetDlgItemText(IDC_SYNC_CHECK_VIDEOS, s1);
-
-    saveSyncTypeVideos = true;
 }
 
 void CSyncSettings::OnBnClickedSyncButFiles()
@@ -922,110 +779,12 @@ void CSyncSettings::OnBnClickedSyncButFiles()
       // Update the UI checkbox
     CString s1 = composeCheckboxText(FILES_);
     SetDlgItemText(IDC_SYNC_CHECK_FILES, s1);
-
-    saveSyncTypeFiles = true;
 }
 
-bool CSyncSettings::saveSettings(bool saveToDisk)
-{    
-    CString s1, s2, msg;
-    _bstr_t bst;
-    int minutes=0, hours=0;
 
-    // if scheduler values haven't changed, do not save it again
-    if(saveScheduler){
-        // check scheduler values
-        if(checkEnabled.GetCheck() == BST_UNCHECKED){
-            setScheduler(false, 0); 
-            //return true; // return ok
-        }
-        else{
-            // scheduler enabled
-            int pos = comboSchedulerValue.GetCurSel();
-            minutes = getSchedulerMinutes(pos);
 
-            // save scheduler settings
-            if(setScheduler(true, minutes) != 0){
-                msg.LoadString(IDS_SCHEDULER_CANNOT_SCHEDULE);
-                wsafeMessageBox(msg);
-            }
-        }
-    }
-    saveScheduler = false;
-
-    if (saveSyncTypeContacts) {
-        bool enabled = (checkContacts.GetCheck() == BST_CHECKED);
-        getConfig()->getSyncSourceConfig(CONTACT_)->setIsEnabled(enabled);
-    }
-    if (saveSyncTypeCalendar) {
-        bool enabled = (checkCalendar.GetCheck() == BST_CHECKED);
-        getConfig()->getSyncSourceConfig(APPOINTMENT_)->setIsEnabled(enabled);
-    }
-    if (saveSyncTypeTasks) {
-        bool enabled = (checkTasks.GetCheck() == BST_CHECKED);
-        getConfig()->getSyncSourceConfig(TASK_)->setIsEnabled(enabled);
-    }
-    if (saveSyncTypeNotes) {
-        bool enabled = (checkNotes.GetCheck() == BST_CHECKED);
-        getConfig()->getSyncSourceConfig(NOTE_)->setIsEnabled(enabled);
-    }
-    if (saveSyncTypePictures) {
-        bool enabled = (checkPictures.GetCheck() == BST_CHECKED);
-        getConfig()->getSyncSourceConfig(PICTURE_)->setIsEnabled(enabled);
-    }
-    if (saveSyncTypeVideos) {
-        bool enabled = (checkVideos.GetCheck() == BST_CHECKED);
-        getConfig()->getSyncSourceConfig(VIDEO_)->setIsEnabled(enabled);
-    }
-    if (saveSyncTypeFiles) {
-        bool enabled = (checkFiles.GetCheck() == BST_CHECKED);
-        getConfig()->getSyncSourceConfig(FILES_)->setIsEnabled(enabled);
-    }
-
-    // save encryption, global property 
-    // NOTE: only PIM: cannot DES a largeObject read chunk by chunk via input stream
-    if(checkEncryption.GetCheck()){
-        getConfig()->getSyncSourceConfig(CONTACT_)->setEncryption("des");
-        getConfig()->getSyncSourceConfig(APPOINTMENT_)->setEncryption("des");
-        getConfig()->getSyncSourceConfig(TASK_)->setEncryption("des");
-        getConfig()->getSyncSourceConfig(NOTE_)->setEncryption("des");
-
-        // When encryption is used, encoding is always 'base64'.
-        getConfig()->getSyncSourceConfig(CONTACT_)->setEncoding("b64");
-        getConfig()->getSyncSourceConfig(APPOINTMENT_)->setEncoding("b64");
-        getConfig()->getSyncSourceConfig(TASK_)->setEncoding("b64");
-        getConfig()->getSyncSourceConfig(NOTE_)->setEncoding("b64");
-    }
-    else{
-        getConfig()->getSyncSourceConfig(CONTACT_)->setEncryption("");
-        getConfig()->getSyncSourceConfig(APPOINTMENT_)->setEncryption("");
-        getConfig()->getSyncSourceConfig(TASK_)->setEncryption("");
-        getConfig()->getSyncSourceConfig(NOTE_)->setEncryption("");
-
-        // Ensure that encoding is the correct one ("b64" only for SIF).
-        if ( !strcmp(getConfig()->getSyncSourceConfig(CONTACT_)->getType(), "text/x-vcard") ) {
-            getConfig()->getSyncSourceConfig(CONTACT_)->setEncoding("bin");
-        }
-        if ( !strcmp(getConfig()->getSyncSourceConfig(APPOINTMENT_)->getType(), "text/x-vcalendar") ) {
-            getConfig()->getSyncSourceConfig(APPOINTMENT_)->setEncoding("bin");
-        }
-    }
-
-    if(saveAttach)
-    {
-        if (checkAttach.GetCheck())
-            getConfig()->getWindowsDeviceConfig().setAttach(true);
-        else
-            getConfig()->getWindowsDeviceConfig().setAttach(false);
-    }
-
-    if(saveToDisk)
-        getConfig()->save();
-
-    return true;
-}
-
-void CSyncSettings::OnNcPaint(){
+void CSyncSettings::OnNcPaint()
+{
     CFormView::OnNcPaint();
     CScrollView::SetScrollSizes(MM_TEXT, CSize(0,0));   
 }
@@ -1055,7 +814,7 @@ BOOL CSyncSettings::PreTranslateMessage(MSG* pMsg){
             OnBnClickedSyncCancel();
             bProcessed = true;
         }
-    };
+    }
 
     if(bProcessed)
         return TRUE;
@@ -1075,6 +834,9 @@ void CSyncSettings::OnBnClickedSyncCheckOutlookOpen()
 }
 
 
+//
+// util methods
+//
 CString CSyncSettings::composeCheckboxText(const char* sourceName)
 {
     CString ret;
@@ -1094,7 +856,7 @@ CString CSyncSettings::composeCheckboxText(const char* sourceName)
     // Append the "(Download/Upload Only)" if a one-way is currently set
     //
     OutlookConfig* config = getConfig();
-    WindowsSyncSourceConfig* wssc = config->getSyncSourceConfig(sourceName);
+    SyncSourceConfig* wssc = config->getSyncSourceConfig(sourceName);
     if (!wssc) {
         return ret;
     }
@@ -1119,4 +881,98 @@ CString CSyncSettings::composeCheckboxText(const char* sourceName)
     }
 
     return ret;
+}
+
+
+CButton* CSyncSettings::getCheckbox(const StringBuffer& sourceName) {
+    
+    if (sourceName.empty())          { return NULL; }
+   
+    if (sourceName == CONTACT_)      { return &checkContacts; }
+    if (sourceName == APPOINTMENT_)  { return &checkCalendar; }
+    if (sourceName == TASK_)         { return &checkTasks;    }
+    if (sourceName == NOTE_)         { return &checkNotes;    }
+    if (sourceName == PICTURE_)      { return &checkPictures; }
+    if (sourceName == VIDEO_)        { return &checkVideos;   }
+    if (sourceName == FILES_)        { return &checkFiles;    }
+    
+    return NULL;
+}
+
+CButton* CSyncSettings::getButton(const StringBuffer& sourceName) {
+    
+    if (sourceName.empty())          { return NULL; }
+   
+    if (sourceName == CONTACT_)      { return &butContacts; }
+    if (sourceName == APPOINTMENT_)  { return &butCalendar; }
+    if (sourceName == TASK_)         { return &butTasks;    }
+    if (sourceName == NOTE_)         { return &butNotes;    }
+    if (sourceName == PICTURE_)      { return &butPictures; }
+    if (sourceName == VIDEO_)        { return &butVideos;   }
+    if (sourceName == FILES_)        { return &butFiles;    }
+    
+    return NULL;
+}
+
+CWnd* CSyncSettings::getSeparator(const int index) {
+
+    switch (index) {
+        case 1:   return GetDlgItem(IDC_SEPARATOR_1);
+        case 2:   return GetDlgItem(IDC_SEPARATOR_2);
+        case 3:   return GetDlgItem(IDC_SEPARATOR_3);
+        case 4:   return GetDlgItem(IDC_SEPARATOR_4);
+        case 5:   return GetDlgItem(IDC_SEPARATOR_5);
+        case 6:   return GetDlgItem(IDC_SEPARATOR_6);
+        default:  return NULL;
+    }
+}
+
+void CSyncSettings::hideAllSources() 
+{
+    checkContacts.ShowWindow(SW_HIDE);
+    checkCalendar.ShowWindow(SW_HIDE);
+    checkTasks.ShowWindow(SW_HIDE);
+    checkNotes.ShowWindow(SW_HIDE);
+    checkPictures.ShowWindow(SW_HIDE);
+    checkVideos.ShowWindow(SW_HIDE);
+    checkFiles.ShowWindow(SW_HIDE);
+
+    butContacts.ShowWindow(SW_HIDE);
+    butCalendar.ShowWindow(SW_HIDE);
+    butTasks.ShowWindow(SW_HIDE);
+    butNotes.ShowWindow(SW_HIDE);
+    butPictures.ShowWindow(SW_HIDE);
+    butVideos.ShowWindow(SW_HIDE);
+    butFiles.ShowWindow(SW_HIDE);
+
+    GetDlgItem(IDC_SEPARATOR_1)->ShowWindow(SW_HIDE);
+    GetDlgItem(IDC_SEPARATOR_2)->ShowWindow(SW_HIDE);
+    GetDlgItem(IDC_SEPARATOR_3)->ShowWindow(SW_HIDE);
+    GetDlgItem(IDC_SEPARATOR_4)->ShowWindow(SW_HIDE);
+    GetDlgItem(IDC_SEPARATOR_5)->ShowWindow(SW_HIDE);
+    GetDlgItem(IDC_SEPARATOR_6)->ShowWindow(SW_HIDE);
+}
+
+// not used anymore
+void CSyncSettings::disableSource(CButton& button1, CButton& button2, bool* synctype, int sep1, int sep2) {
+    
+    button1.EnableWindow(FALSE);
+    button2.EnableWindow(FALSE);
+    *synctype = false;
+    GetDlgItem(sep1)->EnableWindow(FALSE);
+    if (sep2 > 0) {
+        GetDlgItem(sep2)->EnableWindow(FALSE);
+    }
+}
+
+// not used anymore
+void CSyncSettings::hideSource(CButton& button1, CButton& button2, bool* synctype, int sep1, int sep2) {
+    
+    button1.ShowWindow(SW_HIDE);
+    button2.ShowWindow(SW_HIDE);
+    *synctype = false;
+    GetDlgItem(sep1)->ShowWindow(SW_HIDE);
+    if (sep2 > 0) {
+        GetDlgItem(sep2)->ShowWindow(SW_HIDE);
+    }
 }

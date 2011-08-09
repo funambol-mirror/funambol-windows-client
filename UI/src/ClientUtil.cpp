@@ -38,7 +38,7 @@
 #include "Resource.h"
 #include "utils.h"
 #include "winmaincpp.h"
-#include "CalendarSettings.h"
+#include "PIMSettings.h"
 #include "ClientUtil.h"
 
 
@@ -188,21 +188,14 @@ int manageSyncErrorMsg(long code) {
             break;
         }
 
+		case WIN_ERR_PAYMENT_REQUIRED: // special case: PAYMENT Required for sync, managed with an in teractive dialog box.Not here.
+			showMessage = false;
+			break;
+
 
         //
         // following are obsolete?
         //
-
-
-		/*
-		// overlapping Alert charge on account for restore
-        case 402:
-            s1.LoadString(IDS_CODE_AUTH_EXPIRED_402); 
-            break;
-		*/
-
-
-
         case 403:
             s1.LoadString(IDS_CODE_FORBIDDEN_403);    
             break;
@@ -221,11 +214,6 @@ int manageSyncErrorMsg(long code) {
         case 2052:
             s1.LoadString(IDS_CODE_SERVER_ERROR_2052); 
             break;
-
-		case WIN_ERR_PAYMENT_REQUIRED: // special case: PAYMENT Required for sync, managed with an in teractive dialog box.Not here.
-			showMessage = false;
-			break;
-		
 
         default: 
             break;
@@ -253,7 +241,7 @@ int manageWinErrors(const int winErrorCode) {
         case 0:
             sourceState = SYNCSOURCE_STATE_OK;
             break;
-        case 2:
+        case WIN_ERR_SYNC_CANCELED:
             sourceState = SYNCSOURCE_STATE_CANCELED;
             break;
         case WIN_ERR_SERVER_QUOTA_EXCEEDED:
@@ -319,35 +307,38 @@ CPoint getRelativePosition(CWnd* wnd, CWnd* parentWnd) {
 }
 
 CPoint getMainWindowSize() {
-    
+
+    //
+    // Calculate the window size dynamically based on the number od sources, @96dpi
+    //
+    int borders = 2;
+    int sizeX = PANE_SIZE_X + (X_SPACE_LEFT * 2) + borders;
+    int sizeY = Y_SPACE_TOP;
+    if (USE_SYNCALL_PANE) {
+        sizeY += PANE_SIZE_Y + Y_SPACE_BELOW_SYNCALL;
+    }
+    int numSources = getConfig()->getSourcesVisible().size();
+    sizeY += numSources * (PANE_SIZE_Y + Y_SPACE_BETWEEN_PANES);
+    sizeY += 75;    // top menu?
+
+
+    //
+    // Adjust size depending on current dpi (default is 96)
+    //
     HDC hdc = ::GetDC(0);
     int dpiX = ::GetDeviceCaps(hdc, LOGPIXELSX);
     int dpiY = ::GetDeviceCaps(hdc, LOGPIXELSY);
     ::ReleaseDC(0, hdc);
 
-    //
-    // TODO: set the window size dynamically based on the source number
-    //
-    int sizeX = FRAME_MAIN_X;
-    int sizeY = FRAME_MAIN_Y;
+    sizeX = (int) (sizeX * (double)dpiX/96);
+    sizeY = (int) (sizeY * (double)dpiY/96);
 
-    if (!isSourceVisible(CONTACT)) {
-        sizeY -= SOURCE_PANE_SIZE_Y;
+    if (dpiX == 96) {
+        // can't see why, needs investigation! :(
+        sizeX += 4;
     }
-    if (!isSourceVisible(APPOINTMENT)) {
-        sizeY -= SOURCE_PANE_SIZE_Y;
-    }
-    if (!isSourceVisible(TASK)) {
-        sizeY -= SOURCE_PANE_SIZE_Y;
-    }
-    if (!isSourceVisible(NOTE)) {
-        sizeY -= SOURCE_PANE_SIZE_Y;
-    }
-    
-    double dx = sizeX * ((double)dpiX/96);      // default DPI = 96
-    double dy = sizeY * ((double)dpiY/96);      // default DPI = 96
 
-    CPoint point((int)dx, (int)dy);
+    CPoint point(sizeX, sizeY);
     return point;
 }
 

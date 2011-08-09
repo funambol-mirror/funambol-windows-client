@@ -53,7 +53,7 @@ class CPicturesSettings : public CDialog {
 private:
 
     /// The SyncSource configuration for pictures
-    WindowsSyncSourceConfig* ssconf;
+    SyncSourceConfig* ssconf;
 
     /**
      * Opens the default Windows dialog to select a folder in the file system.

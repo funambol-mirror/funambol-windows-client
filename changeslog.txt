@@ -1,5 +1,24 @@
 2011-08-09
-  - magi: updated nsis and languages to create the shortcut on desktop named "MediaHub Folder" in each language
+  - toccy: reintegrated brach US2289 (UI refactoring):
+           * main screen (SyncForm) refactored: dynamically create UI objects
+           * settings screen (SyncSettings) refactored: dynamically load UI objects
+           * added new classes (CustomPane and SyncAllPane) for main screen panes
+           * all sources can be visualized/hidden programmatically and in a custom order
+           * removed obsolete methods and UI events, code/resources cleanup
+           * refactoring of configuration (removed WindowsSyncSourceConfig class)
+           * fixed 'attach' config param initialization (caused scheduler to crash)
+           * fixed first config read at startup (check swv value)
+           * fixed cancel sync (config abort flag is used)
+           * fixed Bug 11047 - confusing usage of ticks
+           * fixed Bug 10779 - Contacts sync takes place even with source disabled
+           * fixed Bug 8919  - Pictures status is 'last sync cancelled' even if they were never synced
+           * fixed Bug 2744  - The appearance of the text changes for the Sync Items Label when a sync starts for that item
+           * fixed Bug 10956 - Clickable area is smaller than bar area in Windows sync client UI
+           * fixed Bug 5753  - Windows Client: status bar changes to "Ready" by clicking on menu when sync is in progress.
+           * fixed Bug 9235  - Wrong status message if Outlook Sync Client opened with scheduled sync in progress
+
+      - magi: updated nsis and languages to create the shortcut on desktop named "MediaHub Folder" in each language
+
 2011-08-08
   - toccy: updated trunk version to 10.1.0 (release 10.1.0)
   - magi: added multilanguage installer. en,it,de,fr,zh,tc,ru,ar
@@ -9,7 +28,6 @@
           changed build.xml to use nsis unicode
           updated UAC.dll and UAC.nsh to use nsis unicode
           added link to desktop of the client
-          
 
 2011-07-27
   - toccy: merged from branch v10 at rev.852

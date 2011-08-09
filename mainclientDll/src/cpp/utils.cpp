@@ -436,7 +436,7 @@ bool isMediaHubFolderSet() {
     OutlookConfig* config = OutlookConfig::getInstance();
     StringBuffer fpath("");
     if (config) {
-        fpath = config->getSyncSourceConfig(PICTURE_)->getCommonConfig()->getProperty(PROPERTY_MEDIAHUB_PATH);
+        fpath = config->getSyncSourceConfig(PICTURE_)->getProperty(PROPERTY_MEDIAHUB_PATH);
     }
     if (fpath.empty() == false) {
         return true;
@@ -714,7 +714,7 @@ int safeMessageBox(const char* message, const char* title, unsigned int flags) {
         WCHAR* wmessage = toWideChar(message);
 
         if (!flags) {
-            flags = MB_OK | MB_ICONEXCLAMATION | MB_SETFOREGROUND | MB_APPLMODAL;
+            flags = MB_OK | MB_ICONEXCLAMATION | MB_SETFOREGROUND | MB_TASKMODAL;
         }
 
         if (!title) {
@@ -762,7 +762,7 @@ int wsafeMessageBox(const WCHAR* wmessage, const WCHAR* wtitle, unsigned int fla
     if (config->getScheduledSync() == false) {
 
         if (!flags) {
-            flags = MB_OK | MB_ICONEXCLAMATION | MB_SETFOREGROUND | MB_APPLMODAL;
+            flags = MB_OK | MB_ICONEXCLAMATION | MB_SETFOREGROUND | MB_TASKMODAL;
         }
         if (!wtitle) {
             wtitle = WMSGBOX_ERROR_TITLE;
@@ -1008,7 +1008,7 @@ int countSourceVisible() {
 bool isSourceEnabled(const char* sourceName) {
 
     OutlookConfig* config = OutlookConfig::getInstance();
-    WindowsSyncSourceConfig* ssc = config->getSyncSourceConfig(sourceName);
+    SyncSourceConfig* ssc = config->getSyncSourceConfig(sourceName);
     if (ssc) {
         return ssc->isEnabled();
     }

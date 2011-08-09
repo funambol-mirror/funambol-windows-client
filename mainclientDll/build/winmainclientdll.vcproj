@@ -443,10 +443,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\cpp\WindowsSyncSourceConfig.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\cpp\winmaincpp.cpp"
 				>
 			</File>

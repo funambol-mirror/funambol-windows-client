@@ -50,7 +50,7 @@
 
 #include <string>
 
-/// Codes used by UI ("0" is the initialization)
+/// Source panes used by UI
 #define SYNCSOURCE_CALENDAR     1
 #define SYNCSOURCE_CONTACTS     2
 #define SYNCSOURCE_NOTES        3
@@ -91,10 +91,10 @@ char* syncModeName     (SyncMode code);
 bool isFullSyncMode    (SyncMode mode);
 
 /// Returns true if the source is a PIM source (contacts, calendar, tasks or notes)
-bool isPIMSource(const char* sourceName);
+_declspec(dllexport) bool isPIMSource(const char* sourceName);
 
 /// Returns true if the source is a Media source (pictures, videos or files)
-bool isMediaSource(const char* sourceName);
+_declspec(dllexport) bool isMediaSource(const char* sourceName);
 
 void  toWindows        (char* str);
 
@@ -187,8 +187,8 @@ char*        friendlyName          (const char* sourceName);
 int          getBuildNumberFromVersion(const char* swv);
 long         variantTimeToTimeStamp   (const double vTime);
 
-int          syncSourceNameToIndex(const StringBuffer& sourceName);
-StringBuffer syncSourceIndexToName(const int sourceID);
+_declspec(dllexport) int syncSourceNameToIndex(const StringBuffer& sourceName);
+_declspec(dllexport) StringBuffer syncSourceIndexToName(const int sourceID);
 
 StringBuffer getDefaultSyncMode(const char* sourceName);
 

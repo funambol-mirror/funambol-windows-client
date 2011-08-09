@@ -40,22 +40,29 @@
 #include "DateFilter.h"
 #include <string>
 #include "base/util/StringBuffer.h"
+
 using namespace std;
-#define SYNC_DEFAULT_TOTAL_ITEMS  20
+
+
+// Customization of main screen
+#define Y_SPACE_BETWEEN_PANES   -1                  // -1 means 1 pixel overlapping (the grey border)
+#define Y_SPACE_BELOW_SYNCALL   10                  // 10 pixels
+#define Y_SPACE_TOP             10                  // 10 pixels
+#define X_SPACE_LEFT            10                  // 10 pixels
+#define USE_SYNCALL_PANE        true
+
+#define PANE_SIZE_X             325                 // Original size of pane bitmap for main screen
+#define PANE_SIZE_Y             51
+#define ICON_SIZE_X             32                  // Original size of all icons for main screen
+#define ICON_SIZE_Y             32
+
 
 // Default dimensions of frames (in case of 96dpi)
 #define FRAME_CONFIG_X      435
 #define FRAME_CONFIG_Y      510
-#define FRAME_MAIN_X        350
-#define FRAME_MAIN_Y        485
-#define SOURCE_PANE_SIZE_Y  45      // height of each source pane on main screen
 
-#define MAIN_PROGRESSBAR_COLOR RGB(255,255,255)
 
 #define EDIT_TEXT_MAXLENGTH 255
-#define EDIT_TEXT_SCHEDULER_MAXLENGTH 6
-
-#define SYNCTYPE_NONE "none"
 
 #define LAST_SYNC_TIME_FORMAT TEXT("%A %#d %b %Y %#I:%M%p")
 //#define LAST_SYNC_TIME_FORMAT TEXT("%#d %b %Y %#I:%M%p")

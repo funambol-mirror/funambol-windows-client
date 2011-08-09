@@ -154,7 +154,7 @@ BOOL CFilesSettings::OnInitDialog() {
     //SetDlgItemText(IDC_FILES_EDIT_SYNCTYPE, s1);
 
     // Files folder path
-    StringBuffer path = ssconf->getCommonConfig()->getProperty(PROPERTY_MEDIAHUB_PATH);
+    StringBuffer path = ssconf->getProperty(PROPERTY_MEDIAHUB_PATH);
     
     if (path.empty()) {
         // If empty, set the default path for files (shell folder)
@@ -162,7 +162,7 @@ BOOL CFilesSettings::OnInitDialog() {
         path = getDefaultMyDocumentsPath();
         path.append("\\");
         path.append(MEDIA_HUB_DEFAULT_FOLDER);        
-        ssconf->getCommonConfig()->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
+        ssconf->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
     }
     WCHAR* wpath = toWideChar(path.c_str());
     s1 = wpath;
@@ -219,7 +219,7 @@ bool CFilesSettings::saveSettings(bool saveToDisk) {
     //       (when writing to winreg, toWideChar is then called)
     char* path = toMultibyte(filesPath.GetBuffer());
     if (path) {
-        ssconf->getCommonConfig()->setProperty(PROPERTY_MEDIAHUB_PATH, path);
+        ssconf->setProperty(PROPERTY_MEDIAHUB_PATH, path);
         delete [] path;    
     }    
 
@@ -238,7 +238,7 @@ void CFilesSettings::OnBnClickedFilesButSelect() {
     if (!ssconf) return;
 
     // Get the default browse folder to the current path of files
-    StringBuffer path = ssconf->getCommonConfig()->getProperty(PROPERTY_MEDIAHUB_PATH);
+    StringBuffer path = ssconf->getProperty(PROPERTY_MEDIAHUB_PATH);
     WCHAR* defaultPath = toWideChar(path.c_str());
 
     CString caption;
@@ -250,7 +250,7 @@ void CFilesSettings::OnBnClickedFilesButSelect() {
         // Update the UI label and save the new path
         SetDlgItemText(IDC_FILES_EDIT_FOLDER, newPath.c_str());
         path.convert(newPath.c_str());
-        ssconf->getCommonConfig()->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
+        ssconf->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
     }
 
     delete [] defaultPath;
@@ -309,7 +309,7 @@ bool CFilesSettings::browseFolder(wstring& folderpath, const WCHAR* defaultFolde
 void CFilesSettings::loadSyncModesBox(const char* sourceName)
 {
     OutlookConfig* config = getConfig();
-    WindowsSyncSourceConfig* ssconf = config->getSyncSourceConfig(sourceName);
+    SyncSourceConfig* ssconf = config->getSyncSourceConfig(sourceName);
     if (!ssconf) return;
 
     // TODO: use a switch on sourceName when refactoring
@@ -370,12 +370,12 @@ void CFilesSettings::OnCbnSelchangeFilesComboSynctype()
     and.append(" ");
        
     
-    StringBuffer data = ssconf->getCommonConfig()->getProperty(PROPERTY_EXTENSION);    
+    StringBuffer data = ssconf->getProperty(PROPERTY_EXTENSION);    
     if (data.empty() == false) {
        
         supportedData = ConvertToChar(ss);
         
-        StringBuffer data = ssconf->getCommonConfig()->getProperty(PROPERTY_EXTENSION);    
+        StringBuffer data = ssconf->getProperty(PROPERTY_EXTENSION);    
         data.upperCase();
         supportedData.append(data);
         
@@ -388,17 +388,7 @@ void CFilesSettings::OnCbnSelchangeFilesComboSynctype()
         
     }
     */
-    /*
-    CString s2;
-    s2.LoadString(IDS_MEDIA_HUB_FILE_MAX_SIZE);
-    StringBuffer s, sss;    
-    s = ConvertToChar(s2);
-    sss.sprintf(s.c_str(), (int)SAPI_MAX_FILE_SIZE/1024/1024);
-    supportedData.append(" ");
-    supportedData.append(sss);
 
-    CString suppData = supportedData;
-    */
     CString s2;
     s2.LoadString(IDS_MEDIA_HUB_FILE_MAX_SIZE);
     WCHAR tmp[1024];

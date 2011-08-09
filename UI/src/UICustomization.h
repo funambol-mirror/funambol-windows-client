@@ -65,6 +65,7 @@ public:
     const static bool   logRotateOptions;               /**< Shows "Send Log" button in the logging screen */
     const static bool   showWelcomeMessage;             /**< Shows a welcome screen at first run or in case of upgrade */
     const static bool   showUpgradingMessage;           /**< Shows a small popup screen during the upgrade: "Upgrading Sync for Outlook" */
+    const static bool   verboseUIDebugging;             /**< Set to true to enable verbose debugging on UI classes (warning: can slowdown execution)*/
 
 };
 

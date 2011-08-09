@@ -40,9 +40,9 @@
 /** @{ */
 
 
-// CFullSync dialog
 #include "OutlookPlugin.h"
 #include "afxwin.h"
+#include "base\util\StringBuffer.h"
 
 
 /**
@@ -70,6 +70,8 @@ private:
 
     /// Returns true if at least one source checkbox is checked.
     bool isAtLeastOneSourceChecked();
+
+    CButton* getCheckBox(const Funambol::StringBuffer& sourceName);
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

@@ -39,7 +39,6 @@ EXPORTS
 
 initializeClient
 closeClient
-getSourcesToSync
 resetAllSourcesTimestamps
 startSync
 doSapiLoginThread
@@ -74,9 +73,6 @@ isSourceEnabled
 getOutlookVersion
 isMediaHubFolderSet
 isWindowsXP
-;
-; update procedure
-;
 updateProcedure
 getUpdaterConfig
 readUpdaterConfig

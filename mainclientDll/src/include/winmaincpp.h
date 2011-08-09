@@ -364,8 +364,6 @@ int  doSapiLogin        ();
  */
 void resetAllSourcesTimestamps();
 
-ArrayList * getSourcesToSync(bool refreshSources, bool *syncingPIM);
-
 
 bool getRefreshSourcesListToSync ( void );
 void setRefreshSourcesListToSync (bool b);
@@ -387,7 +385,15 @@ void initPIMSources();
 int  synchronize        (WindowsSyncClient& winClient, WindowsSyncSource& source);
 int  closeClient        ();
 void closeOutlook       ();
-void checkAbortedSync   ();
+
+/**
+ * Checks if synchronization session has been intentionally aborted.
+ * A flag 'abortSync' inside OutlookConfig singleton object is used to
+ * indicate that the user wants to abort the sync.
+ * The client periodically checks this flag, using this function.
+ */
+bool checkIsToAbort();
+
 bool checkSyncInProgress();
 void softTerminateSync  ();
 int  hardTerminateSync  (HANDLE hSyncThread);

@@ -115,19 +115,10 @@ class DefaultWinConfigFactory : public DefaultConfigFactory {
         /**
          * Returns a default generated SyncSourceConfig for Win32 (common props of SyncSourceConfig).
          * @param name : the name of syncsource desired
-         * @return       WindowsSyncSourceConfig pointer allocated new, so it must
+         * @return       SyncSourceConfig pointer allocated new, so it must
          *               be freed by the caller.
          */
         static SyncSourceConfig* getSyncSourceConfig(const std::wstring& name);
-
-        /**
-         * Returns a default generated WindowsSyncSourceConfig for Win32 (specific client props).
-         * @param name : the name of syncsource desired
-         * @param sc   : pointer to the SyncSourceConfig object where all common properties are stored (mandatory not NULL)
-         * @return       WindowsSyncSourceConfig pointer allocated new, so it must
-         *               be freed by the caller.
-         */
-        static WindowsSyncSourceConfig* getWinSyncSourceConfig(const std::wstring& name, SyncSourceConfig* sc);
 };
 
 /** @} */

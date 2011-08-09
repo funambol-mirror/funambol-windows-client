@@ -84,9 +84,9 @@ CString processSharedCheckboxClick(WCHAR * remoteNameRoot, bool isChecked, CStri
     return result;
 }
 
-void moveItem(CWnd * window, CWnd * item, int dX, int dY) {
+void moveItem(CWnd * window, CWnd * item, int dX, int dY, const CWnd* pWndInsertAfter) {
     CPoint pos = getRelativePosition(item, window);
-    item->SetWindowPos(&CWnd::wndTop, pos.x + dX, pos.y + dY, NULL, NULL, SWP_SHOWWINDOW | SWP_NOSIZE);
+    item->SetWindowPos(pWndInsertAfter, pos.x + dX, pos.y + dY, NULL, NULL, SWP_SHOWWINDOW | SWP_NOSIZE);
 }
 
 void resizeItem(CWnd * item, int dX, int dY) {

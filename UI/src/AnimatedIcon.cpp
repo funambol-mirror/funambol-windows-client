@@ -44,70 +44,22 @@
 
 IMPLEMENT_DYNAMIC(CAnimatedIcon, CStatic)
 
-CAnimatedIcon::CAnimatedIcon()
-	: CStatic()
-{
-    counterAnim = 0;
-}
+CAnimatedIcon::CAnimatedIcon() : CStatic() {}
 
-CAnimatedIcon::~CAnimatedIcon()
-{
-}
+CAnimatedIcon::~CAnimatedIcon() {}
 
-void CAnimatedIcon::DoDataExchange(CDataExchange* pDX)
-{
+void CAnimatedIcon::DoDataExchange(CDataExchange* pDX) {
 	CStatic::DoDataExchange(pDX);
 }
 
-
 BEGIN_MESSAGE_MAP(CAnimatedIcon, CStatic)
-    ON_WM_TIMER()
     ON_WM_PAINT()
 END_MESSAGE_MAP()
 
 
 // CAnimatedIcon message handlers
-
-void CAnimatedIcon::OnTimer(UINT_PTR nIDEvent ){
-    // set icon depending on animation stage
-    this->SetIcon(NULL);
-
-    if(counterAnim == 4) {
-        counterAnim = 0;
-    }
-    switch(counterAnim){
-        case 0:
-            this->SetIcon(LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ARROWS32A)));
-            break;
-        case 1:
-            this->SetIcon(LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ARROWS32B)));
-            break;
-        case 2:
-            this->SetIcon(LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ARROWS32C))); 
-            break;
-        case 3:
-            this->SetIcon(LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ARROWS32D)));
-            break;
-    }
-    counterAnim++;
-}
-
-
-void CAnimatedIcon::Animate(){
-    // set arrow icon, then start timer for animation
-    SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ARROWS32A)));
-    state = STATE_ICON_SYNC;
-    this->SetTimer(ANIM_ICON_ARROWS, ANIM_ICON_DELAY, NULL);
-}
-
-void CAnimatedIcon::StopAnim(){
-    // kill timer for this icon, stopping the animation
-    state = STATE_DONE;
-    this->KillTimer(ANIM_ICON_ARROWS);
-}
-
-void CAnimatedIcon::OnPaint(){
+void CAnimatedIcon::OnPaint() {
     // paint the icon, so it will be transparent over the background bitmap
-    CPaintDC dc(this);        
+    CPaintDC dc(this);   
     dc.DrawIcon(0,0, GetIcon());
 }

@@ -384,9 +384,7 @@ void CPicturesSettings::OnCbnSelchangePicturesComboSynctype()
         supportedData.append(".");
     }
    
-    WCHAR* t = toWideChar(supportedData.c_str());
-    CString suppData(t);
-    delete [] t;
+    CString suppData = supportedData;
 
     int index = 0;
     if (lstSyncType.GetCount() > 1) {

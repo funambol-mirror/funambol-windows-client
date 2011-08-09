@@ -54,8 +54,10 @@ bool checkOneWayToTwoWay(int currentSyncType, int newSyncType);
 
 CString processSharedCheckboxClick(WCHAR * remoteNameRoot, bool isChecked, CString currentValue, CString warningMessage);
 
-void moveItem(CWnd * window, CWnd * item, int dX, int dY);
+void moveItem(CWnd * window, CWnd * item, int dX, int dY, const CWnd* pWndInsertAfter = NULL);
+
 void resizeItem(CWnd * item, int dX, int dY);
+
 void setWindowHeight(CWnd * window, CWnd * bottomItem);
 
 /** @} */

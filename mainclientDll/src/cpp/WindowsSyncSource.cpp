@@ -56,9 +56,9 @@ using namespace std;
 
 
 //------------------------------ WindowsSyncSource Methods --------------------------------------------
-WindowsSyncSource::WindowsSyncSource(const WCHAR* name, WindowsSyncSourceConfig* wsc) : 
-                                     SyncSource(name, wsc->getCommonConfig()),
-                                     winConfig(*wsc) {
+WindowsSyncSource::WindowsSyncSource(const WCHAR* name, SyncSourceConfig* wsc) : 
+                SyncSource(name, wsc), ssconfig(wsc) {
+
     outlook   = NULL;
     numErrors = 0;
 
@@ -89,19 +89,6 @@ WindowsSyncSource::~WindowsSyncSource() {
 
 
 
-
-/// read-only access to win configuration
-const WindowsSyncSourceConfig& WindowsSyncSource::getConfig() const {
-    return winConfig;
-}
-
-/// read-write access to win configuration
-WindowsSyncSourceConfig& WindowsSyncSource::getConfig() {
-    return winConfig;
-}
-
-
-
 /**
  * This is the first method called. 
  * It executes all operations to be done before synchronizing this source:
@@ -112,12 +99,15 @@ WindowsSyncSourceConfig& WindowsSyncSource::getConfig() {
  * @return  0 if no errors occurred
  */
 int WindowsSyncSource::beginSync() {
-    checkAbortedSync();
+    
+    if (checkIsToAbort()) {
+        return -1;
+    }
 
     initWinItems();
 
     // From now we consider this source synced.
-    winConfig.setIsSynced(true);
+    //config.setIsSynced(true);
 
     //
     // ------- Opens Outlook session --------
@@ -159,7 +149,7 @@ int WindowsSyncSource::beginSync() {
 
     defaultFolderPath = folder->getPath();
 
-    if ( strcmp(getConfig().getName(), "appointment")== 0 && getSyncMode() == SYNC_SLOW ){
+    if ( strcmp(getConfig()->getName(), APPOINTMENT_)== 0 && getSyncMode() == SYNC_SLOW ){
             DateFilter& f = getDateFilter();
             filterDirection = (int)(f.getDirection());
             f.setDirection(DateFilter::DIR_INOUT);
@@ -176,7 +166,8 @@ int WindowsSyncSource::beginSync() {
     allItemsPaths.clear();
     filteredItems.clear();
     try {
-        if (winConfig.getUseSubfolders() == true) {
+        bool err;
+        if (ssconfig->getBoolProperty(PROPERTY_USE_SUBFOLDERS, &err) == true) {
             pushAllSubfolderItemsToList(folder, allItems, allItemsPaths);
         }
         else {
@@ -191,7 +182,6 @@ int WindowsSyncSource::beginSync() {
         goto error;
     }
 
-    checkAbortedSync();
     return 0;
 
 error:
@@ -216,9 +206,7 @@ int WindowsSyncSource::endSync() {
 
     LOG.debug("Ending sync for '%ls'", getName());
 
-    //checkAbortedSync();
-
-    if ( strcmp(getConfig().getName(), "appointment")== 0 && getSyncMode() == SYNC_SLOW ){
+    if ( strcmp(getConfig()->getName(), APPOINTMENT_)== 0 && getSyncMode() == SYNC_SLOW ){
             DateFilter& filter = getDateFilter();
             filter.setDirection(((DateFilter::FilterDirection)filterDirection));
     }
@@ -278,7 +266,7 @@ finally:
 
     LOG.debug("Setting end timestamp");
     // Set end timestamp to config: here this source is finished.
-    winConfig.setEndTimestamp((unsigned long)time(NULL));
+    ssconfig->setLongProperty(PROPERTY_SYNC_END, (long)time(NULL));
 
     if (oldItemsPath) {
         delete [] oldItemsPath;
@@ -302,7 +290,10 @@ finally:
  * @note   returns a new allocated SyncItem, deleted internally by API.
  */
 SyncItem* WindowsSyncSource::getFirstItem() {
-    checkAbortedSync();
+
+    if (checkIsToAbort()) {
+        return NULL;
+    }
 
     if (!report->checkState()) {
         LOG.debug(DBG_STATE_ERR_ITEM_IGNORED);
@@ -322,7 +313,7 @@ SyncItem* WindowsSyncSource::getFirstItem() {
 
     // Fire client's number of changes (full sync)
     long noc = allItems.size();
-    fireSyncSourceEvent(winConfig.getURI(), winConfig.getName(), getSyncMode(), noc, SYNC_SOURCE_TOTAL_CLIENT_ITEMS);
+    fireSyncSourceEvent(ssconfig->getURI(), ssconfig->getName(), getSyncMode(), noc, SYNC_SOURCE_TOTAL_CLIENT_ITEMS);
 
 
     if (allItems.size() > 0) {
@@ -331,7 +322,7 @@ SyncItem* WindowsSyncSource::getFirstItem() {
 
         try {
             cItem = outlook->getItemFromID(*iAll, getName());
-            sItem = convertToSyncItem(cItem, winConfig.getType(), defaultFolderPath);
+            sItem = convertToSyncItem(cItem, ssconfig->getType(), defaultFolderPath);
             LOG.info(INFO_GET_ITEM, getName(), getSafeItemName(cItem).c_str());
         }
         catch (ClientException* e) {
@@ -358,7 +349,10 @@ SyncItem* WindowsSyncSource::getFirstItem() {
  * @note   returns a new allocated SyncItem, deleted internally by API.
  */
 SyncItem* WindowsSyncSource::getNextItem() {
-    checkAbortedSync();
+    
+    if (checkIsToAbort()) {
+        return NULL;
+    }
 
     if (!report->checkState()) {
         LOG.debug(DBG_STATE_ERR_ITEM_IGNORED);
@@ -371,7 +365,7 @@ SyncItem* WindowsSyncSource::getNextItem() {
     if ( (allItems.size() > 0) && (iAll != allItems.end()) ) {
         try {
             cItem = outlook->getItemFromID(*iAll, getName());
-            sItem = convertToSyncItem(cItem, winConfig.getType(), defaultFolderPath);
+            sItem = convertToSyncItem(cItem, ssconfig->getType(), defaultFolderPath);
             LOG.info(INFO_GET_ITEM, getName(), getSafeItemName(cItem).c_str());
         }
         catch (ClientException* e) {
@@ -396,7 +390,10 @@ SyncItem* WindowsSyncSource::getNextItem() {
  * @note   returns a new allocated SyncItem, deleted internally by API.
  */
 SyncItem* WindowsSyncSource::getFirstNewItem() {
-    checkAbortedSync();
+    
+    if (checkIsToAbort()) {
+        return NULL;
+    }
 
     if (!report->checkState()) {
         LOG.debug(DBG_STATE_ERR_ITEM_IGNORED);
@@ -428,7 +425,6 @@ SyncItem* WindowsSyncSource::getFirstNewItem() {
             //throwSyncException(lastErrorMsg, ERR_CODE_ITEM_GET);
             //softTerminateSync();
             SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_CANCEL_SYNC, NULL, NULL);
-            //checkAbortedSync();
         }
     }
 
@@ -443,7 +439,7 @@ SyncItem* WindowsSyncSource::getFirstNewItem() {
 
     // Fire client's number of changes (two-way sync)
     long noc = newItems.size() + modItems.size() + delItems.size();
-    fireSyncSourceEvent(winConfig.getURI(), winConfig.getName(), getSyncMode(), noc, SYNC_SOURCE_TOTAL_CLIENT_ITEMS);
+    fireSyncSourceEvent(ssconfig->getURI(), ssconfig->getName(), getSyncMode(), noc, SYNC_SOURCE_TOTAL_CLIENT_ITEMS);
 
 
     //
@@ -455,7 +451,7 @@ SyncItem* WindowsSyncSource::getFirstNewItem() {
 
         try {
             cItem = outlook->getItemFromID(*iNew, getName());
-            sItem = convertToSyncItem(cItem, winConfig.getType(), defaultFolderPath, false);
+            sItem = convertToSyncItem(cItem, ssconfig->getType(), defaultFolderPath, false);
             LOG.info(INFO_GET_NEW_ITEM, getName(), getSafeItemName(cItem).c_str());
         }
         catch (ClientException* e) {
@@ -477,7 +473,10 @@ SyncItem* WindowsSyncSource::getFirstNewItem() {
  * @note   returns a new allocated SyncItem, deleted internally by API.
  */
 SyncItem* WindowsSyncSource::getNextNewItem() {   
-    checkAbortedSync();
+    
+    if (checkIsToAbort()) {
+        return NULL;
+    }
 
     if (!report->checkState()) {
         LOG.debug(DBG_STATE_ERR_ITEM_IGNORED);
@@ -490,7 +489,7 @@ SyncItem* WindowsSyncSource::getNextNewItem() {
     if ( (newItems.size() > 0) && (iNew != newItems.end()) ) {
         try {
             cItem = outlook->getItemFromID(*iNew, getName());
-            sItem = convertToSyncItem(cItem, winConfig.getType(), defaultFolderPath);
+            sItem = convertToSyncItem(cItem, ssconfig->getType(), defaultFolderPath);
             LOG.info(INFO_GET_NEW_ITEM, getName(), getSafeItemName(cItem).c_str());
         }
         catch (ClientException* e) {
@@ -513,7 +512,10 @@ SyncItem* WindowsSyncSource::getNextNewItem() {
  * @note   returns a new allocated SyncItem, deleted internally by API.
  */
 SyncItem* WindowsSyncSource::getFirstUpdatedItem() {
-    checkAbortedSync();
+    
+    if (checkIsToAbort()) {
+        return NULL;
+    }
 
     if (!report->checkState()) {
         LOG.debug(DBG_STATE_ERR_ITEM_IGNORED);
@@ -533,7 +535,7 @@ SyncItem* WindowsSyncSource::getFirstUpdatedItem() {
             if (cItem && cItem->isReadOnly()) {
                 sItem = NULL;
             } else {
-                sItem = convertToSyncItem(cItem, config->getType(), defaultFolderPath);
+                sItem = convertToSyncItem(cItem, ssconfig->getType(), defaultFolderPath);
                 LOG.info(INFO_GET_UPDATED_ITEM, getName(), getSafeItemName(cItem).c_str());
             }
         }
@@ -564,7 +566,10 @@ SyncItem* WindowsSyncSource::getFirstUpdatedItem() {
  * @note   returns a new allocated SyncItem, deleted internally by API.
  */
 SyncItem* WindowsSyncSource::getNextUpdatedItem() {    
-    checkAbortedSync();
+    
+    if (checkIsToAbort()) {
+        return NULL;
+    }
 
     if (!report->checkState()) {
         LOG.debug(DBG_STATE_ERR_ITEM_IGNORED);
@@ -583,7 +588,7 @@ SyncItem* WindowsSyncSource::getNextUpdatedItem() {
             if (cItem && cItem->isReadOnly()) {
                 sItem = NULL;
             } else {
-                sItem = convertToSyncItem(cItem, config->getType(), defaultFolderPath);
+                sItem = convertToSyncItem(cItem, ssconfig->getType(), defaultFolderPath);
                 LOG.info(INFO_GET_UPDATED_ITEM, getName(), getSafeItemName(cItem).c_str());
             }
         }
@@ -614,7 +619,10 @@ SyncItem* WindowsSyncSource::getNextUpdatedItem() {
  * @note   returns a new allocated SyncItem, deleted internally by API.
  */
 SyncItem* WindowsSyncSource::getFirstDeletedItem() {
-    checkAbortedSync();
+    
+    if (checkIsToAbort()) {
+        return NULL;
+    }
 
     if (!report->checkState()) {
         LOG.debug(DBG_STATE_ERR_ITEM_IGNORED);
@@ -638,7 +646,10 @@ SyncItem* WindowsSyncSource::getFirstDeletedItem() {
  * @note   returns a new allocated SyncItem, deleted internally by API.
  */
 SyncItem* WindowsSyncSource::getNextDeletedItem() {    
-    checkAbortedSync();
+    
+    if (checkIsToAbort()) {
+        return NULL;
+    }
 
     if (!report->checkState()) {
         LOG.debug(DBG_STATE_ERR_ITEM_IGNORED);
@@ -659,7 +670,10 @@ SyncItem* WindowsSyncSource::getNextDeletedItem() {
 
 
 int WindowsSyncSource::removeAllItems() {
-    checkAbortedSync();
+    
+    if (checkIsToAbort()) {
+        return -1;
+    }
 
     // For appointments: reset the 'appointment_modified' file,
     // ready to append items for this sync session.
@@ -669,7 +683,7 @@ int WindowsSyncSource::removeAllItems() {
 
     if (!report->checkState()) {
         LOG.debug(DBG_STATE_ERR_ITEM_IGNORED);
-        return NULL;
+        return 0;
     }
 
     
@@ -695,7 +709,11 @@ int WindowsSyncSource::removeAllItems() {
         iTotal = totalItems.begin();
         while (iTotal != totalItems.end()) {
             // Check aborted once every 50...
-            if ((i % 50) == 0) checkAbortedSync();
+            if ((i % 50) == 0) {
+                if (checkIsToAbort()) {
+                    return -1;
+                }
+            }
 
             try {
                 // Get each item
@@ -748,7 +766,10 @@ int WindowsSyncSource::removeAllItems() {
  * @return  code 201 if operation succesful, code 500 if errors.
  */
 int WindowsSyncSource::addItem(SyncItem& item) {
-    checkAbortedSync();
+    
+    if (checkIsToAbort()) {
+        return -1;
+    }
     if (!report->checkState()) {
         LOG.debug(DBG_STATE_ERR_ITEM_IGNORED);
         return STC_COMMAND_FAILED;
@@ -929,7 +950,10 @@ finally:
  *          code 500 if errors.
  */
 int WindowsSyncSource::updateItem(SyncItem& item) {
-    checkAbortedSync();
+    
+    if (checkIsToAbort()) {
+        return -1;
+    }
     
     if (!report->checkState()) {
         LOG.debug(DBG_STATE_ERR_ITEM_IGNORED);
@@ -1129,7 +1153,10 @@ finally:
  * @return  code 200 if operation succesful, 211 if item not found, 500 if errors occurred.
  */
 int WindowsSyncSource::deleteItem(SyncItem& item) {
-    checkAbortedSync();
+    
+    if (checkIsToAbort()) {
+        return -1;
+    }
     
     if (!report->checkState()) {
         LOG.debug(DBG_STATE_ERR_ITEM_IGNORED);
@@ -1267,7 +1294,7 @@ void WindowsSyncSource::assign(WindowsSyncSource& s) {
 ClientFolder* WindowsSyncSource::getStartFolder() {
 
     ClientFolder* folder = NULL;
-    WCHAR* wp = toWideChar(getConfig().getFolderPath());
+    WCHAR* wp = toWideChar(getConfig()->getProperty(PROPERTY_FOLDER_PATH));
     wstring path = wp;
 
     // Replace "\\" with "%5C" which is not a valid sequence (skip 1st char).
@@ -1292,7 +1319,7 @@ ClientFolder* WindowsSyncSource::getStartFolder() {
     if (folder) {
         // Save current path used to configuration.
         char* p = toMultibyte(folder->getPath().c_str());
-        getConfig().setFolderPath(p);
+        getConfig()->setProperty(PROPERTY_FOLDER_PATH, p);
         if (p) delete [] p;
     }
     else {
@@ -1393,7 +1420,9 @@ void WindowsSyncSource::pushAllItemsToList(ClientFolder* folder, itemKeyList& li
     for (int i = 1; i < itemsCount; i++) {
         // Check aborted once every 30
         if ((i % 30) == 0) {
-            checkAbortedSync();
+            if (checkIsToAbort()) {
+                return;
+            }
         }
         item = folder->getNextItem();
         if (LOG.getLevel() >= LOG_LEVEL_DEBUG) {
@@ -1446,7 +1475,9 @@ void WindowsSyncSource::pushAllItemsToList(ClientFolder* folder, itemKeyList& li
 
         // Check aborted once every 5 (normalize exc may take more time)
         if ((count % 5) == 0) {
-            checkAbortedSync();
+            if (checkIsToAbort()) {
+                return;
+            }
         }
 
         count++;
@@ -1664,7 +1695,9 @@ int WindowsSyncSource::manageModificationsFromLastSync() {
         SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_REFRESH_STATUSBAR, (WPARAM)i, (LPARAM)SBAR_CHECK_MOD_ITEMS2);
         // Check aborted once every 100...
         if ((i % 100) == 0) {
-            checkAbortedSync();
+            if (checkIsToAbort()) {
+                return -1;
+            }
         }
 
         iDel = delItems.begin();
@@ -1823,7 +1856,6 @@ finally:
         delete [] oldItemsPath;
         oldItemsPath = NULL;
     }
-    checkAbortedSync();
     return ret;
 }
 
@@ -2013,9 +2045,11 @@ wstring WindowsSyncSource::createOldItems() {
 
     while (iAll != allItems.end()) {
 
-        // Check aborted once every 100...
-        if ((j % 100) == 0) {
-            checkAbortedSync();
+        // Check aborted once every 50...
+        if ((j % 50) == 0) {
+            if (checkIsToAbort()) {
+                return L"";
+            }
         }
 
         // Search this ID inside deleted report
@@ -2140,7 +2174,7 @@ void WindowsSyncSource::parseOldItems(wstring& data, itemKeyList& listItems, ite
 bool WindowsSyncSource::folderPathAllowed(const wstring& p) {
     
     bool ret = false;
-    WCHAR* tmp = toWideChar(getConfig().getFolderPath());
+    WCHAR* tmp = toWideChar(getConfig()->getProperty(PROPERTY_FOLDER_PATH));
     wstring startFolder = tmp;
     wstring path = p;
     const wstring delim = L"\\";
@@ -2196,7 +2230,8 @@ bool WindowsSyncSource::folderPathAllowed(const wstring& p) {
     path        += L"\\";
 
     // Allow if path is under the startFolder.
-    if (winConfig.getUseSubfolders() == true) {
+    bool err;
+    if (ssconfig->getBoolProperty(PROPERTY_USE_SUBFOLDERS, &err) == true) {
         if (path.find(startFolder, 0) != wstring::npos) {
             ret = true;
         }
@@ -2377,7 +2412,7 @@ void WindowsSyncSource::extractFolder(const wstring dataString, const wstring da
     // If path not specified, use the selected folder from config.
     // If selected folder not specified either, use default folder.
     if (path == EMPTY_WSTRING || path == L"/" || path == L"\\") {
-        WCHAR* tmp = toWideChar(winConfig.getFolderPath());
+        WCHAR* tmp = toWideChar(ssconfig->getProperty(PROPERTY_FOLDER_PATH));
         path = tmp;
         delete [] tmp;
     }
@@ -2938,7 +2973,7 @@ SyncItem* WindowsSyncSource::getItemFromId(const wstring& id) {
     SyncItem*   sItem = NULL;    
     try {
         cItem = outlook->getItemFromID(id, getName());
-        sItem = convertToSyncItem(cItem, winConfig.getType(), defaultFolderPath);
+        sItem = convertToSyncItem(cItem, ssconfig->getType(), defaultFolderPath);
         LOG.info(INFO_GET_ITEM, getName(), getSafeItemName(cItem).c_str());
     }
     catch (ClientException* e) {

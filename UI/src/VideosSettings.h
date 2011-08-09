@@ -53,7 +53,7 @@ class CVideosSettings : public CDialog {
 private:
 
     /// The SyncSource configuration for videos
-    WindowsSyncSourceConfig* ssconf;
+    SyncSourceConfig* ssconf;
 
     /**
      * Opens the default Windows dialog to select a folder in the file system.

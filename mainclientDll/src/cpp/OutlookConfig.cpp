@@ -85,11 +85,9 @@ bool OutlookConfig::isInstantiated() {
 OutlookConfig::OutlookConfig() : updaterConfig(PLUGIN_ROOT_CONTEXT), oneWayRemoval(false) {
     
     DMTClientConfig::initialize();
-    winSourceConfigs      = NULL;
     winDC                 = NULL;
     workingDir            = NULL;
     logDir                = NULL;
-    winSourceConfigsCount = 0;
     upgraded              = false;
     oldSwv                = 0;
 }
@@ -104,11 +102,6 @@ OutlookConfig::~OutlookConfig() {
     if (logDir) {
         delete [] logDir;
         logDir = NULL;
-    }
-
-    if (winSourceConfigs) {
-        delete [] winSourceConfigs;
-        winSourceConfigs = NULL;
     }
     pinstance = NULL;
 }
@@ -142,16 +135,15 @@ bool OutlookConfig::read() {
     //
     // Read common properties
     //
-    //lastErrorCode = ERR_NONE;
     resetError();
     DMTClientConfig::read();
-    if (getLastErrorCode() != ERR_NONE) {
-        // Double check on the value of swv. If empty, we consider the config not existing.
-        StringBuffer currentSwv(getClientConfig().getSwv());
-        if (currentSwv.empty()) {
-            return false;
-        }
+
+    // Check on the value of swv. If empty the config is not existing / corrupted.
+    StringBuffer currentSwv(getClientConfig().getSwv());
+    if (currentSwv.empty()) {
+        return false;
     }
+
 
     // This param is not read by DMT (it's Client defined).
     // It's defaulted to swv in case it's not found.
@@ -161,30 +153,20 @@ bool OutlookConfig::read() {
     decryptPrivateData();
 
 
-    if (sourceConfigsCount < 1) {
-        return false;
-    }
-    winSourceConfigsCount = sourceConfigsCount;
+    // Set the appointments filters by date
+    SyncSourceConfig* ssc = getSyncSourceConfig(APPOINTMENT_);
+    if (ssc) {
+        bool err = false;
+        int val = ssc->getIntProperty(PROPERTY_FILTER_DATE_DIRECTION, &err);
+        appointmentsDateFilter.setDirection((DateFilter::FilterDirection)val);
 
-    //
-    // Read additional properties for SyncSources (use winSyncSourceConfig)
-    //
-    if (winSourceConfigs) {
-        delete [] winSourceConfigs;
-    }
-    if (!open()) {
-        return false;
+        val = ssc->getIntProperty(PROPERTY_FILTER_DATE_LOWER, &err);
+        appointmentsDateFilter.setRelativeLowerDate((DateFilter::RelativeLowerDate)val);
     }
 
-    winSourceConfigs = new WindowsSyncSourceConfig[sourceConfigsCount];
-    for (i=0; i<sourceConfigsCount; i++) {
+    // Set the CTCap for PIM sources
+    readPIMSourcesCTCap();
 
-        // Link internal pointer to sourceConfigs array
-        winSourceConfigs[i].setCommonConfig(DMTClientConfig::getSyncSourceConfig(i));
-
-        // Read specific properties
-        readWinSourceConfig(i);
-    }
 
     // Reads the list of sources visible.
     readSourcesVisible();
@@ -221,50 +203,37 @@ bool OutlookConfig::read() {
     return true;
 }
 
-/**
- * Read client-specific SyncSource properties from Win registry.
- * @param i : the index of node (and syncsource) under 'sourcesNode' node
- */
-void OutlookConfig::readWinSourceConfig(unsigned int i) {
+void OutlookConfig::readPIMSourcesCTCap() {
 
-    char* tmp;
-    if (!sourcesNode) {
-        open();
+    SyncSourceConfig* ssc = getSyncSourceConfig(CONTACT_);
+    if (ssc) {
+        ArrayList* p = getVCardProperties();
+        ssc->addCtCap(p, "text/x-vcard", "2.1");
+        delete p;
     }
 
-    ManagementNode* node = sourcesNode->getChild(i);
-    
-    if (node) {
-        tmp = node->readPropertyValue(PROPERTY_USE_SUBFOLDERS);    
-        winSourceConfigs[i].setUseSubfolders((*tmp == '1') ? true : false);
-        delete [] tmp;
+    ssc = getSyncSourceConfig(APPOINTMENT_);
+    if (ssc) {
+        ArrayList* p = getVCalendarProperties();
+        ssc->addCtCap(p, "text/x-vcalendar", "1.0");
+        delete p;
+    }
 
-        tmp = node->readPropertyValue(PROPERTY_FOLDER_PATH);    
-        winSourceConfigs[i].setFolderPath(tmp);
-        delete [] tmp;
+    ssc = getSyncSourceConfig(TASK_);
+    if (ssc) {
+        ArrayList* p = getVTodoProperties();
+        ssc->addCtCap(p, "text/x-vcalendar", "1.0");
+        delete p;
+    }
 
-        tmp = node->readPropertyValue(PROPERTY_SYNC_END); 
-        winSourceConfigs[i].setEndTimestamp( ((*tmp) ? strtol(tmp, NULL, 10) : 0) );
-        delete [] tmp;
-
-        //
-        // For appoitment source: read filtering params and populate DateFilter.
-        //
-        if (!strcmp(winSourceConfigs[i].getName(), APPOINTMENT_)) {
-            DateFilter& filter = winSourceConfigs[i].getDateFilter();
-
-            tmp = node->readPropertyValue(PROPERTY_FILTER_DATE_DIRECTION);
-            if (tmp) {
-                filter.setDirection((DateFilter::FilterDirection)atoi(tmp));
-            }
-            delete [] tmp;
-
-            tmp = node->readPropertyValue(PROPERTY_FILTER_DATE_LOWER);
-            if (tmp && (strlen(tmp) == 1)) {
-                filter.setRelativeLowerDate((DateFilter::RelativeLowerDate)atoi(tmp));
-            }
-            delete [] tmp;
-        }
+    ssc = getSyncSourceConfig(NOTE_);
+    if (ssc) {
+        ArrayList* p = getNoteProperties();
+        ssc->addCtCap(p, "text/x-vcalendar", "1.0");
+        p->clear();
+		p = getVNoteProperties();
+		ssc->addCtCap(p, "text/x-vnote", "1.1"); 
+        delete p;
     }
 }
 
@@ -287,7 +256,6 @@ void OutlookConfig::readSourcesTimestamps() {
             readSourceVars(i, *sourcesNode, *node);
         }
     }
-
 }
 
 
@@ -304,11 +272,11 @@ void OutlookConfig::readSyncModes() {
         ManagementNode* node = sourcesNode->getChild(i);
         if (node) {
             char* tmp = node->readPropertyValue(PROPERTY_SOURCE_SYNC);
-            winSourceConfigs[i].setSync(tmp);
+            sourceConfigs[i].setSync(tmp);
             delete [] tmp;
 
             tmp = node->readPropertyValue(PROPERTY_SOURCE_ENABLED);
-            winSourceConfigs[i].setIsEnabled(strcmp(tmp, "0")? true:false);    // Set true if any value different from "0" (also if empty);
+            sourceConfigs[i].setIsEnabled(strcmp(tmp, "0")? true:false);    // Set true if any value different from "0" (also if empty);
             delete [] tmp;
         }
     }
@@ -320,7 +288,7 @@ bool OutlookConfig::fixSyncModes() {
     bool ret = false;
     for (unsigned int i=0; i<sourceConfigsCount; i++) {
 
-        WindowsSyncSourceConfig* ssc = getSyncSourceConfig(i);
+        SyncSourceConfig* ssc = getSyncSourceConfig(i);
         if (!ssc) continue;
 
         const char* name = ssc->getName();
@@ -475,6 +443,11 @@ bool OutlookConfig::safeAddSourceVisible(const char* sourceName, bool onlyIfDefa
         }
     }
 
+    if (!sourceName || !strlen(sourceName)) {
+        // Invalid source name
+        return false;
+    }
+
     for (int i=0; i<sourcesVisible.size(); i++) {
         StringBuffer* element = (StringBuffer*)sourcesVisible.get(i);
         if (*element == sourceName) {
@@ -505,37 +478,10 @@ bool OutlookConfig::removeSourceVisible(const char* sourceName) {
     return false;
 }
 
-void OutlookConfig::sortSourceVisible() {
-
-    ArrayList buf;
-
-    char* sources[7] = {CONTACT_, APPOINTMENT_, TASK_, NOTE_, PICTURE_, VIDEO_, FILES_};
-    for (int i=0; i<7; i++) {
-        StringBuffer source(sources[i]);
-        if (isSourceVisibleA(source.c_str())) {
-            buf.add(source);
-        }
-    }
-
-    sourcesVisible = buf;
-}
-
 
 
 // ---------------------------- Save properties to win registry ----------------------------
-/**
- * Save the configuration from this object into Windows registry.
- * If SyncReport pointer is passed not NULL, each SyncSource configuration
- * will be saved ONLY if that source was successfully synced.
- * This method overrides 'DMTClientConfig::save()'.
- *
- * A separate 'winSourceConfigs' array is used to store all SS config, so a
- * specific method 'saveWinSourceConfig()' is used to save sources config
- * into the windows registry.
- *
- * @return TRUE if no errors
- */
-bool OutlookConfig::save(SyncReport* report) {
+bool OutlookConfig::save() {
 
     LOG.debug("entering %s", __FUNCTION__);
 
@@ -546,18 +492,20 @@ bool OutlookConfig::save(SyncReport* report) {
         return false;
     }
 
-    // Username/Password are stored encrypted (new since 6.0.9).
+    // Save the appointments filters by date
+    SyncSourceConfig* ssc = getSyncSourceConfig(APPOINTMENT_);
+    if (ssc) {
+        ssc->setIntProperty(PROPERTY_FILTER_DATE_DIRECTION, appointmentsDateFilter.getDirection());
+        ssc->setIntProperty(PROPERTY_FILTER_DATE_LOWER, appointmentsDateFilter.getRelativeLowerDate());
+    }
+
+    // Username/Password are stored encrypted.
     encryptPrivateData();
 
     //
-    // SyncML management node (TBD: manage dirty flags!)
-    //
-    saveAccessConfig(*syncMLNode);
-    saveDeviceConfig(*syncMLNode);
-    saveDeviceConfig(*serverNode, true);
-    saveSapiConfig  (*syncMLNode);
-
-    DMTClientConfig::saveRootConfig();
+    // Save ALL!
+    // ---------
+    DMTClientConfig::save();
 
     // If asked, we need to return clear data...
     decryptPrivateData();
@@ -574,111 +522,8 @@ bool OutlookConfig::save(SyncReport* report) {
         up->setURLCheck(getSyncURL());
     }
 
-    //
-    // Sources management node
-    // -------------------------------
-    // Save source props only if:
-    // - report is NULL (we are not after a sync)
-    // OR
-    // - source completed successfully
-    // -------------------------------
-    //lastErrorCode = ERR_NONE;
     resetError();
-    for(unsigned int i=0; i<sourceConfigsCount; i++) {
-        if ( (report==NULL) || 
-             (report->getSyncSourceReport(i) && report->getSyncSourceReport(i)->checkState()) ) {
-            saveWinSourceConfig(i);
-        }
-    }
-    //ret = (lastErrorCode == ERR_NONE);
-    resetError();
-    ret = (getLastErrorCode() != 0);
-
-    return ret;
-}
-
-// Standard call to save configuration, ALL properties will be saved.
-bool OutlookConfig::save() {
-    return save(NULL);
-}
-
-
-/**
- * Save WindowsSyncSourceConfig properties in DMTree for the desired Source.
- * Source properties are placed in specific node under sources node.
- * Notes:
- * if the node for the current source is not found, it is created!
- * if we are under a restore sync (slow/refresh), 'sync' property will 
- * be skipped (keep previous value from registry)
- *
- * @param i : the index of SyncSource node
- */
-void OutlookConfig::saveWinSourceConfig(unsigned int i) {
-
-    ManagementNode* node;
-    ManagementNode* nodeUpper;
-    char nodeName[DIM_MANAGEMENT_PATH];
-
-    if (!sourcesNode) {
-        open();
-    }
-
-    //
-    // If node not found, create node from Source name.
-    //
-    if (sourcesNode->getChild(i) == NULL) {
-        char* fn = sourcesNode->createFullName();
-        sprintf(nodeName, "%s/%s", fn, winSourceConfigs[i].getName());
-        
-        node = dmt->readManagementNode(nodeName);
-        nodeUpper = dmt->readManagementNode(fn);
-        delete [] fn;
-        //LOG.debug(INFO_CONFIG_NODE_CREATED, nodeName);
-    }
-    else {
-        node = (ManagementNode*)sourcesNode->getChild(winSourceConfigs[i].getName())->clone();
-        char* fn = sourcesNode->createFullName();
-        nodeUpper = dmt->readManagementNode(fn);
-        delete [] fn;
-    }
-
-
-    //
-    // Save source properties
-    //
-    if (node) {
-        char buf[512];
-
-        // Specific props:
-        if (isPIMSource(winSourceConfigs[i].getName())) {
-            // Only PIM!
-            node->setPropertyValue(PROPERTY_USE_SUBFOLDERS,(winSourceConfigs[i].getUseSubfolders () ? "1" : "0"));    
-            node->setPropertyValue(PROPERTY_FOLDER_PATH,    winSourceConfigs[i].getFolderPath());
-        }
-        
-        timestampToAnchor(winSourceConfigs[i].getEndTimestamp(), buf); 
-        node->setPropertyValue(PROPERTY_SYNC_END,           buf);
-
-        // common source params
-        DMTClientConfig::saveSourceConfig(i, *nodeUpper);
-
-        // TBD: not sure why it's necessary to set it again (it's a common property)
-        node->setPropertyValue(PROPERTY_SOURCE_SYNC, winSourceConfigs[i].getSync());
-
-
-        // Save filtering props
-        if (!strcmp(winSourceConfigs[i].getName(), APPOINTMENT_)) {
-            StringBuffer buf("");
-            DateFilter& filter = winSourceConfigs[i].getDateFilter();
-
-            buf.sprintf("%d", filter.getRelativeLowerDate());
-            node->setPropertyValue(PROPERTY_FILTER_DATE_LOWER, buf.c_str());
-
-            buf.sprintf("%d", filter.getDirection());
-            node->setPropertyValue(PROPERTY_FILTER_DATE_DIRECTION, buf.c_str());
-        }
-        delete node; 
-    }
+    return true;
 }
 
 
@@ -695,8 +540,8 @@ void OutlookConfig::saveSyncModes() {
     for(unsigned int i=0; i<sourceConfigsCount; ++i) {
         node = sourcesNode->getChild(i);
         if (node) {
-            node->setPropertyValue(PROPERTY_SOURCE_SYNC,    winSourceConfigs[i].getSync());
-            node->setPropertyValue(PROPERTY_SOURCE_ENABLED, winSourceConfigs[i].isEnabled() ? "1":"0");
+            node->setPropertyValue(PROPERTY_SOURCE_SYNC,    sourceConfigs[i].getSync());
+            node->setPropertyValue(PROPERTY_SOURCE_ENABLED, sourceConfigs[i].isEnabled() ? "1":"0");
         }
         node = NULL;
     }
@@ -774,182 +619,6 @@ void OutlookConfig::saveSourcesVisible() {
 
 
 // ------------------------------ Get/Set objects ----------------------------------
-
-/**
- * Return a pointer to the internal WindowsSyncSourceConfig object from 
- * its name (must NOT be freed by caller).
- * This method replaces 'getSyncSourceConfig()' of DMTClientConfig.
- *
- * @param name : the source name
- * @return       the correspondent WindowsSyncSourceConfig pointer
- */
-_declspec(dllexport) WindowsSyncSourceConfig* OutlookConfig::getSyncSourceConfig(const char* name) {
-    if ((name == NULL) || (strlen(name) == 0)) {
-        return NULL;
-    }
-
-    for (unsigned int i=0; i<sourceConfigsCount; i++) {
-        if (strcmp(winSourceConfigs[i].getName(), name) == 0) {
-            return &winSourceConfigs[i];
-        }
-    }
-
-    LOG.debug("warning! configuration not found for source %s: return NULL.", name);
-    return NULL;
-}
-
-/**
- * Return a pointer to the internal WindowsSyncSourceConfig object from 
- * its index in winSourceConfigs array (must NOT be freed by caller).
- * This method replaces 'getSyncSourceConfig()' of DMTClientConfig.
- *
- * NOTE: please use the "getSyncSourceConfig(const char* name)" method, to 
- *       ensure the correct WindowsSyncSourceConfig* is used!
- *
- * @param i  : the index of source in winSourceConfigs array
- * @return     the correspondent WindowsSyncSourceConfig pointer
- */
- WindowsSyncSourceConfig* OutlookConfig::getSyncSourceConfig(unsigned int i) {
-    if (i >= sourceConfigsCount) {
-        return NULL;
-    }
-
-    return &winSourceConfigs[i];
-}
-
-
-
-/**
- * Set the passed WindowsSyncSourceConfig object into the correspondent object
- * inside 'winSourceConfigs' array. The values are copied into the object that
- * matches the same name of the passed one.
- * This method replaces the 'SyncManagerConfig::setSyncSourceConfig()'.
- * Note:
- * If a WindowsSyncSourceConfig with the same name is not found, the passed
- * object is added at the end of the 'winSourceConfig' array.
- *
- * @param wsc : the WindowsSyncSourceConfig passed by reference
- * @return      TRUE if no errors
- */
-bool OutlookConfig::setSyncSourceConfig(WindowsSyncSourceConfig& wsc) {
-
-    unsigned int i=0;
-    for (i=0; i<winSourceConfigsCount; ++i) {
-        if (strcmp(wsc.getName(), winSourceConfigs[i].getName()) == 0) {
-            break;
-        }
-    }
-    if (i >= winSourceConfigsCount) {
-        // Not found! -> add the WindowsSyncSourceConfig.
-        return addSyncSourceConfig(wsc);
-    }
-
-    // copy all values
-    winSourceConfigs[i] = wsc;
-
-    return TRUE;
-}
-
-
-bool OutlookConfig::addWindowsSyncSourceConfig(const wstring& sourceName) 
-{
-
-    unsigned int backupSourceConfigsCount = sourceConfigsCount;
-
-    try {
-        //
-        // Set (add) the default SyncSourceConfig (common props)
-        //
-        SyncSourceConfig* sc = DefaultWinConfigFactory::getSyncSourceConfig(sourceName.c_str());
-        DMTClientConfig::setSyncSourceConfig(*sc);
-        delete sc;
-
-        //
-        // Check if we added a new SSourceConfig
-        //
-        if (sourceConfigsCount > backupSourceConfigsCount) {
-
-            // The winSourceConfigs array is corrupted: "s" links point to free memory. 
-            // So we recreate it and link common props again.
-            if (winSourceConfigs) {
-                delete [] winSourceConfigs;
-            }
-            winSourceConfigs = new WindowsSyncSourceConfig[sourceConfigsCount];
-            for (unsigned int i=0; i<sourceConfigsCount; i++) {
-                // Link internal pointer to sourceConfigs array
-                winSourceConfigs[i].setCommonConfig(DMTClientConfig::getSyncSourceConfig(i));
-                // Read specific properties
-                readWinSourceConfig(i);
-            }
-        }
-
-        //
-        // Set (add) the default WindowsSyncSourceConfig
-        //
-        char* name = toMultibyte(sourceName.c_str());
-        sc = DMTClientConfig::getSyncSourceConfig(name);
-        WindowsSyncSourceConfig* wsc = DefaultWinConfigFactory::getWinSyncSourceConfig(sourceName, sc);
-        setSyncSourceConfig(*wsc);
-        delete [] name;
-        delete wsc;
-
-    }
-    catch (char* e) {
-        char* name = toMultibyte(sourceName.c_str());
-        setErrorF(getLastErrorCode(), ERR_DEFAULT_SSCONFIG, name, e);
-        safeMessageBox(getLastErrorMsg());
-        delete [] name;
-        return false;
-    }
-    return true;
-}
-
-
-
-
-/**
- * Adds the passed WindowsSyncSourceConfig.
- * It is added at the end of the 'winSourceConfig' array.
- * This method replaces the 'SyncManagerConfig::addSyncSourceConfig()'.
- *
- * @param wsc : the WindowsSyncSourceConfig passed by reference
- * @return      TRUE if no errors
- */
-bool OutlookConfig::addSyncSourceConfig(WindowsSyncSourceConfig& wsc) {
-
-    unsigned int i = 0;
-    WindowsSyncSourceConfig* s = NULL;
-
-    // Copy array in a tmp buffer
-    if (winSourceConfigsCount>0) {
-        s = new WindowsSyncSourceConfig[winSourceConfigsCount];
-        for (i=0; i<winSourceConfigsCount; i++) {
-            s[i] = winSourceConfigs[i];
-        }
-    }
-
-    // Delete old one, create new (+1 element)
-    if (winSourceConfigs) {
-        delete [] winSourceConfigs;
-    }
-    winSourceConfigs = new WindowsSyncSourceConfig[winSourceConfigsCount+1];
-
-    // Copy back.
-    for (i=0; i<winSourceConfigsCount; i++)
-        winSourceConfigs[i] = s[i];
-    // Copy the new one.
-    winSourceConfigs[winSourceConfigsCount] = wsc;
-
-    if (s) {
-        delete [] s;
-        s = NULL;
-    }
-
-    winSourceConfigsCount ++;
-    return TRUE;
-}
-
-
 
 void OutlookConfig::setWorkingDir(const char* v) {
     if (v) {
@@ -1084,39 +753,17 @@ void OutlookConfig::createDefaultConfig() {
 
 
     //
-    // SyncSourceConfigs: create both 'sourceConfig' and 'winSourceConfig' arrays.
-    //
-    // NOTE: if config not existing for some sources, it will be created inside
-    //       'setSyncSourceConfig()'. First we need to set all 'sourceConfig' array and
-    //       then 'winSourceConfig' linking each object to the original SyncSourceConfig 
-    //       object (inside constructor of WindowsSyncSourceConfig).
-    // NOTE: create sources alphabetically sorted, because this will be the order of 
-    //       nodes inside Win registry (and they must match)!
+    // Create 'sourceConfig' array for ALL sources (even if not visible).
+    // 
+    // If config not existing for some sources, it will be created inside 'setSyncSourceConfig()'
+    // Create sources alphabetically sorted, because this will be the order of 
+    // nodes inside Win registry (and they must match)!
     WCHAR* sourceNames[7] = {APPOINTMENT, CONTACT, FILES, NOTE, PICTURE, TASK, VIDEO};
     for (int i=0; i<7; i++) {
         WCHAR* wname = sourceNames[i];
         SyncSourceConfig* sc = DefaultWinConfigFactory::getSyncSourceConfig(wname);
-        DMTClientConfig::setSyncSourceConfig(*sc);
+        setSyncSourceConfig(*sc);
         delete sc;
-    }
-    for (int i=0; i<7; i++) {
-        WCHAR* wname = sourceNames[i];
-        char*   name = toMultibyte(wname);
-
-        try {
-            SyncSourceConfig* sc = DMTClientConfig::getSyncSourceConfig(name);
-            WindowsSyncSourceConfig* wsc = DefaultWinConfigFactory::getWinSyncSourceConfig(wname, sc);
-            setSyncSourceConfig(*wsc);
-            delete wsc;
-        }
-        catch (char* e) {
-            setErrorF(getLastErrorCode(), ERR_DEFAULT_SSCONFIG, name, e);
-            safeMessageBox(getLastErrorMsg());
-        }
-
-        if (name) {
-            delete name;
-        }
     }
 
     
@@ -1148,7 +795,7 @@ void OutlookConfig::createDefaultConfig() {
     // set the sapi mediaHub path in the right source config and delete the temp node
     char* mediaHubPath = readPropertyValue(SOFTWARE_ROOT_CONTEXT, PROPERTY_MEDIAHUB_PATH, HKEY_CURRENT_USER);
     if (mediaHubPath  && strcmp(mediaHubPath, "") != 0) {
-        SyncSourceConfig* sc = DMTClientConfig::getSyncSourceConfig(PICTURE_);
+        SyncSourceConfig* sc = getSyncSourceConfig(PICTURE_);
         sc->setProperty(PROPERTY_MEDIAHUB_PATH, mediaHubPath);
         sc = DMTClientConfig::getSyncSourceConfig(VIDEO_);
         sc->setProperty(PROPERTY_MEDIAHUB_PATH, mediaHubPath);
@@ -1166,13 +813,11 @@ void OutlookConfig::createDefaultConfig() {
             }
         }
     }
-    
 
     if (installPath)  delete [] installPath;
     if (logPath)      delete [] logPath;
     if (wlogPath)     delete [] wlogPath;
     if (mediaHubPath) delete [] mediaHubPath;
-
 }
 
 
@@ -1244,23 +889,23 @@ void OutlookConfig::upgradeConfig() {
     if (oldFunambolSwv < 80200) {
 
         // Pictures source added.
-        if (!addWindowsSyncSourceConfig(PICTURE)) {
+        if (!addSyncSourceConfig(PICTURE_)) {
             LOG.error("upgradeConfig - error adding the config for %s source", PICTURE_);
         }
 
         // added SyncSource boolean 'enabled' to enable/disable a source
         // without losing the sync direction information.
         // If syncmode = none -> disable ssource.
-        for (unsigned int i=0; i<winSourceConfigsCount; i++) {
-            WindowsSyncSourceConfig* wsc = getSyncSourceConfig(i);
-            if (wsc) {
-                StringBuffer syncMode = wsc->getSync();
+        for (unsigned int i=0; i<sourceConfigsCount; i++) {
+            SyncSourceConfig* sc = getSyncSourceConfig(i);
+            if (sc) {
+                StringBuffer syncMode = sc->getSync();
                 if (syncMode == "none") { 
-                    wsc->setIsEnabled(false);
-                    wsc->setSync("two-way");    // Just as a default, if was disabled
+                    sc->setIsEnabled(false);
+                    sc->setSync("two-way");    // Just as a default, if was disabled
                 }
                 else { 
-                    wsc->setIsEnabled(true); 
+                    sc->setIsEnabled(true); 
                 }
             }
         }
@@ -1274,7 +919,7 @@ void OutlookConfig::upgradeConfig() {
 		//
 		// SIF-E and SIF-T deprecation. Changed the default in the upgrade from sif to vcalendar
 		//
-		WindowsSyncSourceConfig* ssc = getSyncSourceConfig(APPOINTMENT_);
+		SyncSourceConfig* ssc = getSyncSourceConfig(APPOINTMENT_);
         if (ssc) {
 			// Don't change the source URI. If we were using "scal", it will be preserved during
 			// upgrade. This is required to keep the anchors Server side and avoid a 1st time slow-sync.
@@ -1304,7 +949,7 @@ void OutlookConfig::upgradeConfig() {
     if (oldFunambolSwv < 90000) {
 
         // Changed the syncModes param for all sources
-        WindowsSyncSourceConfig* ssc = getSyncSourceConfig(CONTACT_);
+        SyncSourceConfig* ssc = getSyncSourceConfig(CONTACT_);
         if (ssc) ssc->setSyncModes(CONTACTS_DEVINFO_SYNC_MODES); 
 
         ssc = getSyncSourceConfig(APPOINTMENT_);
@@ -1347,7 +992,7 @@ void OutlookConfig::upgradeConfig() {
         //   - reset last (now it's used for uploads!)
         //   - add new SAPI params
         //   - remove obsolete keys (folderPath, useSubfolders)
-        SyncSourceConfig* sc = DMTClientConfig::getSyncSourceConfig(PICTURE_);
+        SyncSourceConfig* sc = getSyncSourceConfig(PICTURE_);
         if (sc) {
             sc->setLast             (0);
             sc->setSyncModes        (PICTURES_DEVINFO_SYNC_MODES);
@@ -1370,13 +1015,13 @@ void OutlookConfig::upgradeConfig() {
         safeAddSourceVisible(PICTURE_);
 
         // Videos source added.
-        if (!addWindowsSyncSourceConfig(VIDEO)) {
+        if (!addSyncSourceConfig(VIDEO_)) {
             LOG.error("upgradeConfig - error adding the config for %s source", VIDEO_);
         }
         safeAddSourceVisible(VIDEO_);
 
          // Files source added.
-        if (!addWindowsSyncSourceConfig(FILES)) {
+        if (!addSyncSourceConfig(FILES_)) {
             LOG.error("upgradeConfig - error adding the config for %s source", FILES_);
         }
         safeAddSourceVisible(FILES_);
@@ -1411,7 +1056,7 @@ void OutlookConfig::upgradeConfig() {
 
         // Added source allowed flag
         for (unsigned int i=0; i<sourceConfigsCount; i++) {
-            WindowsSyncSourceConfig* sc = getSyncSourceConfig(i);
+            SyncSourceConfig* sc = getSyncSourceConfig(i);
             if (sc) {
                 sc->setIsAllowed(true);
             }
@@ -1422,7 +1067,7 @@ void OutlookConfig::upgradeConfig() {
     // ALWAYS - if a syncmode currently unavailable was in use, 
     // the source is disabled and the default is set + last anchor reset (SLOW).
     for (unsigned int i=0; i<sourceConfigsCount; i++) {
-        WindowsSyncSourceConfig* sc = getSyncSourceConfig(i);
+        SyncSourceConfig* sc = getSyncSourceConfig(i);
         if (sc) {
             const char* modeInUse = sc->getSync();
             StringBuffer modes = sc->getSyncModes();
@@ -1830,12 +1475,18 @@ BOOL OutlookConfig::readUpdaterConfig(bool refresh) {
 void OutlookConfig::storeUpdaterConfig(){
     
     updaterConfig.save();
-    }
-
+}
 
 UpdaterConfig& OutlookConfig::getUpdaterConfig() {
     return updaterConfig;
 }
+
+void OutlookConfig::resetUpdaterConfig() {
+
+    updaterConfig.createDefaultConfig();
+    updaterConfig.save();
+}
+
 void OutlookConfig::setDeviceConfig(const WindowsDeviceConfig & wdc)
 {
     WindowsDeviceConfig * temp = winDC;
@@ -1952,8 +1603,19 @@ bool OutlookConfig::readDeviceConfig(ManagementNode& n, bool server)
         else {
             return false;
         }
-
         return true;
     }
+}
 
+bool OutlookConfig::addSyncSourceConfig(const char* sourceName) {
+
+    if (!sourceName || !strlen(sourceName)) {
+        return false;
+    }
+
+    SyncSourceConfig* ssc = DefaultConfigFactory::getSyncSourceConfig(sourceName);
+    bool ret = setSyncSourceConfig(*ssc);  // adds if not existing
+    delete ssc;
+
+    return ret;
 }

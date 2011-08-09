@@ -55,41 +55,48 @@
 #endif
 
 #include "CustomPane.h"
+#include "SyncAllPane.h"
+#include <list>
+
+
+#define COLOR_EXT_PANE          RGB(255,255,255)    // background color (white)
+
 
 
 /**
  * Form of the main window.
- * Contains objects on the main screen of the UI (panes, labels, ...).
- * TODO - refactoring: please use arrays for sources (sourceStatusLabel, iconSource,...)
+ * Contains objects on the main screen of the UI (array of CustomPanes).
  */
 class CSyncForm : public CFormView
 {
 
 private:
+
     // true if the UI buttons are locked
     bool lockedUI;
 
-    /// The current number of panes displayed (4 or 5)
-    int panesCount;    
 
-    // Buffers for source panes status labels
-    CString contactsStatusLabel;
-    CString calendarStatusLabel;
-    CString tasksStatusLabel;
-    CString notesStatusLabel;
-    CString picturesStatusLabel;
-    CString videosStatusLabel;
-    CString filesStatusLabel;
+    /**
+     * The list of UI source panes. Each one is a CustomPane
+     * and contains all related objects for a syncsource (status icon, label,...)
+     */
+    std::list<CCustomPane> sourcePanes;
 
-    // Buffers for source panel titles (fixed)
-    CString contactsLabel;
-    CString calendarLabel;
-    CString tasksLabel;
-    CString notesLabel;
-    CString picturesLabel;
-    CString videosLabel;
-    CString filesLabel;
+    /// The top bar: syncAll pane.
+    CSyncAllPane* syncAllPane;
 
+    /**
+     * Returns the corresponding source pane, given its ID.
+     * Returns NULL if not found.
+     */
+    CCustomPane* getSourcePane(const int sourceID);
+
+    /**
+     * Just fix to make sure we draw all pane lines even if they overlap.
+     * set as "last pane" also if next pane is disabled (dimmed)
+     * NOTE: not used (disabled panes are windows displayed normally now)
+     */
+    //void fixOverlappingPanes();
 
 protected:
 
@@ -117,113 +124,90 @@ public:
 		// NOTE: the ClassWizard will add data members here
 	//}}AFX_DATA
 
-    CFont fontBold;
-    CFont fontNormal;
-    CAnimatedIcon butStart;
-
-    CAnimatedIcon iconContacts;
-    CAnimatedIcon iconCalendar;
-    CAnimatedIcon iconTasks;
-    CAnimatedIcon iconNotes;
-    CAnimatedIcon iconPictures;
-    CAnimatedIcon iconVideos;
-    CAnimatedIcon iconFiles;
 
     CBrush  brushHollow;
 
-    // right hand status icons
-    CAnimatedIcon iconStatusContacts;
-    CAnimatedIcon iconStatusCalendar;
-    CAnimatedIcon iconStatusTasks;
-    CAnimatedIcon iconStatusNotes;
-    CAnimatedIcon iconStatusPictures;
-    CAnimatedIcon iconStatusVideos;
-    CAnimatedIcon iconStatusFiles;
-    CAnimatedIcon iconStatusSync;
+    // bitmaps (common for all panes)
+    HBITMAP hBmpDarkBlue;
+    HBITMAP hBmpBlue;
+    HBITMAP hBmpDark;
+    HBITMAP hBmpLight;
 
-    // panes
-    CCustomPane paneSync;
-    CCustomPane paneContacts;
-    CCustomPane paneCalendar;
-    CCustomPane paneTasks;
-    CCustomPane paneNotes;
-    CCustomPane panePictures;
-    CCustomPane paneVideos;
-    CCustomPane paneFiles;
-
-    // sync source states {SYNCSOURCE_STATE_OK, ...)
-    // defined in winmaincpp.h        
-    int syncSourceContactState;
-    int syncSourceCalendarState;
-    int syncSourceTaskState;
-    int syncSourceNoteState;
-    int syncSourcePictureState;
-    int syncSourceVideoState;
-    int syncSourceFileState;
-
-    
-    /**
-    * refresh UI info about a source
-    * @param sourceId : the source type id {SYNCSOURCE_CONTACTS,..}, defined in ClientUtil.h
-    */
-    void refreshSource(int sourceId);
-
-    void hideSource(CAnimatedIcon& icon, int iconres, int resource1, 
-                           int resource2, CCustomPane& pane);
-    void disableSource(CAnimatedIcon& icon, int iconres, int resource1, 
-                           int resource2, CCustomPane& pane);
+    // icons (common for all source panes)
+    HICON iconMouseOver;  
+    HICON iconOk;
+    HICON iconAlert;
+    HICON iconSpin1;
+    HICON iconSpin2;
+    HICON iconSpin3;
+    HICON iconSpin4;
 
 
-    // refresh UI info about all sources, calls refreshSource for every sync source
+
+    /// refresh all UI source panes and syncAll pane
     void refreshSources();
+
+    /// Refresh status text of a source.
+    void refreshSourceStatus(const CString& msg, const int sourceID);
+
+    /// Returns the current status text of a source.
+    CString getSourceStatus(const int sourceID);
+
     
     /**
-    * repaints sync controls from a pane associated to a source
-    * @param paneType : the pane type id {PANE_TYPE_CONTACTS, ..}, defined in CustomPane.h
-    */
-    void repaintPaneControls(int paneType);
+     * Updates all UI panes when a sync for a single source is started.
+     * All other sources are set to disabled, then UI is locked.
+     */
+    void onSyncStarted(const int sourceID);
 
-    // shows/hides the sync controls
-    void showSyncControls(BOOL show);
+    /**
+     * Updates all UI panes when a syncAll is started.
+     * UI gets locked then all source status icons are removed.
+     */
+    void onSyncAllStarted();
 
+    /**
+     * Updates the UI panes: sync ended.
+     */
+    void onSyncEnded();
+
+    /**
+     * Updates the UI panes when a specific source starts sync.
+     */
+    void onSyncSourceBegin(const int sourceID);
+
+    /**
+     * Updates the UI panes when a specific source ends sync.
+     */
+    void onSyncSourceEnd(const int sourceID);
+
+
+
+
+    /**
+     * Lock UI buttons of main window.
+     * Buttons are locked when starting sync, to avoid errors clicking
+     * quickly on buttons, and avoid displaying the cancel msg together with
+     * the full-sync msg.
+     * Buttons are locked when canceling sync.
+     */
     void lockButtons();
+
+    /**
+     * Unlock UI buttons of main window.
+     * Buttons are unlocked after the 'ContinueAfterPrepareSync()' method.
+     * Buttons are unlocked when the sync process has finished.
+     */
     void unlockButtons();
 
-    // change UI status text for a source
-    void changeContactsStatus(CString& status);
-    void changeCalendarStatus(CString& status);
-    void changeTasksStatus   (CString& status);
-    void changeNotesStatus   (CString& status);
-    void changePicturesStatus(CString& status);
-    void changeVideosStatus  (CString& status);
-    void changeFilesStatus   (CString& status);
-
-    CString getPicturesStatusLabel () { return picturesStatusLabel; }
-    CString getVideosStatusLabel ()    { return videosStatusLabel;   }
-    CString getFilesStatusLabel ()    { return filesStatusLabel;    }
+    bool isUILocked();
 
 
     afx_msg LRESULT OnInitForm(WPARAM, LPARAM);
-    afx_msg void OnBnClickedMainButSync();
+    //afx_msg void OnBnClickedMainButSync();
     afx_msg void OnNcPaint( );
-    afx_msg void OnPaint();
     afx_msg HBRUSH OnCtlColor( CDC* pDC, CWnd* pWnd, UINT nCtlColor);
     afx_msg BOOL OnEraseBkgnd(CDC* pDC);
-
-    // when main sync pane is clicked
-    afx_msg void OnStnClickedMainBkSync();
-
-    // when sync source panes are clicked
-    afx_msg void OnStnClickedMainBkContacts();
-    afx_msg void OnStnClickedMainBkCalendar();
-    afx_msg void OnStnClickedMainBkTasks();
-    afx_msg void OnStnClickedMainBkNotes();
-    afx_msg void OnStnClickedMainBkPictures();
-    afx_msg void OnStnClickedMainBkVideos();
-    afx_msg void OnStnClickedMainBkFiles();
-
-    void moveMediaSources();
-    void moveElement(int resourceFrom, int resourceTo);
 };
 
 

@@ -35,29 +35,144 @@
 
 #pragma once
 
+#include "base/util/StringBuffer.h"
+#include "AnimatedIcon.h"
+#include "MainSyncFrm.h"
+
+class CSyncForm;
+
 /** @cond OLPLUGIN */
 /** @addtogroup UI */
 /** @{ */
 
 
-enum PANE_STATE {STATE_NORMAL, STATE_SYNC, STATE_PANE_DISABLED, STATE_PANE_HIDDEN};
-enum PANE_TYPE {PANE_TYPE_SYNC, PANE_TYPE_CONTACTS, PANE_TYPE_CALENDAR, PANE_TYPE_TASKS, PANE_TYPE_NOTES, PANE_TYPE_PICTURES, PANE_TYPE_VIDEOS, PANE_TYPE_FILES};
+enum PANE_STATE {
+    PANE_STATE_NORMAL,          // normale state
+    PANE_STATE_SYNC,            // source under sync
+    PANE_STATE_DISABLED,        // source disabled (from settings)
+    PANE_STATE_NOT_ALLOWED      // source NOT allowed to sync (can't be enabled from settings)
+};
+
 
 /**
  * Panes (active source buttons) on main window.
  */
-class CCustomPane : public CStatic
-{
-	DECLARE_DYNAMIC(CCustomPane)
+class CCustomPane : public CStatic {
+	
+    DECLARE_DYNAMIC(CCustomPane)
+
+private:
+
+    /// The source ID (SYNCSOURCE_CALENDAR,...)
+    int id;
+
+    /// The source name
+    Funambol::StringBuffer name;
+
+    /// The source state, see winmaincpp.h: SYNCSOURCE_STATE_OK,...
+    int sourceState; 
+    
+    /// The state of the pane, see PANE_STATE enum.
+    PANE_STATE state;
+
+    /// True if the mouse is over this pane.
+    bool mouseOver;
+
+    /// pane index: the first from top is index 0.
+    int index;
+
+    /// True if this pane is the last one on the bottom.
+    bool lastPane;
+
+    /// Pane size (pixels)
+    CSize size;
+
+    /// Icons size (pixels)
+    CSize iconSize;
+
+
+    // main label
+    CStatic sourceLabel;
+    CString labelText;
+
+    // status label
+    CStatic statusLabel;
+    CString statusText;
+    
+    CAnimatedIcon sourceIcon;
+    CAnimatedIcon statusIcon;
+
+    HICON sourceIconEnabled;
+    HICON sourceIconDisabled;
+
+    bool showStatusIcon;
+    bool clicked;
+
+    CFont fontBold;
+    CFont fontNormal;
+
+    double dpiX, dpiY;
+
+
+    /// pointer to the SyncForm instance
+    CSyncForm* syncForm;
+
+    int counterAnim;
+
+
+    void initialize();
+
+    void initializeFonts();
+
+    CString getLastSyncStatusText();
+
+    /// sets the status icon according to source status (ok, alert, none)
+    void refreshStatusIcon();
+
 
 public:
-    bool bMouseCaptured;
-    bool bSourcePane;
-    int state;
-    int type;
-    HICON hPrevStatusIcon;
-	CCustomPane();   
+
+	CCustomPane(CSyncForm* caller, const int id, const int ix, bool last = false);
 	virtual ~CCustomPane();
+    CCustomPane(const CCustomPane& objectSrc);
+
+    void refresh();
+
+    int getId()               const { return id; }
+    int getIndex()            const { return index; }
+    CSyncForm* getCallerWnd() const { return syncForm; }
+    bool isLastPane()         const { return lastPane; }
+
+    void setLastPane  (bool val)    { lastPane = val;  }
+
+    /// Sets a custom status text
+    void setStatusText(const CString& msg);
+
+    /// Gets the current status text (buffered)
+    CString& getStatusText() { return statusText; }
+
+    /// Sets a custom status icon
+    void setStatusIcon(HICON hIcon);
+
+
+    
+    /**
+     * Returns a pointer to the syncsource config (externally owned)
+     * It's read each time because the config object can be read in
+     * several points, and a read() causes a refresh of ssource pointers.
+     */
+    SyncSourceConfig* getSSConfig();
+
+    /**
+     * Called when sync started for this source.
+     * Sets state to SYNC and refresh.
+     */
+    void onSyncStarted();
+
+    /**
+     * Called when sync ended: stop the animation and refresh.
+     */
+    void onSyncEnded();
 
 
 protected:
@@ -65,8 +180,12 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
     afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-    afx_msg LRESULT OnMouseLeave(WPARAM, LPARAM);
+    afx_msg void OnMouseLeave();
+    afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+    afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
     afx_msg void OnPaint( );
+    afx_msg void OnTimer( UINT_PTR nIDEvent );
+
 };
 
 /** @} */
