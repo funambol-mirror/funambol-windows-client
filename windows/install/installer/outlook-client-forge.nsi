@@ -179,7 +179,6 @@ UninstPage custom un.RemoveUserData un.nsDialogsPageLeaveCheckbox          ; Cus
   !insertmacro MUI_LANGUAGE "French"
   !insertmacro MUI_LANGUAGE "German"
   !insertmacro MUI_LANGUAGE "SimpChinese"
-  !insertmacro MUI_LANGUAGE "TradChinese"
   !insertmacro MUI_LANGUAGE "Italian"
   !insertmacro MUI_LANGUAGE "Russian"
   !insertmacro MUI_LANGUAGE "Arabic"
@@ -193,7 +192,6 @@ LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_ITALIAN} "Crea col
 LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_FRENCH}  "Créer un raccourci sur le bureau"        
 LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_GERMAN}  "Verknüpfung auf Desktop erstellen"      
 LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_SIMPCHINESE} "在桌面上创建快捷方式" 
-LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_TRADCHINESE} "在桌面上创建快捷方式" 
 LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_RUSSIAN} "Создать ярлык на рабочем столе"     
 LangString CREATE_APP_DESKTOP_LINK_MM                  ${LANG_ARABIC} "إنشاء اختصار على سطح المكتب"      
 
