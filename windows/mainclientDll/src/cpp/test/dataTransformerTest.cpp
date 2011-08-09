@@ -117,7 +117,7 @@ WindowsSyncSource* createContactWindowsSyncSource() {
     config->getServerConfig().setNoFieldLevelReplace("card");
 
     WIN_ASSERT_NOT_NULL(config, TEXT("The config is null. Please verify the an Outlook client is already installed"));
-    WindowsSyncSourceConfig* sc = config->getSyncSourceConfig(CONTACT_);
+    SyncSourceConfig* sc = config->getSyncSourceConfig(CONTACT_);
     WindowsSyncSource* ss = new WindowsSyncSource(CONTACT, sc);
     int ret = ss->beginSync();   
     WIN_ASSERT_ZERO(ret, TEXT("beginSync is not 0"));
@@ -137,7 +137,7 @@ WindowsSyncSource* createAppointmentWindowsSyncSource() {
     config->getServerConfig().setNoFieldLevelReplace("event");
 
     WIN_ASSERT_NOT_NULL(config, TEXT("The config is null. Please verify the an Outlook client is already installed"));
-    WindowsSyncSourceConfig* sc = config->getSyncSourceConfig(APPOINTMENT_);
+    SyncSourceConfig* sc = config->getSyncSourceConfig(APPOINTMENT_);
     WindowsSyncSource* ss = new WindowsSyncSource(APPOINTMENT, sc);
     int ret = ss->beginSync();   
     WIN_ASSERT_ZERO(ret, TEXT("beginSync is not 0"));

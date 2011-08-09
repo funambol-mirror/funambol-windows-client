@@ -141,7 +141,7 @@ BOOL CMediaHubSetting::OnInitDialog() {
     //s1.LoadString(IDS_MEDIA_HUB_EXPLAIN_LABEL);  SetDlgItemText(IDC_MEDIA_HUB_EXPLAIN_LABEL, s1);
     
    
-    StringBuffer path = ssconf->getCommonConfig()->getProperty(PROPERTY_MEDIAHUB_PATH);
+    StringBuffer path = ssconf->getProperty(PROPERTY_MEDIAHUB_PATH);
     if (path.empty() == false) {
         return true;        
     }
@@ -305,26 +305,26 @@ void CMediaHubSetting::OnBnClickedMediaHubButReset()
 
 void CMediaHubSetting::setPathOfAllSources(StringBuffer path) {
 
-    WindowsSyncSourceConfig* ssconf;
+    SyncSourceConfig* ssconf;
     ssconf = ((OutlookConfig*)getConfig())->getSyncSourceConfig(PICTURE_);
     if (!ssconf) {
         printLog("Config not found for source picture!", LOG_ERROR);
         return;
     }
-    ssconf->getCommonConfig()->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
+    ssconf->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
     
     ssconf = ((OutlookConfig*)getConfig())->getSyncSourceConfig(VIDEO_);
     if (!ssconf) {
         printLog("Config not found for source videos!", LOG_ERROR);
         return;
     }
-    ssconf->getCommonConfig()->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
+    ssconf->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
     
     ssconf = ((OutlookConfig*)getConfig())->getSyncSourceConfig(FILES_);
     if (!ssconf) {
         printLog("Config not found for source files!", LOG_ERROR);
         return;
     }
-    ssconf->getCommonConfig()->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
+    ssconf->setProperty(PROPERTY_MEDIAHUB_PATH, path.c_str());
 
 }

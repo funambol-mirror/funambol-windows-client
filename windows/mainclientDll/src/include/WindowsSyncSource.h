@@ -46,13 +46,16 @@
 #include "spds/SyncMap.h"
 #include "spds/SyncStatus.h"
 #include "spds/SyncSource.h"
-#include"WindowsSyncSourceConfig.h"
+#include "spds/SyncSourceConfig.h"
+#include "DateFilter.h"
 #include "outlook/ClientApplication.h"
+#include "OutlookConfig.h"
 
 #include <string>
 #include <list>
 #include <map>
 
+using namespace Funambol;
 
 typedef std::list<std::wstring>         itemKeyList;
 typedef itemKeyList::iterator           itemKeyIterator;
@@ -106,7 +109,8 @@ private:
 
     int filterDirection;
 
-
+    // Externally owned, pointer to the corresponding ss config.
+    SyncSourceConfig* ssconfig;
 
     class CacheData
     {
@@ -153,10 +157,6 @@ private:
     void removeIdFromMap(const std::wstring & id);
 
 protected:
-
-    /// Configuration object for the source. It's a reference to WindowsSyncSourceConfig
-    /// object owned by OutlookConfig. It's automatically initialized in the constructor.
-    WindowsSyncSourceConfig& winConfig;
 
 
     /// Lists of item keys.
@@ -220,7 +220,7 @@ protected:
     // Common actions to do when an error occurs inside SyncSource.
     void manageSourceError(const int errorCode, const char* errorMsg);
 
-    /// Calls manageSourceError, with msg formatted in a string.
+    /// Calls manageS, with msg formatted in a string.
     void manageSourceErrorF(const int errorCode, const char *msgFormat, ...);
 
     void extractFolder(const std::wstring dataString, const std::wstring dataType, std::wstring& path);
@@ -260,17 +260,12 @@ public:
      *
      * @param name   the name of the SyncSource
      * @param wsc    to init by reference the 'winConfig' member (for client-specific props)
-     *               'config' member is initialized from wsc->getCommonConfig() to get the original
-     *               common properties used by API.
      */
-    WindowsSyncSource::WindowsSyncSource(const WCHAR* name, WindowsSyncSourceConfig* wsc);
+    WindowsSyncSource::WindowsSyncSource(const WCHAR* name, SyncSourceConfig* wsc);
 
     virtual ~WindowsSyncSource();
 
-
-    /// Used to access configuration of SS
-    const WindowsSyncSourceConfig& getConfig() const;
-    WindowsSyncSourceConfig& getConfig();
+    SyncSourceConfig* getConfig() { return ssconfig; }
 
     int beginSync();
     int endSync();
@@ -306,7 +301,9 @@ public:
 
 
     /// Returns a reference to DateFilter (proxy method).
-    DateFilter& getDateFilter() { return getConfig().getDateFilter(); }
+    DateFilter& getDateFilter() { 
+        return OutlookConfig::getInstance()->getAppointmentsDateFilter();
+    }
 
     int upgradeCalendarFolders(bool fixMyCalendar = false);
 

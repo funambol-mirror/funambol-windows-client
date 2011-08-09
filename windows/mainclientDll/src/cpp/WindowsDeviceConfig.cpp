@@ -47,6 +47,10 @@ WindowsDeviceConfig::WindowsDeviceConfig(const WindowsDeviceConfig& wdc)
 : dc(wdc.getCommonConfig())
 {
     DeviceConfig::assign(wdc);
+
+    setLogNum (wdc.getLogNum());
+    setLogSize(wdc.getLogSize());
+    setAttach (wdc.getAttach());
 }
 
 WindowsDeviceConfig::WindowsDeviceConfig(DeviceConfig& c)

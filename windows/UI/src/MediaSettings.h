@@ -1,6 +1,6 @@
 /*
  * Funambol is a mobile platform developed by Funambol, Inc. 
- * Copyright (C) 2003 - 2007 Funambol, Inc.
+ * Copyright (C) 2003 - 2009 Funambol, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -38,37 +38,35 @@
 /** @{ */
 
 #pragma once
+#include "winmaincpp.h"
 #include "afxwin.h"
-
-#define SIF_CHECKED         0
-#define VCARD_CHECKED       1
+#include <string>
 
 
 /**
- * Contacts options window.
+ * Pictures options window.
  */
-class CContactSettings : public CDialog
-{
-	DECLARE_DYNCREATE(CContactSettings)
+class CPicturesSettings : public CDialog {
 
-public:
-	CContactSettings();           
-	virtual ~CContactSettings();
-
-	enum { IDD = IDD_CONTACTS };
-#ifdef _DEBUG
-	virtual void AssertValid() const;
-#ifndef _WIN32_WCE
-	virtual void Dump(CDumpContext& dc) const;
-#endif
-#endif
+	DECLARE_DYNCREATE(CPicturesSettings)
 
 private:
-    int currentRadioChecked;
 
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-    virtual BOOL OnInitDialog();
+    /// The SyncSource configuration for pictures
+    SyncSourceConfig* ssconf;
+
+    /**
+     * Opens the default Windows dialog to select a folder in the file system.
+     * @param folderpath    [IN-OUT] the user selected folder path, untouched if the user cancelled
+     * @param defaultFolder [OPTIONAL] the default folder to start browsing
+     * @param szCaption     [OPTIONAL] the caption of the dialog to display
+     * @param hOwner        [OPTIONAL] handle to the parent window. Set it in order to make the dialog modal
+     * @return              true if successful, false if cancelled or an error occurs
+     */
+    bool browseFolder(std::wstring& folderpath, 
+                      const WCHAR* defaultFolder = NULL, 
+                      const WCHAR* szCaption = NULL, 
+                      const HWND hOwner = NULL);
 
     /**
      * Loads the string data into the syncmode editbox/dropdown box.
@@ -77,29 +75,42 @@ protected:
      */
     void loadSyncModesBox(const char* sourceName);
 
-	DECLARE_MESSAGE_MAP()
-public:
+protected:
+
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    virtual BOOL OnInitDialog();
+
+    DECLARE_MESSAGE_MAP()
     CComboBox lstSyncType;
-    CEdit editFolder;
-    CButton checkInclude;
-    CButton butSelectFolder;
-    CEdit editRemote;
-    CButton radioSif;
-    CButton radioVcard;
-    CStatic groupDirection;
-    CStatic groupFolder;
-    CStatic groupAdvanced;
-    CButton checkShared;
+    CEdit     editSyncType;
+    CEdit     editFolder;
+    CButton   checkInclude;
+    CButton   butSelectFolder;    
+    CStatic   groupDirection;
+    CStatic   groupFolder;    
 
-    bool saveSettings(bool saveToDisk);
+public:
 
-    afx_msg void OnBnClickedContactsButok();
-    afx_msg void OnBnClickedContactsButcancel();
-    afx_msg void OnBnClickedContactsButFolder();
-    afx_msg void OnBnClickedContactsRadioSif();
-    afx_msg void OnBnClickedContactsRadioVcard();
-    afx_msg void OnBnClickedContactsCheckShared();
+	CPicturesSettings();           
+	virtual ~CPicturesSettings();
+
+	enum { IDD = IDD_PICTURES };
+
+#ifdef _DEBUG
+	virtual void AssertValid() const;
+#ifndef _WIN32_WCE
+	virtual void Dump(CDumpContext& dc) const;
+#endif
+#endif
+
+    bool saveSettings(bool);
+    afx_msg void OnBnClickedPicturesOk();
+    afx_msg void OnBnClickedPicturesCancel();
+    afx_msg void OnBnClickedPicturesButSelect();
+    
+    afx_msg void OnCbnSelchangePicturesComboSynctype();
 };
 
 /** @} */
 /** @endcond */
+

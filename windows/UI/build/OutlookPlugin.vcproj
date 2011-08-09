@@ -238,10 +238,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\CalendarSettings.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\ClientUtil.cpp"
 				>
 			</File>
@@ -264,10 +260,6 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\src\ContactSettings.cpp"
-				>
 			</File>
 			<File
 				RelativePath="..\src\CustomLabel.cpp"
@@ -318,10 +310,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\NotesSettings.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\OutlookPlugin.cpp"
 				>
 				<FileConfiguration
@@ -367,6 +355,10 @@
 			</File>
 			<File
 				RelativePath="..\src\PicturesSettings.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\PIMSettings.cpp"
 				>
 			</File>
 			<File
@@ -424,6 +416,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\src\SyncAllPane.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\SyncForm.cpp"
 				>
 				<FileConfiguration
@@ -445,10 +441,6 @@
 			</File>
 			<File
 				RelativePath="..\src\SyncSettings.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\TaskSettings.cpp"
 				>
 			</File>
 			<File
@@ -481,19 +473,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\CalendarSettings.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\ClientUtil.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\ConfigFrm.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\ContactSettings.h"
 				>
 			</File>
 			<File
@@ -529,10 +513,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\NotesSettings.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\OutlookPlugin.h"
 				>
 			</File>
@@ -546,6 +526,10 @@
 			</File>
 			<File
 				RelativePath="..\src\PicturesSettings.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\PIMSettings.h"
 				>
 			</File>
 			<File
@@ -569,15 +553,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\SyncAllPane.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\SyncForm.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\SyncSettings.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\TaskSettings.h"
 				>
 			</File>
 			<File
@@ -634,23 +618,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\res\bg_button_disabled.bmp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\res\bg_button_disabled.bmp"
 				>
 			</File>
 			<File
 				RelativePath="..\src\res\bg_button_light.bmp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\res\bitmap5.bmp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\res\bitmap7.bmp"
 				>
 			</File>
 			<File
@@ -678,11 +650,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\res\files.ico"
+				RelativePath="..\src\res\files.ico"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\files.ico"
+				RelativePath=".\res\files.ico"
 				>
 			</File>
 			<File
@@ -814,11 +786,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\videos.ico"
+				RelativePath=".\res\videos.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\res\videos.ico"
+				RelativePath="..\src\res\videos.ico"
 				>
 			</File>
 			<File

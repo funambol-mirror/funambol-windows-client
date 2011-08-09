@@ -1,6 +1,6 @@
 /*
  * Funambol is a mobile platform developed by Funambol, Inc. 
- * Copyright (C) 2003 - 2007 Funambol, Inc.
+ * Copyright (C) 2003 - 2011 Funambol, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -35,77 +35,105 @@
 
 #pragma once
 
+#include "base/util/StringBuffer.h"
+#include "AnimatedIcon.h"
+#include "MainSyncFrm.h"
+
+class CSyncForm;
+
 /** @cond OLPLUGIN */
 /** @addtogroup UI */
 /** @{ */
 
-#include "afxwin.h"
 
-#define SIF_CHECKED         0
-#define VCALENDAR_CHECKED   1
-
-#define DATE_FILTER_NUM_ITEMS   7
+enum SYNCALL_PANE_STATE {
+    SYNCALL_PANE_STATE_NORMAL,          // normale state
+    SYNCALL_PANE_STATE_SYNC             // under sync
+};
 
 
 /**
- * Calendar options window.
+ * SyncAll pane on main window.
  */
-class CCalendarSettings : public CDialog
-{
-	DECLARE_DYNCREATE(CCalendarSettings)
-
-public:
-	CCalendarSettings();           
-	virtual ~CCalendarSettings();
-
-	enum { IDD = IDD_CALENDAR };
-#ifdef _DEBUG
-	virtual void AssertValid() const;
-#ifndef _WIN32_WCE
-	virtual void Dump(CDumpContext& dc) const;
-#endif
-#endif
+class CSyncAllPane : public CStatic {
+	
+    DECLARE_DYNAMIC(CSyncAllPane)
 
 private:
-    int currentRadioChecked;
+    
+    /// The state of the pane, see SYNCALL_PANE_STATE enum.
+    SYNCALL_PANE_STATE state;
+
+    /// True if the mouse is over this pane.
+    bool mouseOver;
+
+    /// Pane size (pixels)
+    CSize size;
+
+    /// Icons size (pixels)
+    CSize iconSize;
+
+
+    // main label
+    CStatic label;
+    CString labelText;
+    
+    CAnimatedIcon leftIcon;
+    CAnimatedIcon statusIcon;
+
+    HICON iconLogo;         // the logo on the left (fixed)
+    HICON iconSyncAll;      // the icon for syncAll, during normal state
+    HICON iconCancel;       // the icon for cancel sync, during sync state
+
+    bool clicked;
+
+    CFont fontBold;
+
+    double dpiX, dpiY;
+
+
+    /// pointer to the SyncForm instance
+    CSyncForm* syncForm;
+
+
+    void initialize();
+
+    void initializeFonts();
+
+
+public:
+
+	CSyncAllPane(CSyncForm* caller);
+	virtual ~CSyncAllPane();
+    CSyncAllPane(const CSyncAllPane& objectSrc);
+
+    CSyncForm* getCallerWnd() const { return syncForm; }
+
+    void refresh();
+
+    /**
+     * Called when sync started (for a single source).
+     * Sets state to SYNC and refresh.
+     */
+    void onSyncStarted();
+
+    /**
+     * Called when sync ended.
+     * Sets state to NORMAL and refresh.
+     */
+    void onSyncEnded();
+
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-    virtual BOOL OnInitDialog();
-
-    /**
-     * Loads the string data into the syncmode editbox/dropdown box.
-     * If only 1 syncmode is available, the editbox is used.
-     * Otherwise the dropdown box is used.
-     */
-    void loadSyncModesBox(const char* sourceName);
 
 	DECLARE_MESSAGE_MAP()
-public:
-    CComboBox lstSyncType;              // sync types
-    CEdit editFolder;                   // folder to sync
-    CButton checkInclude;               // include subfolders
-    CButton butSelectFolder;            // button for selecting the folder to be synced
-    CEdit editRemote;                   // remote name of the source
-    CButton radioSif;
-    CButton radioVcard;
-    CButton butAdvanced;
-    CStatic groupDirection;
-    CStatic groupFolder;
-    CStatic groupAdvanced;
-    CComboBox lstFilter;
-    CStatic groupFilter;
-
-    CButton checkShared;
-
-    bool saveSettings(bool saveToDisk);
-
-    afx_msg void OnBnClickedCalendarButok();
-    afx_msg void OnBnClickedCalendarButcancel();
-    afx_msg void OnBnClickedCalendarButSelect();
-    afx_msg void OnBnClickedCalendarRadioVcard();
-    afx_msg void OnBnClickedCalendarRadioSif();
-    afx_msg void OnBnClickedCalendarCheckShared();
+    afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+    afx_msg void OnMouseLeave();
+    afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+    afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+    afx_msg void OnPaint( );
+    
 };
 
 /** @} */

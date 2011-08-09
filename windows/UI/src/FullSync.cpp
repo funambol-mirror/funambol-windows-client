@@ -128,42 +128,30 @@ BOOL CFullSync::OnInitDialog() {
     else                               { checkTasks.EnableWindow(FALSE);    }
     if (isSourceEnabled(NOTE_))        { checkNotes.EnableWindow(TRUE);     }
     else                               { checkNotes.EnableWindow(FALSE);    }
-    checkPictures.EnableWindow(FALSE);  // C2S not available for pictures!
-    checkVideos.EnableWindow(FALSE);    // C2S not available for videos!
-    checkFiles.EnableWindow(FALSE);     // C2S not available for files!
 
 
     // Show/hide checkboxes
     if (!isSourceVisible(CONTACT)) {
-        // checkContacts.ShowWindow(SW_HIDE);
-        checkContacts.EnableWindow(FALSE);
-
+        checkContacts.ShowWindow(SW_HIDE);
     }
     if (!isSourceVisible(APPOINTMENT)) {
-        // checkCalendar.ShowWindow(SW_HIDE);
-        checkCalendar.EnableWindow(FALSE);
+        checkCalendar.ShowWindow(SW_HIDE);
     }
     if (!isSourceVisible(TASK)) {
-        // checkTasks.ShowWindow(SW_HIDE);
-        checkTasks.EnableWindow(FALSE);
+        checkTasks.ShowWindow(SW_HIDE);
     }
     if (!isSourceVisible(NOTE)) {
-        // checkNotes.ShowWindow(SW_HIDE);
-        checkNotes.EnableWindow(FALSE);
+        checkNotes.ShowWindow(SW_HIDE);
     }
-    //checkPictures.ShowWindow(SW_HIDE);
-    //checkVideos.ShowWindow(SW_HIDE);
-    //checkFiles.ShowWindow(SW_HIDE);
+
+    // Restore for media items is not available at the moment
+    checkPictures.ShowWindow(SW_HIDE);
+    checkPictures.EnableWindow(FALSE);
+    checkVideos.ShowWindow(SW_HIDE);
+    checkVideos.EnableWindow(FALSE);
+    checkFiles.ShowWindow(SW_HIDE);
+    checkFiles.EnableWindow(FALSE);
     
-    if (!isSourceVisible(PICTURE)) {
-        checkPictures.ShowWindow(SW_HIDE);
-    }
-    if (!isSourceVisible(VIDEO)) {
-        checkVideos.ShowWindow(SW_HIDE);
-    }
-    if (!isSourceVisible(FILES)) {
-        checkFiles.ShowWindow(SW_HIDE);
-    }
     
     GetDlgItem(IDOK)->EnableWindow(FALSE);
 
@@ -248,26 +236,10 @@ void CFullSync::OnBnClickedOk() {
         getConfig()->getSyncSourceConfig(NOTE_)->setIsEnabled(false);
     }
 
-    if(checkPictures.GetCheck() == BST_CHECKED) {
-        getConfig()->getSyncSourceConfig(PICTURE_)->setSync(fullSyncMode);
-    }
-    else {
-        getConfig()->getSyncSourceConfig(PICTURE_)->setIsEnabled(false);
-    }
-
-    if(checkVideos.GetCheck() == BST_CHECKED) {
-        getConfig()->getSyncSourceConfig(VIDEO_)->setSync(fullSyncMode);
-    }
-    else {
-        getConfig()->getSyncSourceConfig(VIDEO_)->setIsEnabled(false);
-    }
-
-    if(checkFiles.GetCheck() == BST_CHECKED) {
-        getConfig()->getSyncSourceConfig(FILES_)->setSync(fullSyncMode);
-    }
-    else {
-        getConfig()->getSyncSourceConfig(FILES_)->setIsEnabled(false);
-    }
+    // Restore for media items is not available at the moment
+    getConfig()->getSyncSourceConfig(PICTURE_)->setIsEnabled(false);
+    getConfig()->getSyncSourceConfig(VIDEO_)->setIsEnabled(false);
+    getConfig()->getSyncSourceConfig(FILES_)->setIsEnabled(false);
 
     ((CSyncForm*)((CMainSyncFrame*)AfxGetMainWnd())->wndSplitter.GetPane(0,1))->refreshSources();
     ((CMainSyncFrame*)AfxGetMainWnd())->StartSync();
@@ -291,29 +263,10 @@ void CFullSync::OnBnClickedSourceCheckBox() {
 
 void CFullSync::OnBnClickedRefreshC2S() {
 
-    checkPictures.EnableWindow(FALSE);
-    checkPictures.SetCheck(BST_UNCHECKED);
-
-    checkVideos.EnableWindow(FALSE);
-    checkVideos.SetCheck(BST_UNCHECKED);
-
-    checkFiles.EnableWindow(FALSE);
-    checkFiles.SetCheck(BST_UNCHECKED);
-
     OnBnClickedSourceCheckBox();
 }
 
 void CFullSync::OnBnClickedRefreshS2C() {
-
-    if (isSourceEnabled(PICTURE_)) { 
-        checkPictures.EnableWindow(TRUE);
-    }
-    if (isSourceEnabled(VIDEO_)) { 
-        checkVideos.EnableWindow(TRUE);
-    }
-    if (isSourceEnabled(FILES_)) { 
-        checkFiles.EnableWindow(TRUE);
-    }
 }
 
 
@@ -337,16 +290,14 @@ bool CFullSync::isAtLeastOneSourceChecked() {
 void CFullSync::adjustCheckboxes() {
 
     int numSources = countSourceVisible();
-    if (isSourceEnabled(PICTURE_)) {
-        numSources--;
-    }
-    if (isSourceEnabled(VIDEO_)) {
-        numSources--;
-    }
-    if (isSourceEnabled(FILES_)) {
-        numSources--;
-    }
-    // currently we consider at least 4 sources
+
+    // Restore for media items is not available at the moment
+    if (isSourceVisible(PICTURE)) numSources--;
+    if (isSourceVisible(VIDEO))   numSources--;
+    if (isSourceVisible(FILES))   numSources--;
+
+
+    // currently we consider at least 4 sources (for spacing issues)
     if (numSources < 4) {
         numSources = 4;
     }
@@ -377,30 +328,35 @@ void CFullSync::adjustCheckboxes() {
     //       the sources visible and SetWindowsPos on each one, like the last 2.
     // TODO: add minCx = 60 px
     //
-    checkContacts.SetWindowPos(&CWnd::wndTop, x, y, cx, cy, SWP_SHOWWINDOW);
-    x = x + width;
-    checkCalendar.SetWindowPos(&CWnd::wndTop, x, y, cx, cy, SWP_SHOWWINDOW);
-    x = x + width;
-    checkTasks.SetWindowPos   (&CWnd::wndTop, x, y, cx, cy, SWP_SHOWWINDOW);
-    x = x + width;
+    const ArrayList& sourcesVisible = getConfig()->getSourcesVisible();
+    for (int i=0; i<sourcesVisible.size(); i++) 
+    {
+        StringBuffer* name = (StringBuffer*)sourcesVisible.get(i);
+        if (!name || isMediaSource(name->c_str())) {
+            // Restore is currently not available for media sources
+            continue;
+        }
 
-    int maxCx = offset1 + (totalWidth - x) - someSpace;
-    cx = min(cx, maxCx);
-    checkNotes.SetWindowPos   (&CWnd::wndTop, x, y, cx, cy, SWP_SHOWWINDOW);
-    x = x + width;
+        CButton* checkBox = getCheckBox(*name);
+        if (!checkBox) continue;
 
-    maxCx = offset1 + (totalWidth - x) - someSpace;
-    cx = min(cx, maxCx);
-    checkPictures.SetWindowPos(&CWnd::wndTop, x, y, cx, cy, SWP_SHOWWINDOW);
-    x = x + width;
+        int maxCx = offset1 + (totalWidth - x) - someSpace;
+        cx = min(cx, maxCx);
+        checkBox->SetWindowPos(&CWnd::wndTop, x, y, cx, cy, SWP_SHOWWINDOW);
+        x = x + width;
+    }
+}
 
-    maxCx = offset1 + (totalWidth - x) - someSpace;
-    cx = min(cx, maxCx);
-    checkVideos.SetWindowPos(&CWnd::wndTop, x, y, cx, cy, SWP_SHOWWINDOW);
-    x = x + width;
 
-    maxCx = offset1 + (totalWidth - x) - someSpace;
-    cx = min(cx, maxCx);
-    checkFiles.SetWindowPos(&CWnd::wndTop, x, y, cx, cy, SWP_SHOWWINDOW);
+CButton* CFullSync::getCheckBox(const StringBuffer& sourceName) {
+
+    if (sourceName == CONTACT_)     return &checkContacts;
+    if (sourceName == APPOINTMENT_) return &checkCalendar;
+    if (sourceName == TASK_)        return &checkTasks;
+    if (sourceName == NOTE_)        return &checkNotes;
+    if (sourceName == PICTURE_)     return &checkPictures;
+    if (sourceName == VIDEO_)       return &checkVideos;
+    if (sourceName == FILES_)       return &checkFiles;
+    return NULL;
 }
 

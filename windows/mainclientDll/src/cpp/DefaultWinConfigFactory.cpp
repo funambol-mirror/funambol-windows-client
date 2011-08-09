@@ -148,6 +148,7 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
     sc->setEncoding             (DLLCustomization::sourceDefaultEncoding);
     sc->setLast                 (0);
     sc->setEncryption           ("");
+    sc->setLongProperty         (PROPERTY_SYNC_END, 0);
 
     if (wname == CONTACT) {
         sc->setSync             (DEFAULT_CONTACTS_SYNC_MODE);
@@ -159,7 +160,10 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         sc->setSupportedTypes   ("text/x-vcard:2.1,text/x-s4j-sifc:1.0");
         sc->setIsEnabled        (CONTACT_SOURCE_ENABLED);
 		sc->setIsAllowed		(CONTACT_SOURCE_ALLOWED); // allowed param (v.10+)
+        sc->setBoolProperty     (PROPERTY_USE_SUBFOLDERS, DLLCustomization::defaultUseSubfolders);
+        sc->setProperty         (PROPERTY_FOLDER_PATH, "");
     }
+
     else if (wname == APPOINTMENT) {
         sc->setSync             (DEFAULT_APPOINTMENTS_SYNC_MODE);
         sc->setSyncModes        (APPOINTMENTS_DEVINFO_SYNC_MODES);
@@ -169,7 +173,14 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         sc->setSupportedTypes   ("text/x-vcalendar:1.0,text/x-s4j-sife:1.0");
         sc->setIsEnabled        (APPOINTMENT_SOURCE_ENABLED);
 		sc->setIsAllowed		(APPOINTMENT_SOURCE_ALLOWED); // allowed param (v.10+)
+        sc->setBoolProperty     (PROPERTY_USE_SUBFOLDERS, DLLCustomization::defaultUseSubfolders);
+        sc->setProperty         (PROPERTY_FOLDER_PATH, "");
+
+        // date filtering
+        sc->setIntProperty      (PROPERTY_FILTER_DATE_DIRECTION, DateFilter::DIR_OUT);
+        sc->setIntProperty      (PROPERTY_FILTER_DATE_LOWER,     DateFilter::LAST_MONTH);
     }
+
     else if (wname == TASK) {
         sc->setSync             (DEFAULT_TASKS_SYNC_MODE);
         sc->setSyncModes        (TASKS_DEVINFO_SYNC_MODES);
@@ -179,7 +190,10 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         sc->setSupportedTypes   ("text/x-vcalendar:1.0,text/x-s4j-sift:1.0");
         sc->setIsEnabled        (TASK_SOURCE_ENABLED);
 		sc->setIsAllowed		(TASK_SOURCE_ALLOWED); // allowed param (v.10+)
+        sc->setBoolProperty     (PROPERTY_USE_SUBFOLDERS, DLLCustomization::defaultUseSubfolders);
+        sc->setProperty         (PROPERTY_FOLDER_PATH, "");
     }
+
     else if (wname == NOTE) {
         sc->setSync             (DEFAULT_NOTES_SYNC_MODE);
         sc->setSyncModes        (NOTES_DEVINFO_SYNC_MODES);
@@ -197,6 +211,8 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
         }
         sc->setIsEnabled        (NOTE_SOURCE_ENABLED);
 		sc->setIsAllowed		(NOTE_SOURCE_ALLOWED); // allowed param (v.10+)
+        sc->setBoolProperty     (PROPERTY_USE_SUBFOLDERS, DLLCustomization::defaultUseSubfolders);
+        sc->setProperty         (PROPERTY_FOLDER_PATH, "");
     }
 
     // SAPI
@@ -257,33 +273,5 @@ SyncSourceConfig* DefaultWinConfigFactory::getSyncSourceConfig(const wstring& wn
 
     if (name) delete [] name;
     return sc;
-}
-
-
-
-
-WindowsSyncSourceConfig* DefaultWinConfigFactory::getWinSyncSourceConfig(const wstring& wname, SyncSourceConfig* sc) {
-
-    WindowsSyncSourceConfig* wsc = new WindowsSyncSourceConfig(sc);
-
-    StringBuffer name;
-    name.convert(wname.c_str());
-    if (isPIMSource(name.c_str())) {
-        // Only PIM!
-        wsc->setUseSubfolders(DLLCustomization::defaultUseSubfolders);
-        wsc->setFolderPath("");
-    }
-
-    wsc->setEndTimestamp(0);
-
-    // Date filtering, set defaults.
-    if (wname == APPOINTMENT) {
-        DateFilter& filter = wsc->getDateFilter();
-        filter.setDirection(DateFilter::DIR_OUT);
-        filter.setRelativeLowerDate(DateFilter::LAST_MONTH);
-        filter.setUpperDate(NULL);
-    }
-
-    return wsc;
 }
 

@@ -90,16 +90,14 @@
 #define SHOW_ADVANCED_SETTINGS              1                           /**< 0 to hide the advanced source settings (remote URIs) */
 #define DISPLAY_SLOWSYNC_WARNING            0                           /**< 1 to display a timed-msgbox if Server requests a SLOW SYNC */
 #define ASK_SLOW_TIMEOUT                    25                          /**< 25 seconds    */
-#define TIME_OUT_ABORT                      8                           /**< 8  seconds    */
-#define SCHED_DEFAULT_REPEAT_MINS           15                          /**< 15 minutes    */
+#define TIME_OUT_ABORT                      4                           /**< 4  seconds    */
+#define SCHED_DEFAULT_REPEAT_MINS           30                          /**< 30 minutes    */
 #define SCHED_DURATION_DAYS                 1                           /**< 1 day         */
-#define SYNC_TIMEOUT                        120                         /**< 120 minutes   */
 #define MAX_LOG_SIZE                        3000000                     /**< 3 MB          */
 #define MAX_SYNCML_MSG_SIZE                 125000                      /**< [bytes], the max syncML message size. default = 125KB */
 #define RESPONSE_TIMEOUT                    900                         /**< [seconds], the HTTP timeout on Server response. default = 15 minutes */
 
 // SAPI media props
-#define DYNAMICALLY_SHOW_PICTURES           0                           /**<deprecated, to be removed! */
 #define SAPI_LOCAL_QUOTA_STORAGE            "98%"                       /**< the max local storage for all media sources */
 #define SAPI_HTTP_REQUEST_TIMEOUT           30                          /**< 30 sec    */
 #define SAPI_HTTP_RESPONSE_TIMEOUT          30                          /**< 30 sec    */

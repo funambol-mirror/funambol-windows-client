@@ -78,7 +78,6 @@ void OutlookTransportListener::receivingData(TransportEvent &event) {
 void OutlookTransportListener::receiveDataEnd(TransportEvent &event) {
     LOG.debug("Finished receiving data of size %d.", event.getDataSize());
     SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SAPI_PROGRESS, 1, event.getDataSize());
-    //checkAbortedSync();
     //SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_REFRESH_STATUSBAR, NULL, (LPARAM)SBAR_RECEIVE_DATA_END);
 }
 
@@ -86,6 +85,5 @@ void OutlookTransportListener::receiveDataEnd(TransportEvent &event) {
 void OutlookTransportListener::partialData(TransportEvent &event) {
     LOG.debug("Already exchanged data %d.", event.getDataSize());
     SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SAPI_PROGRESS, -1, event.getDataSize());
-    //checkAbortedSync();
 }
 

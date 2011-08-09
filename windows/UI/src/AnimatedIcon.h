@@ -39,13 +39,8 @@
 /** @addtogroup UI */
 /** @{ */
 
-#define ANIM_ICON_ARROWS 501
-#define ANIM_ICON_DELAY 300
-#define COLOR_INT_PANE RGB(241,241,241)
-#define COLOR_EXT_PANE RGB(255,255,255)
-
-//enum ANIM_ICON_STATE {STATE_ARROWS, STATE_INVISIBLE, STATE_ICON_SYNC, STATE_DONE, STATE_BUTTON};
-enum ANIM_ICON_STATE {STATE_INVISIBLE, STATE_ICON_SYNC, STATE_DONE, STATE_BUTTON};
+#define ANIM_ICON_ARROWS  501
+#define ANIM_ICON_DELAY   300
 
 
 /**
@@ -56,18 +51,15 @@ class CAnimatedIcon : public CStatic
 	DECLARE_DYNAMIC(CAnimatedIcon)
 
 public:
-    int state;
-    int counterAnim;
 	CAnimatedIcon();  
-    void Animate();
-    void StopAnim();
+    //void Animate();
+    //void StopAnim();
 	virtual ~CAnimatedIcon();
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	DECLARE_MESSAGE_MAP()
 
-    afx_msg void OnTimer( UINT_PTR nIDEvent );
     afx_msg void OnPaint( );
 };
 

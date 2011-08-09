@@ -272,7 +272,6 @@ void initPIMSources() {
 
     if (configChanged) {
         LOG.debug("Config changed for PIM sources: saving config");
-        config->sortSourceVisible();
         config->save();
     }
 
@@ -328,57 +327,6 @@ int initLog(bool isScheduled) {
 
 
 
-
-
-// returns the arrayList of sources that currently needs to sync
-ArrayList * getSourcesToSync(bool refreshSources, bool *syncingPIM) {
-	// (reset abortSync flag)
-    OutlookConfig* config = getConfig();
-    config->setAbortSync(false);
-
-	static bool isSyncingPIM = false;
-	static ArrayList sources;  // source names (defined here, no compile error)
-
-	if ( refreshSources || (sources.size() == 0 ) ) {
-		sources.clear();
-
-		LOG.debug("Creating SyncSources...");
-		int sourcesCount = config->getSyncSourceConfigsCount();
-	    
-		int j=0;
-		//bool syncingPIM = false;
-		config->sortSourceVisible();
-		const ArrayList& sourcesOrder = config->getSourcesVisible();
-		for (int j=0; j<sourcesOrder.size(); j++) {
-			for (int i=0; i<sourcesCount; i++) {
-				const bool enabled = config->getSyncSourceConfig(i)->isEnabled();
-				const bool isRefresh = config->getSyncSourceConfig(i)->getIsRefreshMode();
-
-				if ( (enabled || isRefresh) && config->getSyncSourceConfig(i)->isAllowed()){ // managing allowed params (V.10+)
-					StringBuffer* name = (StringBuffer*)sourcesOrder.get(j);
-					if (*name == config->getSyncSourceConfig(i)->getName()) {
-						// Here the right SyncSource is added to the array of sources to sync.
-						sources.add(*name);
-						if (isPIMSource(name->c_str())) {
-							isSyncingPIM = true;
-							*syncingPIM = isSyncingPIM;
-						}
-					}
-				}
-			}
-		}
-	} else {
-		*syncingPIM = isSyncingPIM;
-		LOG.debug("Keeping old SyncSources array");
-	}
-
-	return &sources;
-}
-
-
-
-
-
 /**
  ***************************************************
  * Entry point to start the synchronization process.
@@ -402,8 +350,7 @@ int startSync() {
     int sourcesActive = 0;
     int priority      = 0;
     WCHAR* wname      = NULL;
-    
-	//ArrayList sources;  // source names (defined here, no compile error)
+	ArrayList sources;  // source names
 
     // Set the cache dir for SAPI sources
     StringBuffer sapiCacheDir = getSapiCacheDir();
@@ -489,6 +436,7 @@ int startSync() {
     }
 
 
+    // abort if auto-sync is false and isScheduledSync is true
 	bool autosync = config->getClientConfig().getAutoSync();
 	if ((config->getClientConfig().getAutoSync() == false) && isScheduledSync) {
 		// this user don't have rights for auto update!
@@ -498,11 +446,6 @@ int startSync() {
         ret = WIN_ERR_AUTOSYNC_DISABLED;
         goto finally;
 	}
-
-	// abort if auto-sync is false and isScheduledSync is true
-	if (isScheduledSync) {
-        LOG.info(" *** Scheduled sync started ***");
-    }
 	
 
     // If here, this is the ONLY instance of sync process
@@ -550,26 +493,37 @@ int startSync() {
     // Create the array of SyncSource names (only if source enabled)
     // -------------------------------------------------------------
     bool syncingPIM = false;
-	ArrayList *sources = getSourcesToSync(getRefreshSourcesListToSync(), &syncingPIM);
-	int sSize = sources->size(); // @#@#@#@#@#
-	// ---------------------------------------------------------------------------------------
-	// end of Creating the array of SyncSource names 
-	// ---------------------------------------------------------------------------------------
+    const ArrayList& sourceOrder = config->getSourcesVisible();
+    for (int i=0; i<sourceOrder.size(); i++) {
+        StringBuffer* name = (StringBuffer*)sourceOrder.get(i);
+        if (!name) continue;
+
+        SyncSourceConfig* ssc = config->getSyncSourceConfig(name->c_str());
+        if (!ssc) continue;
+
+        if (ssc->isEnabled() && ssc->isAllowed()) {
+            // source name is added to the array of sources to sync.
+            sources.add(*name);
+            if (isPIMSource(name->c_str())) {
+                syncingPIM = true;
+            }
+        }
+    }
 
     // Exit if no sources to sync
-    if (sources->size() == 0) {
+    if (sources.size() == 0) {
         //safeMessageBox(MSGBOX_NO_SOURCES_TO_SYNC);
         setError(WIN_ERR_NO_SOURCES, ERR_NO_SOURCES_TO_SYNC);
         ret = WIN_ERR_NO_SOURCES;
         goto finally;
     }
 
-    for (int i=0; i< sources->size(); i++) {
-        StringBuffer* name = (StringBuffer*)sources->get(i);
+    for (int i=0; i< sources.size(); i++) {
+        StringBuffer* name = (StringBuffer*)sources.get(i);
         if (isMediaSource(name->c_str())) {
             // If media hub not set remove from the source to sync if in background
             if (isScheduledSync && !isMediaHubFolderSet()) {
-                sources->removeElementAt(i);
+                sources.removeElementAt(i);
                 i--;
                 continue;
             }
@@ -612,16 +566,13 @@ int startSync() {
 
     // --------------------------------------------------
     // Kick off the sync: one source at time
-    for (int i=0; i< sources->size(); i++) {
+    for (int i=0; i< sources.size(); i++) {
         int res = 0;    // it's the sync result for this source
-        StringBuffer* name = (StringBuffer*)sources->get(i);
+        StringBuffer* name = (StringBuffer*)sources.get(i);
         if (!name) continue;
 
         SyncSourceReport ssReport(name->c_str());
-        WindowsSyncSourceConfig* wssconfig = config->getSyncSourceConfig(name->c_str());
-        if (!wssconfig) continue;
-
-        SyncSourceConfig* ssconfig = wssconfig->getCommonConfig();
+        SyncSourceConfig* ssconfig = config->getSyncSourceConfig(name->c_str());
         if (!ssconfig) continue;
         
 
@@ -642,9 +593,8 @@ int startSync() {
         {   // --- PIM source ---
             WString wname;
             wname = *name;
-            WindowsSyncSource source(wname.c_str(), wssconfig);
+            WindowsSyncSource source(wname.c_str(), ssconfig);
             WindowsSyncClient winClient(source);
-            
             res = synchronize(winClient, source);
             
             report.addSyncSourceReport(*source.getReport());
@@ -666,7 +616,8 @@ int startSync() {
         if (res == WIN_ERR_INVALID_CREDENTIALS ||
             res == WIN_ERR_PROXY_AUTH_REQUIRED ||
             res == WIN_ERR_WRONG_HOST_NAME     || 
-            res == WIN_ERR_PAYMENT_REQUIRED ) { // added a break for 402 alert code (payment required) @#@#
+            res == WIN_ERR_PAYMENT_REQUIRED    || // added a break for 402 alert code (payment required) @#@#
+            res == WIN_ERR_SYNC_CANCELED ) {
             break;
         }
     }
@@ -760,7 +711,7 @@ int doSapiLogin() {
 		//----------------------------------------------------------------------
 		// setting allowed param for every sources with values from sapi login
 		
-		WindowsSyncSourceConfig* ssc = NULL;
+		SyncSourceConfig* ssc = NULL;
 		StringBuffer sb;
 
 		// CONTACTS
@@ -905,7 +856,7 @@ void resetAllSourcesTimestamps() {
     OutlookConfig* config = OutlookConfig::getInstance();
     for (unsigned int i=0; i<config->getSyncSourceConfigsCount(); i++) 
     {
-        WindowsSyncSourceConfig* ssc = config->getSyncSourceConfig(i);
+        SyncSourceConfig* ssc = config->getSyncSourceConfig(i);
         if (!ssc) continue;
         
         ssc->setLast(0);
@@ -1056,20 +1007,6 @@ finally:
     // Saves also the last sync time (now), used to refresh UI
     config->saveSyncSourceConfig(name.c_str());
 
-
-    // enable/disable dynamic sources (check Server datastores)
-    // The source name and the preferred data type must match.
-    bool removedPictures = false;
-    if (DYNAMICALLY_SHOW_PICTURES) {
-        DataStore* dataStore = config->getServerDataStore(PICTURE_);
-        if ( dataStore && !strcmp(dataStore->getRxPref()->getCTType(), OMA_MIME_TYPE) ) {
-            config->safeAddSourceVisible(PICTURE_);
-        }
-        else {
-            removedPictures = config->removeSourceVisible(PICTURE_);
-        }
-    }
-
     // Fire the SOURCE_STATE message to the UI, to tell the state of sources synced
     LPARAM sourceState = ret;
     if (config->getAbortSync()) {
@@ -1087,7 +1024,7 @@ int synchronize(WindowsSyncClient& winClient, WindowsSyncSource& source) {
     if (!report) return -1;
 
     OutlookConfig* config = getConfig();
-    StringBuffer name = source.getConfig().getName();
+    StringBuffer name = source.getConfig()->getName();
     int sourceID = syncSourceNameToIndex(name);
     if (!sourceID) {
         return -1;
@@ -1095,13 +1032,13 @@ int synchronize(WindowsSyncClient& winClient, WindowsSyncSource& source) {
 
     // set sync mode == "slow" if timestamp is 0
     // (tstamp 0 means we're not in sync, i.e. it's the first time)
-    if (source.getConfig().getLast() == 0) {
+    if (source.getConfig()->getLast() == 0) {
         LOG.debug("last tstamp is 0: force the syncmode to SLOW");
-        source.getConfig().setSync(SYNC_MODE_SLOW);
+        source.getConfig()->setSync(SYNC_MODE_SLOW);
         source.setSyncMode(SYNC_SLOW);
     }
     
-    LOG.info("Begin synchronization of %s source (%s)", name.c_str(), source.getConfig().getSync());
+    LOG.info("Begin synchronization of %s source (%s)", name.c_str(), source.getConfig()->getSync());
     SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SYNCSOURCE_BEGIN, NULL, (LPARAM)sourceID);
 
     // ----------------------------------------------
@@ -1112,26 +1049,16 @@ int synchronize(WindowsSyncClient& winClient, WindowsSyncSource& source) {
     // ----------------------------------------------
 
 
-    // enable/disable pictures source (check Server datastores)
-    // The source name and the preferred data type must match.
-    bool removedPictures = false;
-    if (DYNAMICALLY_SHOW_PICTURES) {
-        DataStore* dataStore = config->getServerDataStore(PICTURE_);
-        if ( dataStore && !strcmp(dataStore->getRxPref()->getCTType(), OMA_MIME_TYPE) ) {
-            config->safeAddSourceVisible(PICTURE_);
-        }
-        else {
-            removedPictures = config->removeSourceVisible(PICTURE_);
-        }
+    if (config->getAbortSync()) {
+        ret = WIN_ERR_SYNC_CANCELED;
     }
+    source.getConfig()->setLastSourceError(ret);
+
 
     //
     // Save configuration to win registry. (TBD: manage dirty flag!)
-    // Note: source configs will not be saved if not successful...
-    // Note: we MUST lock the buttons during the save(), to avoid users to cancel sync.
     //
     SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_REFRESH_STATUSBAR, NULL, (LPARAM)SBAR_ENDING_SYNC);
-    SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_LOCK_BUTTONS,      NULL, NULL);
     
 
     // SyncModes and enabled flags MUST NEVER be changed by the sync process!
@@ -1141,23 +1068,11 @@ int synchronize(WindowsSyncClient& winClient, WindowsSyncSource& source) {
     config->readSyncModes();
     
     LOG.debug("Saving configuration to winRegistry");
-    config->save(report);
+    config->save();
 
-    // Fire the SOURCE_STATE message to the UI, to tell the state of sources synced
-    LPARAM sourceState = ret;
-    SyncSourceReport* ssReport = source.getReport();
-    if (ssReport) {
-        if ((ssReport->getState() != SOURCE_ERROR) && source.getConfig().getIsSynced()) {
-            sourceState = WIN_ERR_NONE;
-        }
-    }
-    if (config->getAbortSync()) {
-        sourceState = WIN_ERR_SYNC_CANCELED;
-    }
 
-    // Finally: unlock buttons
-    SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SYNCSOURCE_END, (WPARAM)sourceID, sourceState);
-    SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_UNLOCK_BUTTONS, NULL, NULL);
+    // Finally: update UI
+    SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SYNCSOURCE_END, (WPARAM)sourceID, NULL);
 
     return ret;
 }
@@ -1382,6 +1297,8 @@ bool checkSyncInProgress() {
  */
 void softTerminateSync() {
 
+    LOG.info("Aborting (gracefully) the current sync");
+
     OutlookConfig* config = getConfig();
     config->setAbortSync(true);
 
@@ -1389,8 +1306,6 @@ void softTerminateSync() {
     // this will cause a transaction error, unblocking it, if connection is in use.
     HttpConnection::closeConnection();
     WinTransportAgent::closeConnection();
-
-    LOG.debug(DBG_SYNC_ABORT_REQUEST);
 }
 
 
@@ -1406,6 +1321,8 @@ void softTerminateSync() {
  *                      1 if could not terminate the sync thread.
  */
 int hardTerminateSync(HANDLE hSyncThread) {
+
+    LOG.info("Aborting (forced) the current sync");
 
     // (code 4 = thread terminated)
     if (!TerminateThread(hSyncThread, WIN_ERR_THREAD_TERMINATED)) {
@@ -1450,33 +1367,11 @@ int exitSyncThread(int code) {
 
 
 
-/**
- * --- DEPRECATED: cohoperative stop is implemented ---
- * Check if synchronization session has been intentionally aborted.
- * A flag 'abortSync' inside OutlookConfig singleton object is used to
- * indicate that the user wants to abort the sync.
- * The client periodically checks this flag, using this function.
- * @note  this is important to correctly close Outlook session, as the logoff must
- *        be done by the same thread that logged in... otherwise Outlook may become
- *        instable or could not respond.
- */
-void checkAbortedSync() {
+bool checkIsToAbort() {
 
     OutlookConfig* config = getConfig();
-
-    if (config->getAbortSync()) {
-        LOG.info(INFO_SYNC_ABORTING);
-
-        endSync();
-
-        // Throw SyncException with code 2 (sync aborted by user)
-        setErrorF(getLastErrorCode(), INFO_SYNC_ABORTED_BY_USER);
-        LOG.info(getLastErrorMsg());
-        config->setAbortSync(false);
-        throwSyncException(getLastErrorMsg(), WIN_ERR_SYNC_CANCELED);
-    }
+    return config->getAbortSync();
 }
-
 
 
 

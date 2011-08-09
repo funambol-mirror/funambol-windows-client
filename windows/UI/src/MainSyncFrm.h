@@ -49,6 +49,10 @@
 #include "ConfigFrm.h"
 
 
+class CSyncForm;
+
+
+
 // Thread related
 DWORD WINAPI syncThread(LPVOID lpParam);
 DWORD WINAPI syncThreadKiller(LPVOID lpParam);
@@ -71,10 +75,6 @@ DWORD WINAPI callSAPIRestoreKiller(LPVOID lpParam);
 class CMainSyncFrame : public CFrameWnd
 {
 
-public:
-    CMainSyncFrame();
-    DECLARE_DYNCREATE(CMainSyncFrame)
-
 protected:
 
     HANDLE hSyncThread;
@@ -83,6 +83,7 @@ protected:
     DWORD dwThreadId;
     bool configOpened;
     int dpiX, dpiY;
+
 
     // info about the sync in progress
     int currentSource;
@@ -112,19 +113,20 @@ protected:
     /// Overrided to dynamically remove the 'view User Guide' button & separator.
     afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
 
+
 public:
+
+    CMainSyncFrame();
+    virtual ~CMainSyncFrame();
+    DECLARE_DYNCREATE(CMainSyncFrame)
+
 
     CConfigFrame* pConfigFrame;
 
-    // bitmaps, load once, use it everywhere
-    HBITMAP hBmpDarkBlue;
-    HBITMAP hBmpBlue;
-    HBITMAP hBmpDark;
-    HBITMAP hBmpLight;
-	HBITMAP hBmpDisabled;
+    CSyncForm* syncForm;
 
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-	virtual ~CMainSyncFrame();
+
     void showSettingsWindow(const int paneToDisplay = 1);
     
     // check if the user has set the connection settings
@@ -140,7 +142,6 @@ public:
 
     CStatusBar wndStatusBar;
     CSplitter wndSplitter;
-    bool bSyncStarted;
 
 	bool bSchedulerWasDisabledByLogin; // if true the scheduler was cancelled after login settings
 									   // useful if we want to show a messagebox after the sync process,
@@ -153,24 +154,25 @@ public:
 
 
     void OnConfigClosed();
-    void StartSync();
+
+    void StartSync(const int sourceID = -1);
+
     int CancelSync(bool confirm = true);
 	void StartLogin();
 	void RestoreCharge(); // starts the thread for SAPI Restore charge
+
+    /// Shows/hides the main screen menu
+    void showMenu(bool show);
 
     //afx_msg void OnUpdatePage(CCmdUI *pCmdUI); //status bar update
     afx_msg LRESULT OnMsgSyncBegin      (WPARAM , LPARAM);
     afx_msg LRESULT OnMsgSyncEnd        (WPARAM , LPARAM);
     afx_msg LRESULT OnMsgSyncSourceBegin(WPARAM , LPARAM);
     afx_msg LRESULT OnMsgSyncSourceEnd  (WPARAM , LPARAM);
-    afx_msg LRESULT OnMsgItemSynced     (WPARAM , LPARAM);
+    afx_msg LRESULT OnMsgItemSynced     (WPARAM , LPARAM lParam);
     afx_msg LRESULT OnMsgTotalItems     (WPARAM , LPARAM); 
-    afx_msg LRESULT OnMsgStartSyncBegin (WPARAM , LPARAM); 
     afx_msg LRESULT OnMsgStartsyncEnded (WPARAM , LPARAM); 
     afx_msg LRESULT OnMsgRefreshStatusBar(WPARAM, LPARAM);
-    //afx_msg LRESULT OnMsgSyncSourceState(WPARAM, LPARAM);
-    afx_msg LRESULT OnMsgUnlockButtons  (WPARAM, LPARAM);
-    afx_msg LRESULT OnMsgLockButtons    (WPARAM, LPARAM);
 
 	// sended after login process if task was cancelled from server setting (auto-sync was disabled)
 	afx_msg LRESULT OnMsgSchedulerDisabled( WPARAM , LPARAM lParam); 
@@ -180,10 +182,6 @@ public:
 
 	afx_msg LRESULT OnMsgSapiRestoreChargeBegin(WPARAM wParam, LPARAM lParam); // sapi for restore charge begins
 	afx_msg LRESULT OnMsgSapiRestoreChargeEnded(WPARAM wParam, LPARAM lParam); 
-
-
-	
-
 
 
     // progress percentage. wparam is the total size. lparam is the partial upload or download
@@ -199,7 +197,6 @@ public:
     afx_msg void OnFileConfiguration();
     afx_msg void OnToolsFullSync();
     afx_msg void OnFileSynchronize();
-    afx_msg int  OnCancelSync();
     afx_msg void OnToolsSetloglevel();
 
     afx_msg BOOL OnNcActivate(BOOL bActive);

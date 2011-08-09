@@ -1,6 +1,6 @@
 /*
  * Funambol is a mobile platform developed by Funambol, Inc. 
- * Copyright (C) 2003 - 2007 Funambol, Inc.
+ * Copyright (C) 2003 - 2011 Funambol, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -33,59 +33,54 @@
  * the words "Powered by Funambol".
  */
 
+#pragma once
+
 /** @cond OLPLUGIN */
 /** @addtogroup UI */
 /** @{ */
 
-#pragma once
 #include "afxwin.h"
+#include "spds/SyncSourceConfig.h"
 
-#define SIF_CHECKED         0
-#define VNOTE_CHECKED       1
+#define DATE_FILTER_NUM_ITEMS   7
 
 
 /**
- * Notes options window.
+ * PIM settings window.
+ * The member "type" defines the type of PIM used (contacts, appointments, tasks or notes).
  */
-class CNotesSettings : public CDialog
-{
-	DECLARE_DYNCREATE(CNotesSettings)
+class CPIMSettings : public CDialog {
+
+	DECLARE_DYNCREATE(CPIMSettings)
 
 private:
-    int currentRadioChecked;
+    
+    /// It's the type of the PIM source 
+    /// one of SYNCSOURCE_CALENDAR, SYNCSOURCE_CONTACTS, SYNCSOURCE_NOTES, SYNCSOURCE_TASKS
+    int type;
+
+    /// Pointer to the ssource config, for easy access
+    Funambol::SyncSourceConfig* ssconf;
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual BOOL OnInitDialog();
-
-    DECLARE_MESSAGE_MAP()
-
-    CComboBox lstSyncType;
-    CEdit editFolder;
-    CButton checkInclude;
-    CButton butSelectFolder;
-    CEdit editRemote;
-    CStatic groupDirection;
-    CStatic groupFolder;
-    CStatic groupAdvanced;
-    CButton radioSif;
-    CButton radioVNote;
-
-    CButton checkShared;
 
     /**
      * Loads the string data into the syncmode editbox/dropdown box.
      * If only 1 syncmode is available, the editbox is used.
      * Otherwise the dropdown box is used.
      */
-    void loadSyncModesBox(const char* sourceName);
+    void loadSyncModesBox();
+
+	DECLARE_MESSAGE_MAP()
 
 public:
 
-	CNotesSettings();           
-	virtual ~CNotesSettings();
+	CPIMSettings(const int sourceType = -1);
+	virtual ~CPIMSettings();
 
-	enum { IDD = IDD_NOTES };
+	enum { IDD = IDD_PIM };
 
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -94,15 +89,28 @@ public:
 #endif
 #endif
 
-    bool saveSettings(bool);
-    afx_msg void OnBnClickedNotesOk();
-    afx_msg void OnBnClickedNotesCancel();
-    afx_msg void OnBnClickedNotesButSelect();
-    afx_msg void OnBnClickedNotesRadioVNote();
-    afx_msg void OnBnClickedNotesRadioSif();
-    afx_msg void OnBnClickedNotesCheckShared();
+    CComboBox lstSyncType;              // sync types
+    CEdit editFolder;                   // folder to sync
+    CButton checkInclude;               // include subfolders
+    CButton butSelectFolder;            // button for selecting the folder to be synced
+    CEdit editRemote;                   // remote name of the source
+    CButton butAdvanced;
+    CStatic groupDirection;
+    CStatic groupFolder;
+    CStatic groupAdvanced;
+    CComboBox lstFilter;
+    CStatic groupFilter;
+
+    CButton checkShared;
+
+    bool saveSettings(bool saveToDisk);
+
+    afx_msg void OnBnClickedPIMButok();
+    afx_msg void OnBnClickedPIMButcancel();
+    afx_msg void OnBnClickedPIMButSelect();
+
+    afx_msg void OnBnClickedCalendarCheckShared();
 };
 
 /** @} */
 /** @endcond */
-

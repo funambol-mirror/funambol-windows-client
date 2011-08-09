@@ -35,6 +35,7 @@
 
 #pragma once
 #include "afxwin.h"
+#include "base/util/StringBuffer.h"
 
 /** @cond OLPLUGIN */
 /** @addtogroup UI */
@@ -63,11 +64,8 @@ class CSyncSettings : public CFormView
 {
 	DECLARE_DYNCREATE(CSyncSettings)
 
-protected:
-	CSyncSettings();           // protected constructor used by dynamic creation
-	virtual ~CSyncSettings();
-
 public:
+    
 	enum { IDD = IDD_SYNC };
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -76,65 +74,6 @@ public:
     virtual void PostNcDestroy( ){delete this;}
 #endif
 #endif
-
-protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-    virtual BOOL PreTranslateMessage(MSG* pMsg);
-    afx_msg LRESULT OnInitForm(WPARAM, LPARAM);
-    
-    /// hide a source given its components
-    void hideSource(CButton& button1, CButton& button2, bool* synctype, int sep1, int sep2);
-    
-    /// disable a source (it remaining visible by greyed) given its components
-    void disableSource(CButton& button1, CButton& button2, bool* synctype, int sep1, int sep2);
- 
-    /**
-     * Creates and returns a string to be displayed in the source checkbox
-     * like "Contacts", or "Pictures (Download only)".
-     * Checks the config to know the current syncmode set.
-     */
-    CString composeCheckboxText(const char* sourceName);
-
-	DECLARE_MESSAGE_MAP()
-
-public:
-    
-    CButton checkContacts;
-    CButton checkCalendar;
-    CButton checkTasks;
-    CButton checkNotes;
-    CButton checkPictures;
-    CButton checkVideos;
-    CButton checkFiles;
-
-    CButton butContacts;
-    CButton butCalendar;
-    CButton butTasks;
-    CButton butNotes;
-    CButton butPictures;
-    CButton butVideos;
-    CButton butFiles;
-
-    bool saveSyncTypeContacts;
-    bool saveSyncTypeCalendar;
-    bool saveSyncTypeTasks;
-    bool saveSyncTypeNotes;
-    bool saveSyncTypePictures;
-    bool saveSyncTypeVideos;
-    bool saveSyncTypeFiles;
-    bool saveScheduler; // true if scheduler settings have changed
-    bool saveAttach; // true if the checkbox to require outlook open is changed
-
-    // scheduler
-    CButton checkEnabled;
-    CButton checkEncryption;
-    CButton checkAttach;
-    CStatic groupItems;
-    CStatic groupScheduler;
-    CStatic groupSecurity;
-    CComboBox comboSchedulerValue;
-    
-    bool saveSettings(bool);
 
     afx_msg void OnBnClickedSyncCheckContacts();
     afx_msg void OnBnClickedSyncCheckCalendar();
@@ -158,8 +97,85 @@ public:
     afx_msg void OnCbnSelchangeSchedulerComboValue();
     afx_msg void OnBnClickedSyncCheckOutlookOpen();
 
-    void resizeForMediaOnly();
-    void moveResource(int res, int offset);    
+    /**
+     * Reads data from the form, and sets it to the configuration.
+     * @param saveToDisk  if true, it saves configuration to disk at the end
+     */
+    bool saveSettings(bool saveToDisk = true);
+
+protected:
+
+	CSyncSettings();           // protected constructor used by dynamic creation
+	virtual ~CSyncSettings();
+
+    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    virtual BOOL PreTranslateMessage(MSG* pMsg);
+    afx_msg LRESULT OnInitForm(WPARAM, LPARAM);
+    
+	DECLARE_MESSAGE_MAP()
+
+
+private:
+
+    CButton checkContacts;
+    CButton checkCalendar;
+    CButton checkTasks;
+    CButton checkNotes;
+    CButton checkPictures;
+    CButton checkVideos;
+    CButton checkFiles;
+
+    CButton butContacts;
+    CButton butCalendar;
+    CButton butTasks;
+    CButton butNotes;
+    CButton butPictures;
+    CButton butVideos;
+    CButton butFiles;
+
+    // scheduler
+    CButton checkEnabled;
+    CButton checkEncryption;
+    CButton checkAttach;
+    CStatic groupItems;
+    CStatic groupScheduler;
+    CStatic groupSecurity;
+    CComboBox comboSchedulerValue;
+
+    bool saveScheduler;    // true if scheduler settings have changed
+    bool saveAttach;       // true if the checkbox to require outlook open is changed
+
+
+    /// Loads dynamically the sync scheduler data
+    void loadSchedulerData();
+
+    /// Saves the enabled/disabled flag to corresponding source config
+    void saveEnabledCheck(const Funambol::StringBuffer& sourceName);
+
+
+    /**
+     * Creates and returns a string to be displayed in the source checkbox
+     * like "Contacts", or "Pictures (Download only)".
+     * Checks the config to know the current syncmode set.
+     */
+    CString composeCheckboxText(const char* sourceName);
+
+    // Utilities to retrieve the right UI object
+    CButton* getCheckbox(const Funambol::StringBuffer& sourceName);
+    CButton* getButton  (const Funambol::StringBuffer& sourceName);
+    CWnd*   getSeparator(const int index);
+
+    /**
+     * Used during startup to simply hide all source checkboxes and buttons.
+     */
+    void hideAllSources();
+
+    /// hide a source given its components
+    void hideSource(CButton& button1, CButton& button2, bool* synctype, int sep1, int sep2);
+    
+    /// disable a source (it remaining visible by greyed) given its components
+    void disableSource(CButton& button1, CButton& button2, bool* synctype, int sep1, int sep2);
+ 
 };
 
 
