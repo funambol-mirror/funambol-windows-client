@@ -186,6 +186,10 @@
 
 #define ENABLE_COMPRESSION					true
 
+// If true, a menu "test popups" will be added in main screen to test all 
+// possible strings (popups and source status)
+#define TEST_POPUPS                         false
+
 // Win registry root context.
 // This is NOT intended to be customized: we need to use the same registry keys to ensure correct checks
 // between different versions of the client (i.e. avoid installing 2 plugins, addin cleanup)

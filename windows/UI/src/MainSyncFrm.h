@@ -98,6 +98,18 @@ protected:
 
     CFont fontBold;
 
+    ////// test popups and status text ////////
+    /// Usually 0, just set to a value during "Test popups" execution
+    int testingStatusText;
+
+    void testAllStatusText(const int sourceID);
+
+    void onTestStatusText();
+
+    /// test all popups and and source status
+    afx_msg void OnTestPopups();
+    ///////////////////////////////////////////
+
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 
 // Overrides

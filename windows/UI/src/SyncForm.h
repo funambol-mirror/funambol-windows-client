@@ -150,6 +150,9 @@ public:
     /// Refresh status text of a source.
     void refreshSourceStatus(const CString& msg, const int sourceID);
 
+    /// Refresh status text of a source, given the resource string ID.
+    void refreshSourceStatus(const int resourceID, const int sourceID);
+
     /// Returns the current status text of a source.
     CString getSourceStatus(const int sourceID);
 

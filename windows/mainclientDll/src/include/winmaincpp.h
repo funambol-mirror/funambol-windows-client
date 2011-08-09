@@ -130,7 +130,7 @@
 #define WIN_ERR_NONE                        0
 #define WIN_ERR_GENERIC                     1
 #define WIN_ERR_SYNC_CANCELED               2
-#define WIN_ERR_FATAL_OL_EXCEPTION          3
+#define WIN_ERR_FATAL_OL_EXCEPTION          3   // deprecated
 #define WIN_ERR_THREAD_TERMINATED           4
 #define WIN_ERR_FULL_SYNC_CANCELED          5   // deprecated
 #define WIN_ERR_UNEXPECTED_EXCEPTION        6

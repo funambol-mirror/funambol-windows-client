@@ -432,7 +432,7 @@ BOOL COutlookPluginApp::InitInstance()
                         CWelcome welcome;
                         int ret = welcome.DoModal();
                         if (ret != IDOK) {
-                            MessageBox(NULL, L"Upgrade aborted", WPROGRAM_NAME, failFlags);
+                            //MessageBox(NULL, L"Upgrade aborted", WPROGRAM_NAME, failFlags);
                             exit(0);
                         }
 
@@ -451,7 +451,7 @@ BOOL COutlookPluginApp::InitInstance()
                     if (showWait) {
                         upgrade.CloseWindow();
                     }
-                    MessageBox(NULL, L"Upgrade aborted", WPROGRAM_NAME, failFlags);
+                    //MessageBox(NULL, L"Upgrade aborted", WPROGRAM_NAME, failFlags);
                     exit(0);
                 }
                 if (showWait) {

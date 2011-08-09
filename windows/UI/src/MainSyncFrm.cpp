@@ -110,10 +110,10 @@ BEGIN_MESSAGE_MAP(CMainSyncFrame, CFrameWnd)
 	ON_MESSAGE(ID_MYMSG_SAPI_RESTORE_CHARGE_BEGIN,	 &CMainSyncFrame::OnMsgSapiRestoreChargeBegin)
 	ON_MESSAGE(ID_MYMSG_DOSAPI_RESTORE_CHARGE_ENDED, &CMainSyncFrame::OnMsgSapiRestoreChargeEnded)
 
-
-
+    ON_COMMAND(ID_MENU_TEST_POPUPS, &CMainSyncFrame::OnTestPopups)
 
 END_MESSAGE_MAP()
+
 
 static UINT indicators[] =
 {
@@ -180,6 +180,8 @@ CMainSyncFrame::CMainSyncFrame() {
     totalClientItems = 0;
     totalServerItems = 0;
     currentSource = 0;
+
+    testingStatusText = 0;
 }
 
 CMainSyncFrame::~CMainSyncFrame() {
@@ -240,6 +242,7 @@ void CMainSyncFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMe
         }
     }
 
+    // "Software update" menu
     if (nIndex == 2 && isNewSwVersionAvailable()) {
         UINT firstItemID = pPopupMenu->GetMenuItemID(0);
         if (firstItemID != ID_MENU_UPDATE_SW) {
@@ -247,6 +250,16 @@ void CMainSyncFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMe
             s1.LoadString(IDS_UPDATE_SOFTWARE);
             pPopupMenu->InsertMenu(0, MF_BYPOSITION | MF_ENABLED, ID_MENU_UPDATE_SW, s1);
             // pPopupMenu->EnableMenuItem(ID_MENU_UPDATE_SW, MF_GRAYED);
+        }
+    }
+
+    // "test popups" menu
+    if (nIndex == 2 && TEST_POPUPS) {
+        UINT firstItemID = pPopupMenu->GetMenuItemID(0);
+        if (firstItemID != ID_MENU_TEST_POPUPS) {
+            CString s1 = "Test popups";
+            pPopupMenu->InsertMenu(0, MF_BYPOSITION | MF_ENABLED, ID_MENU_TEST_POPUPS, s1);
+            // pPopupMenu->EnableMenuItem(ID_MENU_TEST_POPUPS, MF_GRAYED);
         }
     }
 
@@ -469,7 +482,7 @@ DWORD WINAPI loginThread(LPVOID lpParam) {
         printLog(s1.GetBuffer(), LOG_ERROR);
         ret = WIN_ERR_UNEXPECTED_EXCEPTION;            // code 6
     }
-	
+
 	// update UI
 	SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_REFRESH_SOURCES, NULL, NULL);
 
@@ -490,7 +503,7 @@ DWORD WINAPI loginThread(LPVOID lpParam) {
 
 /**
  * Thread used to call the sapi for restore charge.
- * 
+ *
  */
 DWORD WINAPI callSAPIRestoreChargeThread(LPVOID lpParam) {
     int ret = 0;
@@ -522,7 +535,7 @@ DWORD WINAPI callSAPIRestoreChargeThread(LPVOID lpParam) {
     Sleep(200);     // Just to be sure that everything has been completed...
 
     SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_DOSAPI_RESTORE_CHARGE_ENDED, NULL, (LPARAM)ret);
-	
+
     if (ret) {
         // **** Investigate on this ****
         // In case of COM exceptions, the COM library could not be
@@ -726,7 +739,7 @@ LRESULT CMainSyncFrame::OnMsgSyncEnd( WPARAM , LPARAM ) {
 	// show a message that alert the user  (?)
 	if ( bSchedulerWasDisabledByLogin ) {
 		//s1.LoadString(IDS_TEXT_SCHEDULER_DISABLED);
-        //wsafeMessageBox(s1);	
+        //wsafeMessageBox(s1);
 	}
 	bSchedulerWasDisabledByLogin = false;
 	return 0;
@@ -752,13 +765,9 @@ LRESULT CMainSyncFrame::OnMsgSyncSourceBegin(WPARAM wParam, LPARAM lParam) {
     syncForm->onSyncSourceBegin(currentSource);
 
 
-    // change status to: "Connecting..."
-    CString msg;
-    msg.LoadString(IDS_CONNECTING);
-    syncForm->refreshSourceStatus(msg, currentSource);
-
-    // Update status-bar with the same message.
-    refreshStatusBar(msg);
+    // change statusbar &status to: "Connecting..."
+    syncForm->refreshSourceStatus(IDS_CONNECTING, currentSource);
+    refreshStatusBar(IDS_CONNECTING);
 
     return 0;
 }
@@ -924,9 +933,9 @@ void CMainSyncFrame::OnConfigClosed() {
 
 	// checking if login settings was changed...
 	if ( ( lastUserName     != getConfig()->getAccessConfig().getUsername() ) ||
-		 ( lastUserPassword != getConfig()->getAccessConfig().getPassword() ) || 
+		 ( lastUserPassword != getConfig()->getAccessConfig().getPassword() ) ||
 		 ( lastSyncURL      != getConfig()->getAccessConfig().getSyncURL()  ) ) {
-		
+
         if (ENABLE_LOGIN_ON_ACCOUNT_CHANGE) {
             //
             // starts the login thread that calls SAPI login.
@@ -945,7 +954,7 @@ void CMainSyncFrame::OnConfigClosed() {
 }
 
 
-LRESULT CMainSyncFrame::OnMsgRefreshSources(WPARAM wParam, LPARAM lParam) 
+LRESULT CMainSyncFrame::OnMsgRefreshSources(WPARAM wParam, LPARAM lParam)
 {
 	syncForm->refreshSources();
     return 0;
@@ -974,19 +983,19 @@ LRESULT CMainSyncFrame::OnMsgSapiRestoreChargeEnded(WPARAM wParam, LPARAM lParam
         // Restart SYNC
         //
         StartSync();
-	} 
+	}
     else {
         StringBuffer msg;
         msg.sprintf("SAPI restore charge failed, exit code = %d", exitCode);
         printLog(msg.c_str(), LOG_ERROR);
-		
+
         //CString s1 = "";
 		//s1.Format(_T("Sorry, server response code is: %d\nYou will not be able to use restore service."), exitCode);
 		//int msgboxFlags = MB_OK | MB_ICONASTERISK | MB_SETFOREGROUND | MB_APPLMODAL;
-		//int selected = wsafeMessageBox(s1.GetBuffer(), 0, msgboxFlags); 
+		//int selected = wsafeMessageBox(s1.GetBuffer(), 0, msgboxFlags);
 		//if (selected == IDYES ) { // managing YES / NO ?
 		//	// do something if yes
-		//}	
+		//}
 	}
     return 0;
 }
@@ -1014,9 +1023,9 @@ LRESULT CMainSyncFrame::OnMsgSAPILoginEnded(WPARAM wParam, LPARAM lParam) {
     CString s1;
     int exitCode = lParam;
     StringBuffer msg;
-    
+
     // Sync has finished: unlock buttons
-	cancelingSync = false; 
+	cancelingSync = false;
 
     syncForm->unlockButtons();
 
@@ -1062,7 +1071,7 @@ LRESULT CMainSyncFrame::OnMsgSAPILoginEnded(WPARAM wParam, LPARAM lParam) {
 
     // show the menu
     showMenu(true);
- 
+
 
     // Refresh sources.
     syncForm->refreshSources();
@@ -1091,21 +1100,23 @@ LRESULT CMainSyncFrame::OnMsgStartsyncEnded(WPARAM wParam, LPARAM lParam) {
 
     int exitCode = lParam;
     const bool isScheduled = getConfig()->getScheduledSync();
-	
+
     cancelingSync = false;
 
     //
     // Error occurred: display error message on a msgBox.
     //
-    if (exitCode) {
+    if (exitCode != 0) {
         BeginModalState();
         manageSyncErrorMsg(exitCode);
         EndModalState();
-
         SetForegroundWindow();
     }
-    else{
-        // exitCode = 0 : sync finished ok
+
+    // for these errors, force exit the client
+    if (exitCode == WIN_ERR_FATAL_OL_EXCEPTION ||
+        exitCode == WIN_ERR_THREAD_TERMINATED) {
+        exit(1);
     }
 
     //
@@ -1139,7 +1150,7 @@ LRESULT CMainSyncFrame::OnMsgStartsyncEnded(WPARAM wParam, LPARAM lParam) {
 	    if ( (!isScheduled) && ( exitCode == WIN_ERR_PAYMENT_REQUIRED ) ) {
 
 		    // interactive messagebox @#@#@#
-            // **** TODO: use string resources! **** 
+            // **** TODO: use string resources! ****
 		    CString s1 = "Warning, a payment is required for performing restore!\r\nIf you continue a charge will be applied on you account.\r\n Do you want continue?";
 		    msgboxFlags = MB_YESNO | MB_ICONQUESTION | MB_SETFOREGROUND | MB_APPLMODAL;
 		    selected = wsafeMessageBox(s1.GetBuffer(), 0, msgboxFlags);
@@ -1179,6 +1190,12 @@ void CMainSyncFrame::StartSync(const int sourceID) {
     StringBuffer tmp;
     tmp.sprintf("\n\n--- %s: sourceID = %d ---", __FUNCTION__, sourceID);
     printLog(tmp.c_str(), LOG_DEBUG);
+
+    //test all status text
+    if (TEST_POPUPS && testingStatusText) {
+        testAllStatusText(sourceID);
+        return;
+    }
 
     CString s1;
 
@@ -1286,11 +1303,9 @@ int CMainSyncFrame::CancelSync(bool confirm) {
     if (selected == IDYES) {
         ret = 0;
 
-        // Refresh status bar
-        CString s1;
-        s1.LoadString(IDS_TEXT_CANCELING_SYNC);
-        refreshStatusBar(s1);
-        syncForm->refreshSourceStatus(s1, currentSource);
+        // Refresh status
+        refreshStatusBar(IDS_TEXT_CANCELING_SYNC);
+        syncForm->refreshSourceStatus(IDS_TEXT_CANCELING_SYNC, currentSource);
 
         // LOCK the statusbar and other controls.
         cancelingSync = true;
@@ -1356,7 +1371,7 @@ void CMainSyncFrame::StartLogin() {
     // Start the login thread.
     //
     printLog("Starting SAPI Login thread...", LOG_DEBUG);
-    
+
 	hLoginThread = CreateThread(NULL, 0, loginThread, 0, 0, &dwThreadId);
     if (hLoginThread == NULL) {
         DWORD errorCode = GetLastError();
@@ -1668,9 +1683,9 @@ afx_msg LRESULT CMainSyncFrame::OnMsgSapiProgress(WPARAM wParam, LPARAM lParam) 
 afx_msg LRESULT CMainSyncFrame::OnCheckMediaHubFolder(WPARAM wParam, LPARAM lParam) {
 
     OutlookConfig* config = ((OutlookConfig*)getConfig());
-       
+
     int ret = IDOK;
-    if (!isMediaHubFolderSet()) {                    
+    if (!isMediaHubFolderSet()) {
         CMediaHubSetting mediaHubSetting;
         ret = mediaHubSetting.DoModal();
         if (ret == IDOK) {
@@ -1681,21 +1696,21 @@ afx_msg LRESULT CMainSyncFrame::OnCheckMediaHubFolder(WPARAM wParam, LPARAM lPar
             unsigned int failFlags= MB_OK | MB_ICONASTERISK | MB_SETFOREGROUND | MB_APPLMODAL;
             CString s1;
             s1.FormatMessage(IDS_MEDIA_HUB_ALERT_FOLDER_NOT_SET, _T(MEDIA_HUB_DEFAULT_LABEL));
-    
+
             //s1.LoadString(IDS_MEDIA_HUB_ALERT_FOLDER_NOT_SET);
-            //MessageBox(s1, WPROGRAM_NAME, failFlags);                        
+            //MessageBox(s1, WPROGRAM_NAME, failFlags);
         }
     }
     if (config) {
         StringBuffer fpath = config->getSyncSourceConfig(PICTURE_)->getProperty(PROPERTY_MEDIAHUB_PATH);
         const char* installPath = config->getWorkingDir();
-        createMediaHubDesktopIniFile(fpath.c_str(), installPath);        
+        createMediaHubDesktopIniFile(fpath.c_str(), installPath);
     }
     return ret;
 }
 
 BOOL CMainSyncFrame::createMediaHubDesktopIniFile(const char* folderPath, const char* installPath) {
-    
+
     if (isWindowsXP()) {
         return TRUE;
     }
@@ -1704,29 +1719,29 @@ BOOL CMainSyncFrame::createMediaHubDesktopIniFile(const char* folderPath, const 
     BOOL ret = PathMakeSystemFolder(tmp);
     if (ret != 0) {
         // create the file
-        StringBuffer file(folderPath);        
+        StringBuffer file(folderPath);
         file.append("\\");
         file.append("Desktop.ini");
         WCHAR* wfile = toWideChar(file.c_str());
 
         // create the IconFile path
-        StringBuffer icoName(installPath);             
+        StringBuffer icoName(installPath);
         icoName.append("\\images\\");
         icoName.append(MEDIA_HUB_DEFAULT_ICO);
 
         // populate the infoTip
-        CString s1; 
-        s1.FormatMessage(IDS_MEDIA_HUB_DESKTOPINI_TIP, _T(MEDIA_HUB_DEFAULT_LABEL));    
+        CString s1;
+        s1.FormatMessage(IDS_MEDIA_HUB_DESKTOPINI_TIP, _T(MEDIA_HUB_DEFAULT_LABEL));
         // s1.LoadString(IDS_MEDIA_HUB_DESKTOPINI_TIP);
         StringBuffer tip = ConvertToChar(s1);
-         
+
         FILE* f = fileOpen(file.c_str(), "w+");
         if (f) {
             StringBuffer s;
             s = "[.ShellClassInfo]\r\n";
             s.append("IconFile=");
             s.append(icoName);
-            s.append("\r\n"); 
+            s.append("\r\n");
             s.append("IconIndex=0\r\n");
             s.append("InfoTip=");
             s.append(tip);
@@ -1734,14 +1749,14 @@ BOOL CMainSyncFrame::createMediaHubDesktopIniFile(const char* folderPath, const 
             fwrite(s.c_str(), 1, s.length(), f);
             fclose(f);
             SetFileAttributes(wfile, FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM);
-            
-        }      
-        delete [] wfile;  
+
+        }
+        delete [] wfile;
     }
     delete [] tmp;
-    
+
     return ret;
-    
+
 }
 
 LRESULT CMainSyncFrame::OnMsgSchedulerDisabled( WPARAM , LPARAM lParam) {
@@ -1754,4 +1769,272 @@ LRESULT CMainSyncFrame::OnMsgSchedulerDisabled( WPARAM , LPARAM lParam) {
     Invalidate();
 
     return 0;
+}
+
+void CMainSyncFrame::OnTestPopups()
+{
+    //
+    // sync ended popups
+    //
+    manageSyncErrorMsg(WIN_ERR_GENERIC);                     // 1
+    manageSyncErrorMsg(WIN_ERR_SYNC_CANCELED);               // 2
+    //manageSyncErrorMsg(WIN_ERR_FATAL_OL_EXCEPTION);        // 3   deprecated
+    manageSyncErrorMsg(WIN_ERR_THREAD_TERMINATED);           // 4
+    //manageSyncErrorMsg(WIN_ERR_FULL_SYNC_CANCELED);        // 5   deprecated
+    manageSyncErrorMsg(WIN_ERR_UNEXPECTED_EXCEPTION);        // 6
+    //manageSyncErrorMsg(WIN_ERR_UNEXPECTED_STL_EXCEPTION);  // 7  (same msg as code 6)
+    manageSyncErrorMsg(WIN_ERR_SERVER_QUOTA_EXCEEDED);       // 8
+    manageSyncErrorMsg(WIN_ERR_LOCAL_STORAGE_FULL);          // 9
+    manageSyncErrorMsg(WIN_ERR_DROPPED_ITEMS);               // 10
+    manageSyncErrorMsg(WIN_ERR_DROPPED_ITEMS_SERVER);        // 11
+    manageSyncErrorMsg(WIN_ERR_NO_SOURCES);                  // 12
+    manageSyncErrorMsg(WIN_ERR_SAPI_NOT_SUPPORTED);          // 13
+    manageSyncErrorMsg(WIN_ERR_INVALID_CREDENTIALS);         // 401
+    //manageSyncErrorMsg(WIN_ERR_PROXY_AUTH_REQUIRED);       // 407 (same msg as code 401)
+    manageSyncErrorMsg(WIN_ERR_REMOTE_NAME_NOT_FOUND);       // 404
+    manageSyncErrorMsg(WIN_ERR_AUTOSYNC_DISABLED);	         // 500
+    manageSyncErrorMsg(WIN_ERR_WRONG_HOST_NAME);             // 2001
+    //manageSyncErrorMsg(WIN_ERR_NETWORK_ERROR);             // 2050 (same msg as code 2050)
+
+    CString s1;
+    unsigned int flags = 0;
+
+    //
+    // restore popups
+    //
+    //flags = MB_YESNO | MB_ICONEXCLAMATION | MB_SETFOREGROUND | MB_APPLMODAL;
+    //MessageBox(WMSG_BOX_REFRESH_FROM_SERVER, WPROGRAM_NAME, flags);
+    //MessageBox(WMSG_BOX_REFRESH_FROM_CLIENT, WPROGRAM_NAME, flags);
+
+
+    // Account screen popups
+    s1.LoadString(IDS_ERROR_SET_URL);           wsafeMessageBox(s1);
+    s1.LoadString(IDS_ERROR_SET_USERNAME);      wsafeMessageBox(s1);
+    s1.LoadString(IDS_ERROR_SET_PASSWORD);      wsafeMessageBox(s1);
+
+
+
+    //
+    // misc popups
+    //
+    s1.LoadString(IDS_TEXT_SYNC_IN_PROGRESS);
+    flags = MB_OK | MB_ICONEXCLAMATION | MB_SETFOREGROUND | MB_APPLMODAL;
+    MessageBox(s1, WPROGRAM_NAME, flags);
+
+    s1.LoadString(IDS_ERROR_CANNOT_CHANGE_SETTINGS);
+    wsafeMessageBox(s1);
+
+    s1.LoadString(IDS_TEXT_SYNC_ALREADY_RUNNING);
+    wsafeMessageBox(s1);
+
+    s1.LoadString(IDS_ERROR_SET_CONNECTION);
+    wsafeMessageBox(s1);
+
+    flags = MB_YESNO | MB_ICONQUESTION | MB_SETFOREGROUND | MB_APPLMODAL;
+    MessageBox(WMSG_BOX_CANCEL_SYNC, WPROGRAM_NAME, flags);
+
+    //AfxMessageBox(AFX_IDP_FAILED_TO_CREATE_DOC);
+
+    s1.LoadString(IDS_ERROR_SET_REMOTE_NAME);
+    wsafeMessageBox(s1);
+
+    s1.LoadString(IDS_ERROR_PROXY_USERNAME);
+    wsafeMessageBox(s1);
+
+    s1.LoadString(IDS_ERROR_PROXY_PASSWORD);
+    wsafeMessageBox(s1);
+
+    s1.LoadString(IDS_SCHEDULER_CANNOT_SCHEDULE);
+    wsafeMessageBox(s1);
+
+    //char msg[500];
+    //sprintf(msg, ERR_OUTLOOK_BAD_FOLDER_TYPE, itemType.c_str());
+    //safeMessageBox(msg);
+
+
+    //s1.LoadString(IDS_WARNING_ONEWAY_REMOVAL);
+    //flags = flags = MB_OK | MB_ICONEXCLAMATION | MB_SETFOREGROUND | MB_APPLMODAL;
+    //MessageBox(NULL, s1, WPROGRAM_NAME, flags);
+
+
+    // send log popups
+    //CString str;
+    //str.LoadString(IDS_ERROR_SET_CONNECTION);
+    //MessageBox((LPCTSTR)str, TEXT(PROGRAM_NAME), MB_OK | MB_ICONEXCLAMATION | MB_APPLMODAL | MB_SETFOREGROUND);
+
+    // SAPI payment required (TODO: use resources)
+    //flags = MB_YESNO | MB_ICONQUESTION | MB_SETFOREGROUND | MB_APPLMODAL;
+	//wsafeMessageBox(s1.GetBuffer(), 0, msgboxFlags);
+
+    //
+    // SW upgrade
+    //
+    OnMsgPopup(TYPE_SKIPPED_ACTION, NULL);
+    OnMsgPopup(TYPE_NOW_LATER_SKIP_OPTIONAL, NULL);
+    OnMsgPopup(TYPE_NOW_LATER_RECCOMENDED, NULL);
+    OnMsgPopup(TYPE_NOW_EXIT_MANDATORY, NULL);
+
+    UpdaterConfig& config = getConfig()->getUpdaterConfig();
+    config.setReleaseDate("20110812");
+    OnMsgPopup(TYPE_NOW_LATER_MANDATORY, NULL);
+
+
+    // all status bar messages: will be triggered clicking on a source tab
+    safeMessageBox("*** Click on a source to continue ***");
+    testingStatusText = 1;
+}
+
+
+void CMainSyncFrame::testAllStatusText(const int sourceID)
+{
+    currentSource = sourceID;
+    onTestStatusText();
+
+    if (testingStatusText > 28) {
+        // test finished: alert user and reset UI/config
+        testingStatusText = 0;
+        currentSource = 0;
+        getConfig()->read();
+        syncForm->refreshSources();
+        safeMessageBox("*** Test completed! ***");
+    }
+}
+
+void CMainSyncFrame::onTestStatusText()
+{
+    StringBuffer name = syncSourceIndexToName(currentSource);
+    if (name.empty()) goto finally;
+
+    SyncSourceConfig* ssc = getConfig()->getSyncSourceConfig(name.c_str());
+    if (!ssc) goto finally;
+
+
+    switch (testingStatusText)
+    {
+    //
+    // sync status messages
+    //
+    case 1:
+        refreshStatusBar(IDS_TEXT_STARTING_SYNC);       // sync begin
+        break;
+    case 2:
+        refreshStatusBar(IDS_CONNECTING);               // syncsource begin
+        syncForm->refreshSourceStatus(IDS_CONNECTING, currentSource);
+        break;
+
+    case 3:
+        refreshStatusBar(IDS_TEXT_SENDING);             // sending x/y (TODO: fix with numbers)
+        syncForm->refreshSourceStatus(IDS_TEXT_SENDING, currentSource);
+        break;
+    case 4:
+        // sending x/y (68%) (TODO: fix with numbers)
+        OnMsgSapiProgress(-2, 100);         // progress begin
+        OnMsgSapiProgress( 0,  68);         // progress size
+        OnMsgSapiProgress( 1,   0);         // progress end
+        break;
+
+    case 5:
+        refreshStatusBar(IDS_TEXT_RECEIVING);           // receiving x/y (TODO: fix with numbers)
+        syncForm->refreshSourceStatus(IDS_TEXT_RECEIVING, currentSource);
+        break;
+    case 6:
+        // syncItem progress: x/y (49%)
+        OnMsgSapiProgress(-2, 100);         // progress begin
+        OnMsgSapiProgress( 0,  49);         // progress size
+        OnMsgSapiProgress( 1,   0);         // progress end
+        break;
+
+    case 7:
+        // currentSource needs to be set
+        OnMsgRefreshStatusBar(  0, SBAR_DELETE_CLIENT_ITEMS);
+        break;
+    case 8:
+        OnMsgRefreshStatusBar(120, SBAR_CHECK_ALL_ITEMS);
+        break;
+    case 9:
+        OnMsgRefreshStatusBar(  0, SBAR_CHECK_MOD_ITEMS);
+        break;
+    case 10:
+        OnMsgRefreshStatusBar( 10, SBAR_CHECK_MOD_ITEMS2);
+        break;
+    case 11:
+        OnMsgRefreshStatusBar(  0, SBAR_WRITE_OLD_ITEMS);
+        break;
+    case 12:
+        OnMsgRefreshStatusBar(  0, SBAR_SENDDATA_BEGIN);
+        break;
+    case 13:
+        OnMsgRefreshStatusBar(  0, SBAR_RECEIVE_DATA_BEGIN);
+        break;
+    case 14:
+        OnMsgRefreshStatusBar(  0, SBAR_ENDING_SYNC);
+        break;
+    case 15:
+        refreshStatusBar(IDS_LOGGING_IN);
+        break;
+    case 16:
+        //refreshStatusBar(IDS_LOGIN_SUCCESSFUL);
+        //break;
+        testingStatusText ++;
+    case 17:
+        //refreshStatusBar(IDS_LOGIN_AUTH_FAILED);
+        //break;
+        testingStatusText ++;
+    case 18:
+        refreshStatusBar(IDS_TEXT_CANCELING_SYNC);
+        syncForm->refreshSourceStatus(IDS_TEXT_CANCELING_SYNC, currentSource);
+        break;
+    case 19:
+        refreshStatusBar(IDS_TEXT_SYNC_ENDED);
+        break;
+    case 20:
+        refreshStatusBar(AFX_IDS_IDLEMESSAGE);
+        break;
+
+    //
+    // last sync messages
+    //
+    case 21:
+        ssc->setLastSourceError(WIN_ERR_GENERIC);
+        syncForm->refreshSources();
+        break;
+    case 22:
+        ssc->setLastSourceError(WIN_ERR_SYNC_CANCELED);
+        syncForm->refreshSources();
+        break;
+    case 23:
+        ssc->setLastSourceError(WIN_ERR_SERVER_QUOTA_EXCEEDED);
+        syncForm->refreshSources();
+        break;
+    case 24:
+        ssc->setLastSourceError(WIN_ERR_LOCAL_STORAGE_FULL);
+        syncForm->refreshSources();
+        break;
+    case 25:
+        ssc->setLastSourceError(WIN_ERR_SAPI_NOT_SUPPORTED);
+        syncForm->refreshSources();
+        break;
+    case 26:
+        // Last sync with tstamp
+        ssc->setEndSyncTime((long)time(NULL));
+        ssc->setLastSourceError(WIN_ERR_NONE);
+        syncForm->refreshSources();
+        break;
+    case 27:
+        // Not synchronized
+        ssc->setEndSyncTime(0);
+        ssc->setLastSourceError(WIN_ERR_NONE);
+        syncForm->refreshSources();
+        break;
+    case 28:
+        // empty
+        syncForm->refreshSourceStatus(_T(""), currentSource);
+        break;
+
+    default:
+        break;
+    }
+
+finally:
+    testingStatusText ++;
 }
