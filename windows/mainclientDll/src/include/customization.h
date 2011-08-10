@@ -49,9 +49,9 @@
 
 // UI windows titles
 #define PLUGIN_UI_TITLE                     PROGRAM_NAME
-#define CONFIG_WINDOW_TITLE                 _T(PROGRAM_NAME) _T(" Options")
-#define MSGBOX_ERROR_TITLE                  PROGRAM_NAME " Error"
-#define WMSGBOX_ERROR_TITLE                 TEXT(PROGRAM_NAME) TEXT(" Error")
+#define CONFIG_WINDOW_TITLE                 _T(PROGRAM_NAME)
+#define MSGBOX_ERROR_TITLE                  PROGRAM_NAME
+#define WMSGBOX_ERROR_TITLE                 TEXT(PROGRAM_NAME)
 
 // Login screen
 #define DEFAULT_URL                         "http://my.funambol.com/sync"
@@ -187,7 +187,7 @@
 
 // If true, a menu "test popups" will be added in main screen to test all 
 // possible strings (popups and source status)
-#define TEST_POPUPS                         false
+#define TEST_POPUPS                         true
 
 // Win registry root context.
 // This is NOT intended to be customized: we need to use the same registry keys to ensure correct checks
