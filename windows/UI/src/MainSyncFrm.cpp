@@ -1980,8 +1980,9 @@ void CMainSyncFrame::onTestStatusText()
         OnMsgRefreshStatusBar(  0, SBAR_ENDING_SYNC);
         break;
     case 15:
-        refreshStatusBar(IDS_LOGGING_IN);
-        break;
+        //refreshStatusBar(IDS_LOGGING_IN);
+        //break;
+        testingStatusText ++;
     case 16:
         //refreshStatusBar(IDS_LOGIN_SUCCESSFUL);
         //break;
