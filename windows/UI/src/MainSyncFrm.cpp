@@ -780,46 +780,44 @@ LRESULT CMainSyncFrame::OnMsgItemSynced( WPARAM wParam, LPARAM lParam) {
         currentSource = lParam;
         syncForm->onSyncSourceBegin(currentSource);
     }
-
-    //
-    // Format message: "Sending/Receiving contacts x[/y]..."
-    //
-    // ******** TODO: use resources!!! ******
-    //
+    
     int currentItem = 0;
     int totalItems = 0;
     CString statusBarText;
-    if(wParam == -1) {
-        statusBarText = "Sending ";
+
+    if(wParam == -1) {        
         totalItems = totalClientItems;
         currentClientItem ++;
-        currentItem = currentClientItem;
+        currentItem = currentClientItem;        
+        CString ci, ti;
+        ci.Format(L"%i", currentItem);
+        ti.Format(L"%i", totalItems);
+        if(totalItems > 0)  {
+            statusBarText.FormatMessage(IDS_SENDING_XY, ci, ti);            
+        } else {
+            statusBarText.FormatMessage(IDS_SENDING_X, ci);                    
+        }
     }
     else {
-        statusBarText = "Receiving ";
         totalItems = totalServerItems;
         currentServerItem ++;
         currentItem = currentServerItem;
+        
+        CString ci, ti;
+        ci.Format(L"%i", currentItem);
+        ti.Format(L"%i", totalItems);
+        if(totalItems > 0)  {
+            statusBarText.FormatMessage(IDS_RECEIVING_XY, ci, ti);            
+        } else {
+            statusBarText.FormatMessage(IDS_RECEIVING_X, ci);                    
+        }
     }
-
-    statusBarText += " ";
-
-    char* temp =  ltow(currentItem);
-    statusBarText += temp;
-    delete [] temp; temp = NULL;
-
-    // '-1' received when #ofChanges is not supported.
-    if(totalItems > 0){
-        statusBarText += "/";
-        temp = ltow(totalItems);
-        statusBarText += temp;
-        delete [] temp; temp = NULL;
-    }
-
+   
     refreshStatusBar(statusBarText);
 
     // refresh source pane status
     syncForm->refreshSourceStatus(statusBarText, currentSource);
+
 
     return 0;
 }
@@ -833,50 +831,37 @@ afx_msg LRESULT CMainSyncFrame::OnMsgRefreshStatusBar( WPARAM wParam, LPARAM lPa
     //
 
     CString s1;
-    char text[100];
-    text[0] = 0;
-
+    WCHAR tmp[20];
     switch (lParam) {
         case SBAR_CHECK_ALL_ITEMS: {
-            sprintf(text, SBAR_READING_ALLITEMS, (int)wParam);
+            wsprintf(tmp, TEXT("%d"), (int)wParam);
+            s1.FormatMessage(IDS_READING_ALLITEMS, (int)tmp);
             break;
         }
         case SBAR_CHECK_MOD_ITEMS: {
-            sprintf(text, SBAR_CHECKING_MODITEMS);
+            s1.LoadString(IDS_CHECKING_MODITEMS);
             break;
         }
         case SBAR_CHECK_MOD_ITEMS2: {
-            sprintf(text, SBAR_CHECKING_MODITEMS2, (int)wParam);
+            wsprintf(tmp, TEXT("%d"), (int)wParam);
+            s1.FormatMessage(IDS_CHECKING_MODITEMS2, tmp);    
             break;
-        }
-        case SBAR_WRITE_OLD_ITEMS: {
-            sprintf(text, SBAR_WRITING_OLDITEMS);
-            break;
-        }
+        }       
         case SBAR_DELETE_CLIENT_ITEMS: {
-            char* sourceName;
-            if      (currentSource == SYNCSOURCE_CONTACTS) sourceName = CONTACT_;
-            else if (currentSource == SYNCSOURCE_CALENDAR) sourceName = APPOINTMENT_;
-            else if (currentSource == SYNCSOURCE_TASKS)    sourceName = TASK_;
-            else if (currentSource == SYNCSOURCE_NOTES)    sourceName = NOTE_;
-            else if (currentSource == SYNCSOURCE_PICTURES) sourceName = PICTURE_;
-            else if (currentSource == SYNCSOURCE_VIDEOS)   sourceName = VIDEO_;
-            else if (currentSource == SYNCSOURCE_FILES)    sourceName = FILES_;
-            sprintf(text, SBAR_DELETING_ITEMS, sourceName);
+
+            CString src = getLabelStringFromID(currentSource);
+            s1.FormatMessage(IDS_DELETING_ITEMS, src);
             break;
         }
         case SBAR_SENDDATA_BEGIN: {
-            sprintf(text, SBAR_SENDING_DATA);
+            s1.LoadString(IDS_SENDING_DATA);
             break;
         }
         case SBAR_RECEIVE_DATA_BEGIN: {
-            sprintf(text, SBAR_RECEIVING_DATA);
+            s1.LoadString(IDS_RECEIVING_DATA);
+            
             break;
-        }
-        case SBAR_SENDDATA_END: {
-            sprintf(text, SBAR_WAITING);
-            break;
-        }
+        }        
         case SBAR_ENDING_SYNC: {
             s1.LoadString(IDS_ENDING_SYNC);
             refreshStatusBar(s1);
@@ -885,7 +870,7 @@ afx_msg LRESULT CMainSyncFrame::OnMsgRefreshStatusBar( WPARAM wParam, LPARAM lPa
     }
     }
 
-    s1 = text;
+    
     refreshStatusBar(s1);
 
     // Refresh source labels for some case
@@ -895,7 +880,6 @@ afx_msg LRESULT CMainSyncFrame::OnMsgRefreshStatusBar( WPARAM wParam, LPARAM lPa
         currentSource != SYNCSOURCE_FILES) {
         if ( lParam == SBAR_SENDDATA_BEGIN ||
              lParam == SBAR_RECEIVE_DATA_BEGIN ||
-             lParam == SBAR_SENDDATA_END ||
              lParam == SBAR_DELETE_CLIENT_ITEMS ) {
 
             syncForm->refreshSourceStatus(s1, currentSource);
@@ -1291,7 +1275,8 @@ int CMainSyncFrame::CancelSync(bool confirm) {
     int selected = IDYES;
     if (confirm) {
         unsigned int flags = MB_YESNO | MB_ICONQUESTION | MB_SETFOREGROUND | MB_APPLMODAL;
-        selected = MessageBox(WMSG_BOX_CANCEL_SYNC, WPROGRAM_NAME, flags);
+        CString s1; s1.LoadString(IDS_CANCEL_SYNC_IN_PROGRESS);
+        selected = MessageBox(s1.GetString(), WPROGRAM_NAME, flags);
     }
 
     // First check again if sync is running (could be terminated in the meanwhile...)
@@ -1665,17 +1650,23 @@ afx_msg LRESULT CMainSyncFrame::OnMsgSapiProgress(WPARAM wParam, LPARAM lParam) 
         percentage = 100;
     }
 
-    StringBuffer perc;
-    perc.sprintf(" (%i%%)", percentage);
-
+    CString p;
+    p.Format(L"(%i%%)", percentage);
+    
     // append to source status
     CString s = syncForm->getSourceStatus(currentSource);
-    StringBuffer ss, pp;
-    pp = StringBuffer().convert(s.GetBuffer(0));
-    ss = pp.substr(0, pp.rfind(" ("));
-    ss += perc;
-    syncForm->refreshSourceStatus(CString(ss.c_str()), currentSource);
 
+    // remove the percentage in this line
+    int start = s.Find(L"(");
+    if (start > -1) {
+        int end = s.Find(L")");
+        CString par = s.Mid(start, end-start+1);
+        s.Replace(par, L"");
+        s.Trim();
+    }
+
+    CString s1; s1.FormatMessage(IDS_CONCAT_1_2, s, p); 
+    syncForm->refreshSourceStatus(s1, currentSource);
     return 0;
 
 }
@@ -1777,7 +1768,7 @@ void CMainSyncFrame::OnTestPopups()
     // sync ended popups
     //
     manageSyncErrorMsg(WIN_ERR_GENERIC);                     // 1
-    manageSyncErrorMsg(WIN_ERR_SYNC_CANCELED);               // 2
+    //manageSyncErrorMsg(WIN_ERR_SYNC_CANCELED);               // 2
     //manageSyncErrorMsg(WIN_ERR_FATAL_OL_EXCEPTION);        // 3   deprecated
     manageSyncErrorMsg(WIN_ERR_THREAD_TERMINATED);           // 4
     //manageSyncErrorMsg(WIN_ERR_FULL_SYNC_CANCELED);        // 5   deprecated
@@ -1785,14 +1776,14 @@ void CMainSyncFrame::OnTestPopups()
     //manageSyncErrorMsg(WIN_ERR_UNEXPECTED_STL_EXCEPTION);  // 7  (same msg as code 6)
     manageSyncErrorMsg(WIN_ERR_SERVER_QUOTA_EXCEEDED);       // 8
     manageSyncErrorMsg(WIN_ERR_LOCAL_STORAGE_FULL);          // 9
-    manageSyncErrorMsg(WIN_ERR_DROPPED_ITEMS);               // 10
-    manageSyncErrorMsg(WIN_ERR_DROPPED_ITEMS_SERVER);        // 11
+    //manageSyncErrorMsg(WIN_ERR_DROPPED_ITEMS);               // 10
+    //manageSyncErrorMsg(WIN_ERR_DROPPED_ITEMS_SERVER);        // 11
     manageSyncErrorMsg(WIN_ERR_NO_SOURCES);                  // 12
-    manageSyncErrorMsg(WIN_ERR_SAPI_NOT_SUPPORTED);          // 13
+    //manageSyncErrorMsg(WIN_ERR_SAPI_NOT_SUPPORTED);          // 13
     manageSyncErrorMsg(WIN_ERR_INVALID_CREDENTIALS);         // 401
     //manageSyncErrorMsg(WIN_ERR_PROXY_AUTH_REQUIRED);       // 407 (same msg as code 401)
-    manageSyncErrorMsg(WIN_ERR_REMOTE_NAME_NOT_FOUND);       // 404
-    manageSyncErrorMsg(WIN_ERR_AUTOSYNC_DISABLED);	         // 500
+    //manageSyncErrorMsg(WIN_ERR_REMOTE_NAME_NOT_FOUND);       // 404
+    //manageSyncErrorMsg(WIN_ERR_AUTOSYNC_DISABLED);	         // 500
     manageSyncErrorMsg(WIN_ERR_WRONG_HOST_NAME);             // 2001
     //manageSyncErrorMsg(WIN_ERR_NETWORK_ERROR);             // 2050 (same msg as code 2050)
 
@@ -1831,12 +1822,14 @@ void CMainSyncFrame::OnTestPopups()
     wsafeMessageBox(s1);
 
     flags = MB_YESNO | MB_ICONQUESTION | MB_SETFOREGROUND | MB_APPLMODAL;
-    MessageBox(WMSG_BOX_CANCEL_SYNC, WPROGRAM_NAME, flags);
+    s1.LoadString(IDS_CANCEL_SYNC_IN_PROGRESS);
+    MessageBox(s1.GetString(), WPROGRAM_NAME, flags);
+    // MessageBox(WMSG_BOX_CANCEL_SYNC, WPROGRAM_NAME, flags);
 
     //AfxMessageBox(AFX_IDP_FAILED_TO_CREATE_DOC);
 
-    s1.LoadString(IDS_ERROR_SET_REMOTE_NAME);
-    wsafeMessageBox(s1);
+    //s1.LoadString(IDS_ERROR_SET_REMOTE_NAME);
+    //wsafeMessageBox(s1);
 
     s1.LoadString(IDS_ERROR_PROXY_USERNAME);
     wsafeMessageBox(s1);
@@ -1844,8 +1837,8 @@ void CMainSyncFrame::OnTestPopups()
     s1.LoadString(IDS_ERROR_PROXY_PASSWORD);
     wsafeMessageBox(s1);
 
-    s1.LoadString(IDS_SCHEDULER_CANNOT_SCHEDULE);
-    wsafeMessageBox(s1);
+    //s1.LoadString(IDS_SCHEDULER_CANNOT_SCHEDULE);
+    //wsafeMessageBox(s1);
 
     //char msg[500];
     //sprintf(msg, ERR_OUTLOOK_BAD_FOLDER_TYPE, itemType.c_str());
@@ -1880,7 +1873,7 @@ void CMainSyncFrame::OnTestPopups()
 
 
     // all status bar messages: will be triggered clicking on a source tab
-    safeMessageBox("*** Click on a source to continue ***");
+    safeMessageBox("*** NOT A MESSAGE: Click on a row to continue ***");
     testingStatusText = 1;
 }
 
@@ -1896,12 +1889,14 @@ void CMainSyncFrame::testAllStatusText(const int sourceID)
         currentSource = 0;
         getConfig()->read();
         syncForm->refreshSources();
-        safeMessageBox("*** Test completed! ***");
+        safeMessageBox("*** NOT A MESSAGE: Test completed! ***");
     }
 }
 
 void CMainSyncFrame::onTestStatusText()
 {
+
+    CString s, ci, ti, p, s1;
     StringBuffer name = syncSourceIndexToName(currentSource);
     if (name.empty()) goto finally;
 
@@ -1924,33 +1919,47 @@ void CMainSyncFrame::onTestStatusText()
 
     case 3:
         refreshStatusBar(IDS_TEXT_SENDING);             // sending x/y (TODO: fix with numbers)
-        syncForm->refreshSourceStatus(IDS_TEXT_SENDING, currentSource);
+        
+        ci.Format(L"%i", 3);
+        ti.Format(L"%i", 10);
+        s.FormatMessage(IDS_SENDING_XY, ci, ti);
+        syncForm->refreshSourceStatus(s, currentSource);
         break;
-    case 4:
-        // sending x/y (68%) (TODO: fix with numbers)
-        OnMsgSapiProgress(-2, 100);         // progress begin
-        OnMsgSapiProgress( 0,  68);         // progress size
-        OnMsgSapiProgress( 1,   0);         // progress end
+    case 4:        
+        p.Format(L"(%i%%)", 30);
+        ci.Format(L"%i", 3);
+        ti.Format(L"%i", 10);
+        s.FormatMessage(IDS_SENDING_XY, ci, ti);    
+        s1.FormatMessage(IDS_CONCAT_1_2, s, p); 
+        syncForm->refreshSourceStatus(s1, currentSource);
         break;
 
     case 5:
-        refreshStatusBar(IDS_TEXT_RECEIVING);           // receiving x/y (TODO: fix with numbers)
-        syncForm->refreshSourceStatus(IDS_TEXT_RECEIVING, currentSource);
+        refreshStatusBar(IDS_TEXT_RECEIVING);           // receiving x/y (TODO: fix with numbers)        
+        ci.Format(L"%i", 4);
+        ti.Format(L"%i", 10);
+        s.FormatMessage(IDS_RECEIVING_XY, ci, ti);
+        syncForm->refreshSourceStatus(s, currentSource);
         break;
     case 6:
-        // syncItem progress: x/y (49%)
-        OnMsgSapiProgress(-2, 100);         // progress begin
-        OnMsgSapiProgress( 0,  49);         // progress size
-        OnMsgSapiProgress( 1,   0);         // progress end
+       
+        p.Format(L"(%i%%)", 30);
+        ci.Format(L"%i", 3);
+        ti.Format(L"%i", 10);
+        s.FormatMessage(IDS_RECEIVING_XY, ci, ti);    
+        s1.FormatMessage(IDS_CONCAT_1_2, s, p); 
+        syncForm->refreshSourceStatus(s1, currentSource);
         break;
 
     case 7:
         // currentSource needs to be set
-        OnMsgRefreshStatusBar(  0, SBAR_DELETE_CLIENT_ITEMS);
-        break;
+        //OnMsgRefreshStatusBar(  0, SBAR_DELETE_CLIENT_ITEMS);
+        //break;
+        testingStatusText ++;
     case 8:
-        OnMsgRefreshStatusBar(120, SBAR_CHECK_ALL_ITEMS);
-        break;
+        //OnMsgRefreshStatusBar(120, SBAR_CHECK_ALL_ITEMS);
+        //break;
+        testingStatusText ++;
     case 9:
         OnMsgRefreshStatusBar(  0, SBAR_CHECK_MOD_ITEMS);
         break;
@@ -1958,8 +1967,9 @@ void CMainSyncFrame::onTestStatusText()
         OnMsgRefreshStatusBar( 10, SBAR_CHECK_MOD_ITEMS2);
         break;
     case 11:
-        OnMsgRefreshStatusBar(  0, SBAR_WRITE_OLD_ITEMS);
-        break;
+        // OnMsgRefreshStatusBar(  0, SBAR_WRITE_OLD_ITEMS);
+        // break;
+        testingStatusText ++;
     case 12:
         OnMsgRefreshStatusBar(  0, SBAR_SENDDATA_BEGIN);
         break;

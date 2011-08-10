@@ -182,7 +182,8 @@ void CFullSync::OnBnClickedOk() {
         if (UICustomization::confirmOnRefreshFromServer) {
             // Prompt a warning message...
             unsigned int flags = MB_YESNO | MB_ICONEXCLAMATION | MB_SETFOREGROUND | MB_APPLMODAL;
-            int selected = MessageBox(WMSG_BOX_REFRESH_FROM_SERVER, WPROGRAM_NAME, flags);
+            CString s1; s1.LoadString(IDS_REFRESH_FROM_SERVER);
+            int selected = MessageBox(s1.GetString(), WPROGRAM_NAME, flags);
             if (selected == IDNO) {
                 return;
             }
@@ -195,7 +196,8 @@ void CFullSync::OnBnClickedOk() {
         if (UICustomization::confirmOnRefreshFromClient) {
             // Prompt a warning message...
             unsigned int flags = MB_YESNO | MB_ICONEXCLAMATION | MB_SETFOREGROUND | MB_APPLMODAL;
-            int selected = MessageBox(WMSG_BOX_REFRESH_FROM_CLIENT, WPROGRAM_NAME, flags);
+            CString s1; s1.LoadString(IDS_REFRESH_FROM_CLIENT);
+            int selected = MessageBox(s1.GetString(), WPROGRAM_NAME, flags);
             if (selected == IDNO) {
                 return;
             }

@@ -171,13 +171,6 @@
 //
 /** @cond DEV */
 // MessageBox messages
-#define MSG_BOX_CANCEL_SYNC                 "Are you really sure you want to cancel current synchronization?"
-#define WMSG_BOX_CANCEL_SYNC               L"Are you really sure you want to cancel current synchronization?"
-#define WMSG_BOX_ASK_SLOW_1                L"The server has requested a full sync of all items for "
-#define WMSG_BOX_ASK_SLOW_2                L".\nThis process may take up to a few minutes depending on the number of items\nand network bandwidth.\n\nDo you wish to proceed? (YES in %d seconds...)"
-#define WMSG_BOX_ASK_SLOW_3                   L".\nThis process may take up to a few minutes depending on the number of items\nand network bandwidth.\nYou are configured to perform a one-way sync, this can change data\non both the client and server.\n\nDo you wish to proceed?"
-#define WMSG_BOX_REFRESH_FROM_SERVER       L"A sync to replace your local data with your server data has been requested.\nAll the local items will be deleted before adding the server items.\nAre you sure you want to continue?"
-#define WMSG_BOX_REFRESH_FROM_CLIENT       L"A sync to replace your server data with your local data has been requested.\nAll the data will be deleted on the server before adding the local items.\nThis may result in the loss of data in any fields supported by other devices, but not by Outlook.\nAre you sure you want to continue?"
 
 
 // Error messages
@@ -313,24 +306,12 @@
 #define SBAR_CHECK_ALL_ITEMS                1
 #define SBAR_CHECK_MOD_ITEMS                2
 #define SBAR_CHECK_MOD_ITEMS2               3
-#define SBAR_WRITE_OLD_ITEMS                4
 #define SBAR_SENDDATA_BEGIN                 5
-#define SBAR_SENDDATA_END                   6
 #define SBAR_RECEIVE_DATA_BEGIN             7
 #define SBAR_RECEIVE_DATA_END               8
 #define SBAR_DELETE_CLIENT_ITEMS            9
 #define SBAR_ENDING_SYNC                    10
 
-
-// Status bar messages
-#define SBAR_READING_ALLITEMS               "Reading all items from Outlook (%d)..."
-#define SBAR_CHECKING_MODITEMS              "Checking changes since last successful sync..."
-#define SBAR_CHECKING_MODITEMS2             "Checking changes since last successful sync (%d) ..."
-#define SBAR_WRITING_OLDITEMS               "Writing all items list for next sync..."
-#define SBAR_DELETING_ITEMS                 "Deleting %ss from Outlook..."
-#define SBAR_SENDING_DATA                   "Sending data to the Server..."
-#define SBAR_RECEIVING_DATA                 "Receiving data from the Server..."
-#define SBAR_WAITING                        "Waiting for Server response..."
 /** @endcond */  // cond DEV
 
 #include "defs.h"

@@ -88,7 +88,6 @@
 #define OL_PLUGIN_LOG_NAME                  "synclog.txt"
 #define ENABLE_ENCRYPTION_SETTINGS          1                           /**< 0 to hide the encryption UI check in the Settings screen */
 #define SHOW_ADVANCED_SETTINGS              1                           /**< 0 to hide the advanced source settings (remote URIs) */
-#define DISPLAY_SLOWSYNC_WARNING            0                           /**< 1 to display a timed-msgbox if Server requests a SLOW SYNC */
 #define ASK_SLOW_TIMEOUT                    25                          /**< 25 seconds    */
 #define TIME_OUT_ABORT                      4                           /**< 4  seconds    */
 #define SCHED_DEFAULT_REPEAT_MINS           30                          /**< 30 minutes    */

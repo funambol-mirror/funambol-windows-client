@@ -100,6 +100,12 @@ wstring formatDate(Funambol::StringBuffer& date);
 Funambol::StringBuffer ConvertToChar(CString &s);
 
 /**
+ * Returns the source name given the ID .
+ * @return the source name ("Contact") or "" if error 
+ */
+CString getLabelStringFromID(int id);
+
+/**
  * Returns the source visible ID given its position index.
  * I.e. position=0 means the first source visible on the top.
  * @return the source ID (SYNCSOURCE_CONTACTS...) or 0 if error
