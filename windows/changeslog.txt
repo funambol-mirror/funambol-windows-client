@@ -1,4 +1,5 @@
 2011-08-10
+  - magi: * changed format of last sync. Now it is only the date/time
   - toccy: fixed refresh syncs syncmode in case of first sync
   - magi: * moved fixed message box in winmaincpp.h to resources. Removed 2 messages no more used.
           * moved fixed status bar messages to resources (fixed bug 8612)

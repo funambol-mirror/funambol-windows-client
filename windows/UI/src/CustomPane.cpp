@@ -535,10 +535,34 @@ CString CCustomPane::getLastSyncStatusText() {
             if (tstamp == 0) {
                 s1.LoadString(IDS_NOT_SYNCHRONIZED); 
             } else {
+                CString d, t;
+                SYSTEMTIME timeDest; wchar_t data[80]; 
+                
+                WCHAR result[240];
+                CTime endSyncTime(tstamp);                  
+                endSyncTime.GetAsSystemTime(timeDest);
+                GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SLONGDATE, data, 80);
+                GetDateFormatEx(LOCALE_NAME_USER_DEFAULT, NULL, &timeDest, data, result, 80, NULL); 
+                
+                d = result;
+                
+                GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_STIMEFORMAT, data, 80);
+                GetTimeFormatEx(LOCALE_NAME_USER_DEFAULT, NULL, &timeDest, data, result, 80); 
+                
+                t = result;
+                
+
+            /*
                 CTime endSyncTime(tstamp);
                 s1.LoadString(IDS_SYNCHRONIZED); 
                 s1+= " ";
                 s1 += endSyncTime.Format(LAST_SYNC_TIME_FORMAT);
+            */
+                s1.FormatMessage(IDS_SYNCHRONIZED, d, t);
+                //s1.Append(d);
+                //s1.Append(L" ");
+                //s1.Append(t);
+                int i = 0;
             }
             break;
         }
