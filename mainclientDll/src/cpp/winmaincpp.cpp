@@ -1030,9 +1030,12 @@ int synchronize(WindowsSyncClient& winClient, WindowsSyncSource& source) {
         return -1;
     }
 
-    // set sync mode == "slow" if timestamp is 0
+    // set sync mode == "slow" if timestamp is 0 (and NOT a refresh!)
     // (tstamp 0 means we're not in sync, i.e. it's the first time)
-    if (source.getConfig()->getLast() == 0) {
+    StringBuffer syncMode(source.getConfig()->getSync());
+    if (source.getConfig()->getLast() == 0 &&
+        syncMode != SYNC_MODE_REFRESH_FROM_CLIENT &&
+        syncMode != SYNC_MODE_REFRESH_FROM_SERVER) {
         LOG.debug("last tstamp is 0: force the syncmode to SLOW");
         source.getConfig()->setSync(SYNC_MODE_SLOW);
         source.setSyncMode(SYNC_SLOW);
