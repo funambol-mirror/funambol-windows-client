@@ -59,8 +59,7 @@ void OutlookTransportListener::sendingData(TransportEvent &event) {
 
 void OutlookTransportListener::sendDataEnd(TransportEvent &event) {
 	LOG.debug("Finished sending data of size %d.", event.getDataSize());
-    SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SAPI_PROGRESS, 1, event.getDataSize());
-    //SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_REFRESH_STATUSBAR, NULL, (LPARAM)SBAR_SENDDATA_END);
+    SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_SAPI_PROGRESS, 1, event.getDataSize()); 
 }
 
 

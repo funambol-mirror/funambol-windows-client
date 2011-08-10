@@ -69,6 +69,8 @@ void CProxySettings::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CProxySettings, CDialog)
+    ON_BN_CLICKED(IDC_PROXY_OK,         &CProxySettings::OnBnClickedProxyOk)
+    ON_BN_CLICKED(IDC_PROXY_CANCEL,     &CProxySettings::OnBnClickedProxyCancel)
     ON_BN_CLICKED(IDC_PROXY_ENABLE, &CProxySettings::OnBnClickedProxyEnable)
     ON_BN_CLICKED(IDC_PROXY_AUTH, &CProxySettings::OnBnClickedProxyAuth)
 END_MESSAGE_MAP()
@@ -88,11 +90,13 @@ BOOL CProxySettings::OnInitDialog(){
     editUser.SetLimitText(EDIT_TEXT_MAXLENGTH);
     editPass.SetLimitText(EDIT_TEXT_MAXLENGTH);
 
-    s1.LoadString(IDS_ACCOUNT_USEPROXY);  SetDlgItemText(IDC_PROXY_ENABLE, s1);
+    s1.LoadString(IDS_ACCOUNT_USEPROXY);   SetDlgItemText(IDC_PROXY_ENABLE, s1);
     s1.LoadString(IDS_ACCOUNT_PROXY_AUTH); SetDlgItemText(IDC_PROXY_AUTH, s1);
     s1.LoadString(IDS_ACCOUNT_PROXY_USER); SetDlgItemText(IDC_PROXY_STATIC_USER, s1);
     s1.LoadString(IDS_ACCOUNT_PROXY_PASS); SetDlgItemText(IDC_PROXY_STATIC_PASSWORD, s1);
-
+    s1.LoadString(IDS_OK);                 SetDlgItemText(IDC_PROXY_OK, s1);
+    s1.LoadString(IDS_CANCEL);             SetDlgItemText(IDC_PROXY_CANCEL, s1);
+    
     // read config from Registry 
     OutlookConfig* conf = (OutlookConfig*)getConfig();
 
@@ -182,7 +186,13 @@ void CProxySettings::OnBnClickedProxyAuth()
 }
 
 
-void CProxySettings::OnOK(){
+void CProxySettings::OnBnClickedProxyCancel()
+{
+    // will save when 'OK' is clicked on SyncSettings.
+    CDialog::OnCancel();
+}
+
+void CProxySettings::OnBnClickedProxyOk(){
     CString proxyUser, proxyPassword;
     CString s1;
     _bstr_t bst;

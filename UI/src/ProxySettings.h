@@ -69,7 +69,9 @@ public:
     
     afx_msg void OnBnClickedProxyEnable();
     afx_msg void OnBnClickedProxyAuth();
-    afx_msg void OnOK();
+    afx_msg void OnBnClickedProxyOk();
+    afx_msg void OnBnClickedProxyCancel();
+    
 };
 
 /** @} */

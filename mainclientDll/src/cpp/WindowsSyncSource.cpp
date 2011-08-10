@@ -2008,10 +2008,7 @@ wstring WindowsSyncSource::createOldItems() {
     wstring data;
     ItemReport *itemDeleted, *itemAdded;
     bool deleted = false;
-
-    // Refresh status bar on UI.
-    SendMessage(HwndFunctions::getWindowHandle(), ID_MYMSG_REFRESH_STATUSBAR, NULL, (LPARAM)SBAR_WRITE_OLD_ITEMS);
-
+    
     int clientDeletedCount = report->getItemReportCount(CLIENT, COMMAND_DELETE);
     int clientAddedCount   = report->getItemReportCount(CLIENT, COMMAND_ADD);
 
