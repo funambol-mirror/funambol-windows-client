@@ -1,5 +1,8 @@
-2011-08-09
+2011-08-10
   - toccy: release 10.0.5
+  - toccy: fixed refresh syncs syncmode in case of first sync
+  
+2011-08-09
   - toccy: merged from trunk at rev.891:
           - magi: updated nsis and languages to create the shortcut on desktop named "MediaHub Folder" in each language
 
