@@ -541,13 +541,13 @@ CString CCustomPane::getLastSyncStatusText() {
                 WCHAR result[240];
                 CTime endSyncTime(tstamp);                  
                 endSyncTime.GetAsSystemTime(timeDest);
-                GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SLONGDATE, data, 80);
-                GetDateFormatEx(LOCALE_NAME_USER_DEFAULT, NULL, &timeDest, data, result, 80, NULL); 
+                GetLocaleInfo(LOCALE_NAME_USER_DEFAULT, LOCALE_SLONGDATE, data, 80);
+                GetDateFormat(LOCALE_NAME_USER_DEFAULT, NULL, &timeDest, data, result, 80); 
                 
                 d = result;
                 
-                GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_STIMEFORMAT, data, 80);
-                GetTimeFormatEx(LOCALE_NAME_USER_DEFAULT, NULL, &timeDest, data, result, 80); 
+                GetLocaleInfo(LOCALE_NAME_USER_DEFAULT, LOCALE_STIMEFORMAT, data, 80);
+                GetTimeFormat(LOCALE_NAME_USER_DEFAULT, NULL, &timeDest, data, result, 80); 
                 
                 t = result;
                 
