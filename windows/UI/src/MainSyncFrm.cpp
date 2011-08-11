@@ -826,10 +826,6 @@ LRESULT CMainSyncFrame::OnMsgItemSynced( WPARAM wParam, LPARAM lParam) {
 
 afx_msg LRESULT CMainSyncFrame::OnMsgRefreshStatusBar( WPARAM wParam, LPARAM lParam) {
 
-    //
-    // *** TODO: use UI string resources!!!! ***
-    //
-
     CString s1;
     WCHAR tmp[20];
     switch (lParam) {
@@ -1125,7 +1121,6 @@ LRESULT CMainSyncFrame::OnMsgStartsyncEnded(WPARAM wParam, LPARAM lParam) {
 	}
 
     // messagebox alerting payment required for restore
-	//-----------------------------------------------------------------------------------------
     if (ENABLE_PAYMENT_REQUIRED_CHARGE) {
 	    UINT msgboxFlags = 0;
 	    int  selected = 0;
@@ -1133,9 +1128,9 @@ LRESULT CMainSyncFrame::OnMsgStartsyncEnded(WPARAM wParam, LPARAM lParam) {
 	    setRefreshSourcesListToSync(true);
 	    if ( (!isScheduled) && ( exitCode == WIN_ERR_PAYMENT_REQUIRED ) ) {
 
-		    // interactive messagebox @#@#@#
-            // **** TODO: use string resources! ****
-		    CString s1 = "Warning, a payment is required for performing restore!\r\nIf you continue a charge will be applied on you account.\r\n Do you want continue?";
+		    // warning message: do you want to proceed?
+            CString s1;
+            s1.LoadString(IDS_PAYMENT_REQUIRED);
 		    msgboxFlags = MB_YESNO | MB_ICONQUESTION | MB_SETFOREGROUND | MB_APPLMODAL;
 		    selected = wsafeMessageBox(s1.GetBuffer(), 0, msgboxFlags);
 		    if (selected == IDYES ) {
@@ -1143,8 +1138,6 @@ LRESULT CMainSyncFrame::OnMsgStartsyncEnded(WPARAM wParam, LPARAM lParam) {
 		    }
 	    }
     }
-	//-----------------------------------------------------------------------------------------
-
 
     refreshStatusBar(IDS_TEXT_SYNC_ENDED);
 
@@ -1918,7 +1911,7 @@ void CMainSyncFrame::onTestStatusText()
         break;
 
     case 3:
-        refreshStatusBar(IDS_TEXT_SENDING);             // sending x/y (TODO: fix with numbers)
+        refreshStatusBar(IDS_TEXT_SENDING);             // sending x/y
         
         ci.Format(L"%i", 3);
         ti.Format(L"%i", 10);
@@ -1935,7 +1928,7 @@ void CMainSyncFrame::onTestStatusText()
         break;
 
     case 5:
-        refreshStatusBar(IDS_TEXT_RECEIVING);           // receiving x/y (TODO: fix with numbers)        
+        refreshStatusBar(IDS_TEXT_RECEIVING);           // receiving x/y
         ci.Format(L"%i", 4);
         ti.Format(L"%i", 10);
         s.FormatMessage(IDS_RECEIVING_XY, ci, ti);
